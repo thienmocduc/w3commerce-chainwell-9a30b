@@ -3,7 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAI() {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key || key === 'sk-...') throw new Error('OPENAI_API_KEY not configured');
+  return new OpenAI({ apiKey: key });
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -37,7 +41,7 @@ Return a JSON object with this exact structure:
   "urgencyScore": 7
 }`;
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [{ role: 'user', content: prompt }],
       max_tokens: 1000,

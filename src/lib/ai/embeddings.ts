@@ -1,13 +1,17 @@
 import OpenAI from 'openai';
 import { createServiceClient } from '@/lib/supabase/server';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAI() {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key || key === 'sk-...') throw new Error('OPENAI_API_KEY not configured');
+  return new OpenAI({ apiKey: key });
+}
 
 /**
  * Generate embedding for a text string using OpenAI
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
+  const response = await getOpenAI().embeddings.create({
     model: 'text-embedding-ada-002',
     input: text.slice(0, 8000), // limit input size
   });

@@ -3,7 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { retrieveRelevantProducts } from '@/lib/ai/retriever';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+function getOpenAI() {
+  const key = process.env.OPENAI_API_KEY;
+  if (!key || key === 'sk-...') throw new Error('OPENAI_API_KEY not configured');
+  return new OpenAI({ apiKey: key });
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,7 +49,7 @@ Rules:
 ${productContext}`;
 
     // Stream response
-    const stream = await openai.chat.completions.create({
+    const stream = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
