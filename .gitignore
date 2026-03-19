@@ -27,9 +27,23 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
+
+# netlify
+.netlify
+
+# contracts build artifacts
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+contracts/node_modules/
+contracts/deployments/
+
+# typechain generated
+src/lib/web3/typechain/
 
 # typescript
 *.tsbuildinfo
