@@ -51,13 +51,24 @@ export async function POST(request: NextRequest) {
     });
 
     // 1. Create auth user
-    const { data: authData, error: signUpError } =
-      await supabaseAdmin.auth.admin.createUser({
+    let authData;
+    let signUpError;
+    try {
+      const result = await supabaseAdmin.auth.admin.createUser({
         email,
         password,
-        email_confirm: true, // Auto-confirm so user can login immediately
+        email_confirm: true,
         user_metadata: { role: userRole },
       });
+      authData = result.data;
+      signUpError = result.error;
+    } catch (fetchErr) {
+      const msg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+      return NextResponse.json(
+        { error: `Supabase auth failed: ${msg}`, supabaseUrl: supabaseUrl?.substring(0, 30) },
+        { status: 502 }
+      );
+    }
 
     if (signUpError) {
       // Handle duplicate email
