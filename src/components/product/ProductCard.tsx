@@ -1,32 +1,35 @@
 'use client';
 
+import Link from 'next/link';
 import type { Product } from '@/lib/types/database.types';
 import { Button } from '@/components/ui/button';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (productId: string) => void;
+  onAddToCart?: (product: Product) => void;
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   return (
     <div className="group rounded-lg border border-border bg-card p-4 transition-all hover:shadow-md hover:border-primary/30">
-      <div className="mb-3 aspect-square overflow-hidden rounded-md bg-muted">
-        <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-          Product Image
+      <Link href={`/products/${product.id}`}>
+        <div className="mb-3 aspect-square overflow-hidden rounded-md bg-gradient-to-br from-muted to-muted/50">
+          <div className="flex h-full items-center justify-center text-4xl">
+            📦
+          </div>
         </div>
-      </div>
 
-      <h3 className="mb-1 text-sm font-medium leading-tight line-clamp-2">
-        {product.name}
-      </h3>
-      <p className="mb-2 text-xs text-muted-foreground line-clamp-2">
-        {product.description}
-      </p>
+        <h3 className="mb-1 text-sm font-medium leading-tight line-clamp-2">
+          {product.name}
+        </h3>
+        <p className="mb-2 text-xs text-muted-foreground line-clamp-2">
+          {product.description}
+        </p>
+      </Link>
 
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-lg font-bold">${product.price}</span>
+          <span className="text-lg font-bold">${Number(product.price).toFixed(2)}</span>
           {product.stock > 0 ? (
             <span className="ml-2 text-xs text-green-500">In Stock</span>
           ) : (
@@ -44,7 +47,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         className="mt-3 w-full"
         size="sm"
         disabled={product.stock === 0}
-        onClick={() => onAddToCart?.(product.id)}
+        onClick={(e) => {
+          e.preventDefault();
+          onAddToCart?.(product);
+        }}
       >
         Add to Cart
       </Button>

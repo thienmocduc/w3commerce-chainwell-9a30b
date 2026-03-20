@@ -2,12 +2,14 @@
 
 import Link from 'next/link';
 import { useUser } from '@/hooks/useUser';
+import { useCart } from '@/hooks/useCart';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
 export function NavBar() {
   const { profile, loading } = useUser();
+  const { totalItems } = useCart();
   const router = useRouter();
 
   async function handleSignOut() {
@@ -24,8 +26,8 @@ export function NavBar() {
             W3Commerce
           </Link>
           <div className="hidden items-center gap-4 md:flex">
-            <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Marketplace
+            <Link href="/products" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              Products
             </Link>
             <Link href="/academy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               Academy
@@ -34,10 +36,25 @@ export function NavBar() {
         </div>
 
         <div className="flex items-center gap-3">
+          <Link
+            href="/cart"
+            className="relative text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            🛒
+            {totalItems > 0 && (
+              <span className="absolute -right-2.5 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                {totalItems > 9 ? '9+' : totalItems}
+              </span>
+            )}
+          </Link>
+
           {loading ? (
             <div className="h-8 w-20 animate-pulse rounded bg-muted" />
           ) : profile ? (
             <>
+              <Link href="/orders" className="hidden text-sm text-muted-foreground hover:text-foreground md:block transition-colors">
+                Orders
+              </Link>
               {profile.role === 'vendor' && (
                 <Link href="/vendor/dashboard">
                   <Button variant="ghost" size="sm">Vendor</Button>

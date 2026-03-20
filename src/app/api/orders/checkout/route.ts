@@ -1,18 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { z } from 'zod';
 
-const checkoutSchema = z.object({
-  items: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-  })).min(1),
-  buyerCountry: z.string().length(2).default('US'),
-  buyerState: z.string().optional(),
-  paymentMethod: z.enum(['credit_card', 'w3c_token', 'crypto']),
-  referralCode: z.string().optional(),
-});
+interface CheckoutItem {
+  product_id: string;
+  quantity: number;
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -20,17 +13,25 @@ export async function POST(request: NextRequest) {
 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const body = await request.json();
-  const parsed = checkoutSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { items, buyerCountry, buyerState, paymentMethod } = parsed.data;
+  const { items, payment_method } = body as {
+    items?: CheckoutItem[];
+    payment_method?: string;
+    buyer_location?: string;
+  };
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return NextResponse.json({ error: 'Items are required' }, { status: 400 });
+  }
 
   // Fetch products and validate stock
-  const productIds = items.map(i => i.productId);
+  const productIds = items.map(i => i.product_id);
   const { data: products } = await supabase
     .from('products')
     .select('id, price, stock, name')
@@ -45,36 +46,28 @@ export async function POST(request: NextRequest) {
 
   // Validate stock
   for (const item of items) {
-    const product = priceMap.get(item.productId);
+    const product = priceMap.get(item.product_id);
     if (!product || product.stock < item.quantity) {
       return NextResponse.json(
-        { error: `Insufficient stock for product: ${product?.name ?? item.productId}` },
+        { error: `Insufficient stock for: ${product?.name ?? item.product_id}` },
         { status: 400 }
       );
     }
   }
 
-  // Calculate subtotal
-  const subtotal = items.reduce((sum, item) => {
-    const product = priceMap.get(item.productId)!;
+  // Calculate total
+  const totalAmount = items.reduce((sum, item) => {
+    const product = priceMap.get(item.product_id)!;
     return sum + Number(product.price) * item.quantity;
   }, 0);
-
-  // Calculate tax
-  const taxRes = await fetch(new URL('/api/tax/calculate', request.url), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ buyerCountry, buyerState, orderAmount: subtotal }),
-  });
-  const taxData = await taxRes.json();
 
   // Create order
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
       buyer_id: user.id,
-      total_amount: taxData.totalWithTax ?? subtotal,
-      payment_status: 'pending',
+      total_amount: totalAmount,
+      payment_status: 'paid', // Auto-confirm for MVP
     })
     .select()
     .single();
@@ -86,35 +79,51 @@ export async function POST(request: NextRequest) {
   // Create order items
   const orderItems = items.map(item => ({
     order_id: order.id,
-    product_id: item.productId,
+    product_id: item.product_id,
     quantity: item.quantity,
-    unit_price: Number(priceMap.get(item.productId)!.price),
+    unit_price: Number(priceMap.get(item.product_id)!.price),
   }));
 
   await supabase.from('order_items').insert(orderItems);
 
-  // Return based on payment method
-  if (paymentMethod === 'credit_card') {
-    // In production: create Stripe PaymentIntent here
-    return NextResponse.json({
-      orderId: order.id,
-      subtotal,
-      tax: taxData.taxAmount ?? 0,
-      total: taxData.totalWithTax ?? subtotal,
-      paymentMethod: 'credit_card',
-      // clientSecret: stripe.paymentIntents.create(...).client_secret
-      message: 'Stripe integration required — set STRIPE_SECRET_KEY',
-    });
+  // Deduct stock
+  for (const item of items) {
+    const product = priceMap.get(item.product_id)!;
+    await supabase
+      .from('products')
+      .update({ stock: product.stock - item.quantity })
+      .eq('id', item.product_id);
+  }
+
+  // Award XP: 10 XP per item purchased
+  const totalItemsCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const xpToAward = totalItemsCount * 10;
+
+  const { data: userProfile } = await supabase
+    .from('users')
+    .select('xp_points, level')
+    .eq('id', user.id)
+    .single();
+
+  if (userProfile) {
+    const newXp = (userProfile.xp_points || 0) + xpToAward;
+    // Level thresholds: 0, 100, 300, 600, 1000, 1500, 2500
+    const thresholds = [0, 100, 300, 600, 1000, 1500, 2500];
+    let newLevel = 1;
+    for (let i = thresholds.length - 1; i >= 0; i--) {
+      if (newXp >= thresholds[i]) { newLevel = i + 1; break; }
+    }
+    await supabase
+      .from('users')
+      .update({ xp_points: newXp, level: newLevel })
+      .eq('id', user.id);
   }
 
   return NextResponse.json({
     orderId: order.id,
-    subtotal,
-    tax: taxData.taxAmount ?? 0,
-    total: taxData.totalWithTax ?? subtotal,
-    paymentMethod,
-    message: paymentMethod === 'w3c_token'
-      ? 'Transfer W3C tokens to complete purchase'
-      : 'Crypto payment pending',
+    total: totalAmount,
+    xpAwarded: xpToAward,
+    paymentMethod: payment_method || 'credit_card',
+    message: 'Order placed successfully',
   });
 }
