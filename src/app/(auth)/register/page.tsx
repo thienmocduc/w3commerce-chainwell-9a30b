@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import type { UserRole } from '@/lib/types/database.types';
 
@@ -21,7 +20,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const _router = useRouter();
+  const router = useRouter();
 
   async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -38,54 +37,49 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
-    const supabase = createClient();
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
-        data: { role },
-      },
-    });
-
-    if (signUpError) {
-      setError(signUpError.message);
-      setLoading(false);
-      return;
-    }
-
-    // Insert into users table
-    if (data.user) {
-      const { error: insertError } = await supabase.from('users').insert({
-        id: data.user.id,
-        email,
-        role,
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role }),
       });
 
-      if (insertError && !insertError.message.includes('duplicate')) {
-        setError(insertError.message);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Registration failed');
         setLoading(false);
         return;
       }
-    }
 
-    setSuccess(true);
-    setLoading(false);
+      setSuccess(true);
+      setLoading(false);
+
+      // Auto-redirect to login after 2 seconds
+      setTimeout(() => router.push('/login'), 2000);
+    } catch {
+      setError('Network error. Please try again.');
+      setLoading(false);
+    }
   }
 
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
-          <h2 className="text-xl font-bold">Check your email</h2>
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+            <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold">Account Created!</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            We&apos;ve sent a verification link to <strong>{email}</strong>.
-            Click the link to activate your account.
+            Your account has been created successfully. Redirecting to login...
           </p>
           <Link href="/login">
             <Button className="mt-6" variant="outline">
-              Back to Login
+              Go to Login
             </Button>
           </Link>
         </div>
