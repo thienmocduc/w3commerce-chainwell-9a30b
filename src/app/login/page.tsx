@@ -20,7 +20,7 @@ const registerSchema = z.object({
   display_name: z.string().min(2, 'Nhập họ và tên'),
   email:        z.string().email('Email không hợp lệ'),
   phone:        z.string().regex(/^0[0-9]{9}$/, 'SĐT không hợp lệ'),
-  password:     z.string().min(8, 'Tối thiểu 8 ký tự'),
+  password:     z.string().min(8, 'Tối thiểu 8 ký tự').regex(/[A-Z]/, 'Cần ít nhất 1 chữ hoa').regex(/[0-9]/, 'Cần ít nhất 1 số').regex(/[^A-Za-z0-9]/, 'Cần ít nhất 1 ký tự đặc biệt'),
 })
 
 type LoginForm    = z.infer<typeof loginSchema>

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
 
-  // Validate file type
+  // Validate file type by MIME
   const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
   if (!allowed.includes(file.type)) {
     return NextResponse.json({ error: 'Only JPG/PNG/WebP/AVIF allowed' }, { status: 400 })
@@ -30,10 +30,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 })
   }
 
-  const ext          = file.name.split('.').pop() || 'jpg'
+  // Validate magic bytes to prevent MIME spoofing
+  const buffer = await file.arrayBuffer()
+  const bytes = new Uint8Array(buffer.slice(0, 12))
+  const isJPEG = bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF
+  const isPNG = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47
+  const isWebP = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  // AVIF starts with ftyp box
+  const isAVIF = bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70
+
+  if (!isJPEG && !isPNG && !isWebP && !isAVIF) {
+    return NextResponse.json({ error: 'File content does not match an allowed image type' }, { status: 400 })
+  }
+
+  // Sanitize extension — only allow known safe values
+  const SAFE_EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' }
+  const ext = SAFE_EXT[file.type] || 'jpg'
+
+  // Sanitize productId — must be UUID if provided
+  if (productId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(productId)) {
+    return NextResponse.json({ error: 'Invalid product_id' }, { status: 400 })
+  }
+
   const timestamp    = Date.now()
   const storagePath  = `products/${user.id}/${productId ?? 'temp'}/${timestamp}.${ext}`
-  const arrayBuffer  = await file.arrayBuffer()
+  const arrayBuffer = buffer  // already read above for magic bytes check
 
   // Upload to Supabase Storage (bucket: 'product-images')
   const admin = createAdminClient()

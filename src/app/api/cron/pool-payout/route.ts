@@ -12,9 +12,14 @@ import { NextRequest, NextResponse } from 'next/server'
 // }
 
 export async function POST(req: NextRequest) {
-  // Verify Vercel cron secret
+  // Verify cron secret — reject if not configured
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret) {
+    console.error('[cron/pool-payout] CRON_SECRET not configured')
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
   const authHeader = req.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!authHeader || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

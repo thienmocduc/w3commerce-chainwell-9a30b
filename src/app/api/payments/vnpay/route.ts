@@ -3,11 +3,10 @@ import crypto from 'crypto'
 
 // VNPay integration
 // Docs: https://sandbox.vnpayment.vn/apis/docs/
-// Test card: 9704198526191432198 | 07/15 | OTP: 123456
 
-const VNPAY_URL    = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
-const TMN_CODE     = process.env.VNPAY_TMN_CODE || 'TESTCODE'
-const HASH_SECRET  = process.env.VNPAY_HASH_SECRET || 'testhashsecret'
+const VNPAY_URL    = process.env.VNPAY_URL || 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
+const TMN_CODE     = process.env.VNPAY_TMN_CODE
+const HASH_SECRET  = process.env.VNPAY_HASH_SECRET
 
 function sortObject(obj: Record<string, string>) {
   return Object.keys(obj).sort().reduce((sorted: Record<string, string>, key) => {
@@ -17,6 +16,9 @@ function sortObject(obj: Record<string, string>) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!TMN_CODE || !HASH_SECRET) {
+    return NextResponse.json({ error: 'VNPay not configured' }, { status: 500 })
+  }
   const { order_id, order_number, amount, bank_code } = await req.json()
 
   const date   = new Date()
@@ -75,8 +77,8 @@ export async function GET(req: NextRequest) {
   const isSuccess   = searchParams.get('vnp_ResponseCode') === '00'
   const orderNumber = searchParams.get('vnp_TxnRef')
 
-  if (isValid && isSuccess && orderNumber) {
-    // Update order status
+  // Validate orderNumber format (alphanumeric + dash, max 50 chars)
+  if (isValid && isSuccess && orderNumber && /^[A-Za-z0-9\-]{1,50}$/.test(orderNumber)) {
     const { createAdminClient } = await import('@/lib/supabase/server')
     const admin = createAdminClient()
 
@@ -87,6 +89,7 @@ export async function GET(req: NextRequest) {
         tx_hash: searchParams.get('vnp_TransactionNo') || undefined,
       })
       .eq('order_number', orderNumber)
+      .eq('payment_status', 'pending')  // Only update pending orders
 
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/account/orders?success=1`)
   }

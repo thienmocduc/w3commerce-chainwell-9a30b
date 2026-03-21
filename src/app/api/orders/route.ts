@@ -78,12 +78,27 @@ export async function POST(req: NextRequest) {
   const shippingFee = subtotal >= 500_000 ? 0 : 30_000
   const total = subtotal + shippingFee
 
-  // ── 4. Create order ──────────────────────────────────────
+  // ── 4. Validate koc_ref_id if provided ───────────────────
+  let validKocRefId: string | null = null
+  if (body.koc_ref_id) {
+    // Must be valid UUID format
+    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(body.koc_ref_id)) {
+      const { data: kocProfile } = await adminClient
+        .from('profiles')
+        .select('id')
+        .eq('id', body.koc_ref_id)
+        .eq('role', 'koc')
+        .single()
+      if (kocProfile) validKocRefId = kocProfile.id
+    }
+  }
+
+  // ── 5. Create order ──────────────────────────────────────
   const { data: order, error: orderError } = await adminClient
     .from('orders')
     .insert({
       buyer_id: user.id,
-      koc_ref_id: body.koc_ref_id || null,
+      koc_ref_id: validKocRefId,
       status: 'pending',
       subtotal: Math.round(subtotal * 100) / 100,
       shipping_fee: shippingFee,
@@ -156,11 +171,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 8. Add XP to buyer ───────────────────────────────────
-  await adminClient
+  // ── 8. Add XP to buyer (10 XP per item) ──────────────────
+  const totalItems = body.items.reduce((sum, item) => sum + item.quantity, 0)
+  const xpToAdd = totalItems * 10
+  const { data: profile } = await adminClient
     .from('profiles')
-    .update({ xp: supabase.rpc as any })  // placeholder — use RPC in production
+    .select('xp')
     .eq('id', user.id)
+    .single()
+  if (profile) {
+    const newXp = (profile.xp || 0) + xpToAdd
+    // Level thresholds: [0, 100, 300, 600, 1000, 1500, 2500]
+    const thresholds = [0, 100, 300, 600, 1000, 1500, 2500]
+    let newLevel = 1
+    for (let i = thresholds.length - 1; i >= 0; i--) {
+      if (newXp >= thresholds[i]) { newLevel = i + 1; break }
+    }
+    await adminClient.from('profiles').update({ xp: newXp, level: newLevel }).eq('id', user.id)
+  }
 
   // ── 9. Send notification ─────────────────────────────────
   await adminClient.from('notifications').insert({

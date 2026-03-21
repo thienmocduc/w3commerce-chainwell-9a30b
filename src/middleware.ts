@@ -10,6 +10,16 @@ const ROLE_ROUTES: Record<string, string> = {
   '/admin': 'admin',
 }
 
+// Security headers
+const SECURITY_HEADERS: Record<string, string> = {
+  'X-Frame-Options': 'DENY',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-XSS-Protection': '1; mode=block',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -30,8 +40,28 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Add security headers to all responses
+  for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
+    supabaseResponse.headers.set(key, value)
+  }
+
   const path = request.nextUrl.pathname
+
+  // CSRF protection for state-changing API requests
+  if (path.startsWith('/api/') && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) {
+    const origin = request.headers.get('origin')
+    const host = request.headers.get('host')
+    // Allow requests with no origin (server-to-server, webhooks)
+    // But if origin is present, it must match host
+    if (origin && host) {
+      const originHost = new URL(origin).host
+      if (originHost !== host) {
+        return NextResponse.json({ error: 'CSRF check failed' }, { status: 403 })
+      }
+    }
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Check if route needs auth
   const needsAuth = PROTECTED.some(p => path.startsWith(p))

@@ -6,12 +6,15 @@ import https from 'https'
 // Docs: https://developers.momo.vn/
 // Test environment: https://test-payment.momo.vn
 
-const MOMO_ENDPOINT   = 'https://test-payment.momo.vn/v2/gateway/api/create'
-const PARTNER_CODE    = process.env.MOMO_PARTNER_CODE || 'MOMO_TEST'
-const ACCESS_KEY      = process.env.MOMO_ACCESS_KEY   || 'F8BBA842ECF85'
-const SECRET_KEY      = process.env.MOMO_SECRET_KEY   || 'K951B6PE1waDMi640xX08PD3vg6EkVlz'
+const MOMO_ENDPOINT   = process.env.MOMO_ENDPOINT || 'https://test-payment.momo.vn/v2/gateway/api/create'
+const PARTNER_CODE    = process.env.MOMO_PARTNER_CODE
+const ACCESS_KEY      = process.env.MOMO_ACCESS_KEY
+const SECRET_KEY      = process.env.MOMO_SECRET_KEY
 
 export async function POST(req: NextRequest) {
+  if (!PARTNER_CODE || !ACCESS_KEY || !SECRET_KEY) {
+    return NextResponse.json({ error: 'MoMo not configured' }, { status: 500 })
+  }
   const { order_number, amount, order_info } = await req.json()
 
   const redirectUrl = `${process.env.NEXT_PUBLIC_APP_URL}/account/orders?success=1`
@@ -88,7 +91,32 @@ export async function PUT(req: NextRequest) {
   const body = await req.json()
   const { orderId, resultCode, transId } = body
 
-  if (resultCode === 0) {
+  // Validate orderId format and verify signature before updating
+  if (resultCode === 0 && orderId && /^[A-Za-z0-9\-]{1,50}$/.test(orderId)) {
+    // Verify MoMo signature if SECRET_KEY available
+    if (SECRET_KEY) {
+      const rawSignature = [
+        `accessKey=${ACCESS_KEY}`,
+        `amount=${body.amount}`,
+        `extraData=${body.extraData || ''}`,
+        `message=${body.message}`,
+        `orderId=${orderId}`,
+        `orderInfo=${body.orderInfo}`,
+        `orderType=${body.orderType}`,
+        `partnerCode=${body.partnerCode}`,
+        `payType=${body.payType}`,
+        `requestId=${body.requestId}`,
+        `responseTime=${body.responseTime}`,
+        `resultCode=${resultCode}`,
+        `transId=${transId}`,
+      ].join('&')
+      const expectedSig = crypto.createHmac('sha256', SECRET_KEY).update(rawSignature).digest('hex')
+      if (body.signature !== expectedSig) {
+        console.error('[momo/ipn] Invalid signature')
+        return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+      }
+    }
+
     const { createAdminClient } = await import('@/lib/supabase/server')
     const admin = createAdminClient()
 
@@ -99,6 +127,7 @@ export async function PUT(req: NextRequest) {
         tx_hash: transId?.toString(),
       })
       .eq('order_number', orderId)
+      .eq('payment_status', 'pending')  // Only update pending orders
   }
 
   return NextResponse.json({ message: 'IPN received' })

@@ -5,9 +5,14 @@ import { NextRequest, NextResponse } from 'next/server'
 // This is the moment commissions become real and get credited to KOC wallets
 
 export async function POST(req: NextRequest) {
-  // Verify webhook secret
+  // Verify webhook secret — reject if not configured
+  const webhookSecret = process.env.WEBHOOK_SECRET
+  if (!webhookSecret) {
+    console.error('[webhook/delivered] WEBHOOK_SECRET not configured')
+    return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+  }
   const secret = req.headers.get('x-webhook-secret')
-  if (secret !== process.env.WEBHOOK_SECRET) {
+  if (!secret || secret !== webhookSecret) {
     return NextResponse.json({ error: 'Invalid secret' }, { status: 401 })
   }
 
@@ -101,12 +106,23 @@ export async function POST(req: NextRequest) {
       return s + (i.unit_price - i.unit_price * i.discount_pct / 100) * i.quantity
     }, 0)
 
-    await admin.from('vendor_profiles')
-      .update({
-        total_orders: admin.rpc as any,  // Use increment RPC in production
-        total_revenue: admin.rpc as any,
-      })
-      .eq('user_id', vendorId)
+    // Increment vendor stats using raw SQL via rpc
+    await admin.rpc('increment_vendor_stats', {
+      p_vendor_id: vendorId,
+      p_order_count: 1,
+      p_revenue: vendorRevenue,
+    }).catch(() => {
+      // Fallback: fetch current and update
+      admin.from('vendor_profiles').select('total_orders, total_revenue').eq('user_id', vendorId).single()
+        .then(({ data: vp }) => {
+          if (vp) {
+            admin.from('vendor_profiles').update({
+              total_orders: (vp.total_orders || 0) + 1,
+              total_revenue: (vp.total_revenue || 0) + vendorRevenue,
+            }).eq('user_id', vendorId)
+          }
+        })
+    })
   }
 
   return NextResponse.json({ success: true, order_id, commissions_processed: commissions?.length ?? 0 })
