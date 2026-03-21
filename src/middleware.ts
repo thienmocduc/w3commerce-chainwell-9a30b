@@ -1,54 +1,64 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { updateSession } from '@/lib/supabase/middleware';
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
 
 // Routes that require authentication
-const PROTECTED_ROUTES = ['/vendor', '/koc', '/admin'];
-
-// Public routes — skip auth entirely
-const PUBLIC_ROUTES = ['/', '/login', '/register', '/academy', '/api/ucp', '/api/products', '/api/tax', '/api/health'];
+const PROTECTED = ['/account', '/checkout', '/vendor', '/koc', '/admin']
+// Routes that require specific roles
+const ROLE_ROUTES: Record<string, string> = {
+  '/vendor': 'vendor',
+  '/koc': 'koc',
+  '/admin': 'admin',
+}
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  let supabaseResponse = NextResponse.next({ request })
 
-  // Skip session refresh for public routes when Supabase isn't configured
-  const isPublic = PUBLIC_ROUTES.some((route) =>
-    pathname === route || pathname.startsWith(route + '/')
-  );
-
-  let user = null;
-  let supabaseResponse = NextResponse.next({ request });
-
-  try {
-    const result = await updateSession(request);
-    supabaseResponse = result.supabaseResponse;
-    user = result.user;
-  } catch {
-    // Supabase not configured or unavailable — continue without auth
-    if (!isPublic) {
-      const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
-      if (isProtected) {
-        const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('redirect', pathname);
-        return NextResponse.redirect(loginUrl);
-      }
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() { return request.cookies.getAll() },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
     }
-    return NextResponse.next({ request });
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const path = request.nextUrl.pathname
+
+  // Check if route needs auth
+  const needsAuth = PROTECTED.some(p => path.startsWith(p))
+  if (needsAuth && !user) {
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = '/login'
+    loginUrl.searchParams.set('redirect', path)
+    return NextResponse.redirect(loginUrl)
   }
 
-  // Check if route requires auth
-  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+  // Check role-specific routes
+  const requiredRole = Object.entries(ROLE_ROUTES).find(([route]) => path.startsWith(route))?.[1]
+  if (requiredRole && user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
 
-  if (isProtected && !user) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
+    if (profile?.role !== requiredRole && profile?.role !== 'admin') {
+      return NextResponse.redirect(new URL('/unauthorized', request.url))
+    }
   }
 
-  return supabaseResponse;
+  return supabaseResponse
 }
 
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
-};
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/webhook).*)'],
+}
