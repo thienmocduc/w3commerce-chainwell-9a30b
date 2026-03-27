@@ -44,6 +44,7 @@ async def init_db() -> None:
     from app.models import (  # noqa: F401
         user, product, order, commission, cart, review,
         koc_profile, vendor, shipment, dpp_nft, membership,
+        return_request, group_buy, live_stream, social,
     )
     async with engine.begin() as conn:
         # Only create tables in dev; use Alembic in production

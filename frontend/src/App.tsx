@@ -17,6 +17,7 @@ const Gamification = lazy(() => import('@pages/Gamification'));
 const KOC = lazy(() => import('@pages/KOC'));
 const Vendor = lazy(() => import('@pages/Vendor'));
 const Admin = lazy(() => import('@pages/Admin'));
+const AdminLogin = lazy(() => import('@pages/AdminLogin'));
 const Login = lazy(() => import('@pages/Login'));
 const Register = lazy(() => import('@pages/Register'));
 const Cart = lazy(() => import('@pages/Cart'));
@@ -61,7 +62,11 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* All other pages — inside MainLayout */}
+        {/* Admin routes — outside MainLayout (own layout) */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<Admin />} />
+
+        {/* User pages — inside MainLayout */}
         <Route element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="/marketplace" element={<Marketplace />} />
@@ -76,7 +81,6 @@ export default function App() {
           <Route path="/gamification" element={<Gamification />} />
           <Route path="/koc" element={<KOC />} />
           <Route path="/vendor" element={<Vendor />} />
-          <Route path="/admin" element={<Admin />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/pricing" element={<Pricing />} />

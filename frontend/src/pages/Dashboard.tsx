@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@hooks/useAuth';
 
 /* ── Helpers ─────────────────────────────────────── */
 const formatVND = (n: number) => n.toLocaleString('vi-VN') + '₫';
@@ -242,6 +243,90 @@ export default function Dashboard() {
   const [historySearch, setHistorySearch] = useState('');
   const [notifFilter, setNotifFilter] = useState('all');
   const [settingsTab, setSettingsTab] = useState('profile');
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  // Toast notifications
+  const [toasts, setToasts] = useState<{ id: number; message: string }[]>([]);
+  const showToast = (message: string) => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message }]);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 2500);
+  };
+
+  // Mutable order state
+  const [orders, setOrders] = useState<Order[]>(allOrders);
+  // Track which orders have "added to cart" feedback
+  const [addedToCart, setAddedToCart] = useState<Set<string>>(new Set());
+  // Track expanded order details
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
+  // Track which order is being reviewed inline
+  const [reviewingOrderId, setReviewingOrderId] = useState<string | null>(null);
+  // Completed reviews state
+  const [reviewsList, setReviewsList] = useState(completedReviews);
+  // Copy feedback
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  // Notifications state
+  const [notifsState, setNotifsState] = useState(notifications);
+  // Favorites state
+  const [favProducts, setFavProducts] = useState(favoriteProducts);
+  const [favAddedToCart, setFavAddedToCart] = useState<Set<number>>(new Set());
+  // Return requests state
+  const [returnReqs, setReturnReqs] = useState(returnRequests);
+  // Settings edit mode
+  const [settingsEditing, setSettingsEditing] = useState(false);
+  // Convert XP amount
+  const [convertAmt, setConvertAmt] = useState(500);
+  // Redeem items used
+  const [redeemedIds, setRedeemedIds] = useState<Set<number>>(new Set());
+  // Voucher "used" state
+  const [usedVouchers, setUsedVouchers] = useState<Set<string>>(new Set());
+  // Payment methods state
+  const [payMethods, setPayMethods] = useState(savedPaymentMethods);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  // Clipboard helper
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopiedId(text);
+    showToast(`Da sao chep ${label}`);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Add to cart helper
+  const handleAddToCart = (orderId: string, productName: string) => {
+    setAddedToCart(prev => new Set(prev).add(orderId));
+    showToast(`Da them "${productName}" vao gio hang`);
+    setTimeout(() => setAddedToCart(prev => { const n = new Set(prev); n.delete(orderId); return n; }), 2000);
+  };
+
+  // Cancel order
+  const handleCancelOrder = (orderId: string) => {
+    if (!confirm(`Ban co chac muon huy don hang ${orderId}?`)) return;
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'cancelled' as const } : o));
+    showToast(`Da huy don hang ${orderId}`);
+  };
+
+  // Confirm received
+  const handleConfirmReceived = (orderId: string) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'delivered' as const, reviewed: false } : o));
+    showToast(`Da xac nhan nhan hang ${orderId}`);
+  };
+
+  // Submit review
+  const handleSubmitReview = (order: Order) => {
+    if (!reviewText.trim()) { showToast('Vui long nhap noi dung danh gia'); return; }
+    setOrders(prev => prev.map(o => o.id === order.id ? { ...o, reviewed: true } : o));
+    setReviewsList(prev => [{ orderId: order.id, product: order.items[0].name, stars: reviewStars, text: reviewText, date: new Date().toISOString().slice(0, 10), points: 5 }, ...prev]);
+    setReviewingOrderId(null);
+    setReviewText('');
+    setReviewStars(5);
+    showToast(`Da gui danh gia cho ${order.items[0].name} (+5 WK Points)`);
+  };
 
   /* ── Table header helper ─── */
   const TH = ({ children }: { children: string }) => (
@@ -262,13 +347,13 @@ export default function Dashboard() {
     return: ['return'],
   };
 
-  const filteredOrders = orderTab === 'all' ? allOrders : allOrders.filter(o => orderTabMap[orderTab]?.includes(o.status));
+  const filteredOrders = orderTab === 'all' ? orders : orders.filter(o => orderTabMap[orderTab]?.includes(o.status));
 
-  const activeTrackingOrders = allOrders.filter(o => ['pending', 'confirmed', 'packing', 'shipping'].includes(o.status));
+  const activeTrackingOrders = orders.filter(o => ['pending', 'confirmed', 'packing', 'shipping'].includes(o.status));
 
-  const filteredNotifs = notifFilter === 'all' ? notifications : notifications.filter(n => n.type === notifFilter);
+  const filteredNotifs = notifFilter === 'all' ? notifsState : notifsState.filter(n => n.type === notifFilter);
 
-  const filteredHistory = allOrders.filter(o => {
+  const filteredHistory = orders.filter(o => {
     if (!historySearch) return true;
     const q = historySearch.toLowerCase();
     return o.id.toLowerCase().includes(q) || o.items.some(it => it.name.toLowerCase().includes(q));
@@ -301,7 +386,7 @@ export default function Dashboard() {
                 <span style={{ fontWeight: 700, fontSize: '.88rem' }}>Đơn hàng gần đây</span>
                 <span style={{ fontSize: '.72rem', color: 'var(--c5-400)', cursor: 'pointer' }} onClick={() => setActiveNav('orders')}>Xem tất cả →</span>
               </div>
-              {allOrders.slice(0, 4).map((o, i) => {
+              {orders.slice(0, 4).map((o, i) => {
                 const sc = orderStatusConfig[o.status];
                 return (
                   <div key={o.id} className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
@@ -353,7 +438,7 @@ export default function Dashboard() {
               ].map(t => (
                 <button key={t.key} className={`btn btn-sm ${orderTab === t.key ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setOrderTab(t.key)}>
                   {t.label}
-                  {t.key !== 'all' && <span style={{ marginLeft: 4, opacity: .7 }}>({allOrders.filter(o => orderTabMap[t.key]?.includes(o.status)).length})</span>}
+                  {t.key !== 'all' && <span style={{ marginLeft: 4, opacity: .7 }}>({orders.filter(o => orderTabMap[t.key]?.includes(o.status)).length})</span>}
                 </button>
               ))}
             </div>
@@ -389,23 +474,76 @@ export default function Dashboard() {
                       </div>
                       {/* Footer */}
                       <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderTop: '1px solid var(--border)', background: 'var(--bg-1)' }}>
-                        <div className="flex gap-8">
+                        <div className="flex gap-8" style={{ flexWrap: 'wrap' }}>
+                          {(order.status === 'pending' || order.status === 'confirmed') && (
+                            <button className="btn btn-sm" style={{ background: '#ef4444', color: '#fff', border: 'none' }} onClick={() => handleCancelOrder(order.id)}>Huy don</button>
+                          )}
+                          {order.status === 'shipping' && (
+                            <button className="btn btn-primary btn-sm" onClick={() => handleConfirmReceived(order.id)}>Xac nhan nhan hang</button>
+                          )}
                           {order.status === 'delivered' && !order.reviewed && (
-                            <button className="btn btn-primary btn-sm" onClick={() => setActiveNav('reviews')}>Đánh giá</button>
+                            <button className="btn btn-primary btn-sm" onClick={() => { setReviewingOrderId(reviewingOrderId === order.id ? null : order.id); setReviewStars(5); setReviewText(''); }}>Danh gia</button>
+                          )}
+                          {order.status === 'delivered' && order.reviewed && (
+                            <span className="badge badge-c4" style={{ fontSize: '.65rem' }}>Da danh gia</span>
                           )}
                           {order.status === 'delivered' && (
-                            <button className="btn btn-secondary btn-sm" onClick={() => setActiveNav('returns')}>Yêu cầu đổi/trả</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setActiveNav('returns')}>Yeu cau doi/tra</button>
                           )}
-                          <button className="btn btn-secondary btn-sm">Mua lại</button>
+                          <button className="btn btn-secondary btn-sm" onClick={() => handleAddToCart(order.id, order.items[0].name)}>
+                            {addedToCart.has(order.id) ? 'Da them \u2713' : 'Mua lai'}
+                          </button>
                           {order.trackingCode && (
-                            <button className="btn btn-secondary btn-sm" onClick={() => setActiveNav('tracking')}>Theo dõi</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setActiveNav('tracking')}>Theo doi</button>
                           )}
+                          <button className="btn btn-secondary btn-sm" onClick={() => setExpandedOrders(prev => { const n = new Set(prev); n.has(order.id) ? n.delete(order.id) : n.add(order.id); return n; })}>
+                            {expandedOrders.has(order.id) ? 'Thu gon' : 'Xem chi tiet'}
+                          </button>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '.68rem', color: 'var(--text-3)' }}>Tổng: </span>
+                          <span style={{ fontSize: '.68rem', color: 'var(--text-3)' }}>Tong: </span>
                           <span style={{ fontWeight: 800, fontSize: '1rem', color: 'var(--c4-500)' }}>{formatVND(order.total)}</span>
                         </div>
                       </div>
+                      {/* Expanded details */}
+                      {expandedOrders.has(order.id) && (
+                        <div style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', background: 'var(--bg-0)', fontSize: '.78rem' }}>
+                          <div className="flex gap-16" style={{ flexWrap: 'wrap' }}>
+                            <div><strong>Thanh toan:</strong> {order.payment}</div>
+                            <div><strong>Ngay dat:</strong> {order.date}</div>
+                            {order.trackingCode && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <strong>Ma van don:</strong> <span className="mono">{order.trackingCode}</span>
+                                <button className="btn btn-secondary" style={{ fontSize: '.6rem', padding: '2px 8px' }} onClick={() => copyToClipboard(order.trackingCode!, 'ma van don')}>
+                                  {copiedId === order.trackingCode ? 'Da sao chep \u2713' : 'Sao chep'}
+                                </button>
+                              </div>
+                            )}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <strong>Ma don:</strong> <span className="mono">{order.id}</span>
+                              <button className="btn btn-secondary" style={{ fontSize: '.6rem', padding: '2px 8px' }} onClick={() => copyToClipboard(order.id, 'ma don hang')}>
+                                {copiedId === order.id ? 'Da sao chep \u2713' : 'Sao chep'}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {/* Inline review form */}
+                      {reviewingOrderId === order.id && (
+                        <div style={{ padding: '16px 20px', borderTop: '1px solid var(--border)', background: 'var(--bg-0)' }}>
+                          <div style={{ fontSize: '.78rem', fontWeight: 600, marginBottom: 8 }}>Danh gia {order.items[0].name}</div>
+                          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <span key={s} onClick={() => setReviewStars(s)} style={{ cursor: 'pointer', fontSize: '1.3rem', color: s <= reviewStars ? '#fbbf24' : 'var(--text-4)' }}>\u2605</span>
+                            ))}
+                          </div>
+                          <textarea placeholder="Viet danh gia cua ban..." value={reviewText} onChange={e => setReviewText(e.target.value)} style={{ width: '100%', minHeight: 60, padding: 10, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.8rem', resize: 'vertical', marginBottom: 8 }} />
+                          <div className="flex gap-8">
+                            <button className="btn btn-primary btn-sm" onClick={() => handleSubmitReview(order)}>Gui danh gia</button>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setReviewingOrderId(null)}>Huy</button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -434,8 +572,13 @@ export default function Dashboard() {
                         </div>
                         {order.trackingCode && (
                           <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '.65rem', color: 'var(--text-3)' }}>Mã vận đơn</div>
-                            <div className="mono" style={{ fontSize: '.78rem', fontWeight: 600, color: 'var(--c5-400)' }}>{order.trackingCode}</div>
+                            <div style={{ fontSize: '.65rem', color: 'var(--text-3)' }}>Ma van don</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span className="mono" style={{ fontSize: '.78rem', fontWeight: 600, color: 'var(--c5-400)' }}>{order.trackingCode}</span>
+                              <button className="btn btn-secondary" style={{ fontSize: '.55rem', padding: '2px 6px' }} onClick={() => copyToClipboard(order.trackingCode!, 'ma van don')}>
+                                {copiedId === order.trackingCode ? '\u2713' : 'Sao chep'}
+                              </button>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -482,10 +625,10 @@ export default function Dashboard() {
 
             {/* Orders awaiting review */}
             {(() => {
-              const awaitingReview = allOrders.filter(o => o.status === 'delivered' && o.reviewed === false);
+              const awaitingReview = orders.filter(o => o.status === 'delivered' && o.reviewed === false);
               return awaitingReview.length > 0 ? (
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: '.82rem', fontWeight: 600, marginBottom: 12 }}>Chờ đánh giá ({awaitingReview.length})</div>
+                  <div style={{ fontSize: '.82rem', fontWeight: 600, marginBottom: 12 }}>Cho danh gia ({awaitingReview.length})</div>
                   {awaitingReview.map(o => (
                     <div key={o.id} className="card" style={{ padding: 20, marginBottom: 12 }}>
                       <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
@@ -493,31 +636,27 @@ export default function Dashboard() {
                           <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{o.items[0].name}</div>
                           <div className="mono" style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>{o.id} · {o.date}</div>
                         </div>
-                        <span className="badge badge-c7">Chưa đánh giá</span>
+                        <span className="badge badge-c7">Chua danh gia</span>
                       </div>
                       {/* Star rating */}
                       <div style={{ marginBottom: 12 }}>
-                        <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 6 }}>Chọn số sao:</div>
+                        <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 6 }}>Chon so sao:</div>
                         <div style={{ display: 'flex', gap: 4 }}>
                           {[1, 2, 3, 4, 5].map(s => (
-                            <span key={s} onClick={() => setReviewStars(s)} style={{ cursor: 'pointer', fontSize: '1.5rem', color: s <= reviewStars ? '#fbbf24' : 'var(--text-4)' }}>★</span>
+                            <span key={s} onClick={() => setReviewStars(s)} style={{ cursor: 'pointer', fontSize: '1.5rem', color: s <= reviewStars ? '#fbbf24' : 'var(--text-4)' }}>{'\u2605'}</span>
                           ))}
                         </div>
                       </div>
                       {/* Review text */}
                       <textarea
-                        placeholder="Viết đánh giá của bạn..."
+                        placeholder="Viet danh gia cua ban..."
                         value={reviewText}
                         onChange={e => setReviewText(e.target.value)}
                         style={{ width: '100%', minHeight: 80, padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem', resize: 'vertical', marginBottom: 12 }}
                       />
-                      {/* Photo upload placeholder */}
-                      <div style={{ border: '2px dashed var(--border)', borderRadius: 8, padding: '16px 20px', textAlign: 'center', marginBottom: 12, color: 'var(--text-3)', fontSize: '.78rem' }}>
-                        📷 Nhấn để tải ảnh lên (tối đa 5 ảnh)
-                      </div>
                       <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: '.68rem', color: 'var(--c4-500)' }}>+5 WK Points khi đánh giá</span>
-                        <button className="btn btn-primary btn-sm">Gửi đánh giá</button>
+                        <span style={{ fontSize: '.68rem', color: 'var(--c4-500)' }}>+5 WK Points khi danh gia</span>
+                        <button className="btn btn-primary btn-sm" onClick={() => handleSubmitReview(o)}>Gui danh gia</button>
                       </div>
                     </div>
                   ))}
@@ -526,9 +665,9 @@ export default function Dashboard() {
             })()}
 
             {/* Completed reviews */}
-            <div style={{ fontSize: '.82rem', fontWeight: 600, marginBottom: 12 }}>Đã đánh giá ({completedReviews.length})</div>
+            <div style={{ fontSize: '.82rem', fontWeight: 600, marginBottom: 12 }}>Da danh gia ({reviewsList.length})</div>
             <div className="flex-col gap-12">
-              {completedReviews.map((r, i) => (
+              {reviewsList.map((r, i) => (
                 <div key={i} className="card" style={{ padding: 20 }}>
                   <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
                     <div>
@@ -559,7 +698,7 @@ export default function Dashboard() {
                   <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Chọn đơn hàng</label>
                   <select value={returnOrder} onChange={e => setReturnOrder(e.target.value)} style={{ width: '100%', padding: '10px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }}>
                     <option value="">-- Chọn đơn hàng --</option>
-                    {allOrders.filter(o => o.status === 'delivered').map(o => (
+                    {orders.filter(o => o.status === 'delivered').map(o => (
                       <option key={o.id} value={o.id}>{o.id} - {o.items[0].name}</option>
                     ))}
                   </select>
@@ -574,13 +713,22 @@ export default function Dashboard() {
                   <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Mô tả chi tiết</label>
                   <textarea value={returnDesc} onChange={e => setReturnDesc(e.target.value)} placeholder="Mô tả vấn đề..." style={{ width: '100%', minHeight: 80, padding: 12, borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem', resize: 'vertical' }} />
                 </div>
-                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }}>Gửi yêu cầu</button>
+                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => {
+                  if (!returnOrder) { showToast('Vui long chon don hang'); return; }
+                  if (!returnDesc.trim()) { showToast('Vui long mo ta van de'); return; }
+                  const newId = `RET-${String(returnReqs.length + 1).padStart(3, '0')}`;
+                  const ord = orders.find(o => o.id === returnOrder);
+                  setReturnReqs(prev => [...prev, { id: newId, orderId: returnOrder, product: ord?.items[0].name || '', reason: returnReason, description: returnDesc, status: 'pending', date: new Date().toISOString().slice(0, 10), refundAmount: ord?.total || 0 }]);
+                  setOrders(prev => prev.map(o => o.id === returnOrder ? { ...o, status: 'return' as const } : o));
+                  setReturnOrder(''); setReturnDesc('');
+                  showToast(`Da gui yeu cau doi/tra ${newId}`);
+                }}>Gui yeu cau</button>
               </div>
             </div>
 
             {/* Existing return requests */}
-            <div style={{ fontWeight: 600, fontSize: '.88rem', marginBottom: 12 }}>Yêu cầu đổi/trả ({returnRequests.length})</div>
-            {returnRequests.map(r => {
+            <div style={{ fontWeight: 600, fontSize: '.88rem', marginBottom: 12 }}>Yeu cau doi/tra ({returnReqs.length})</div>
+            {returnReqs.map(r => {
               const rs = returnStatusConfig[r.status];
               return (
                 <div key={r.id} className="card" style={{ padding: 20, marginBottom: 12 }}>
@@ -650,7 +798,7 @@ export default function Dashboard() {
                           <TD>{o.items.map(it => it.name).join(', ')}</TD>
                           <TD bold>{formatVND(o.total)}</TD>
                           <TD><span className={`badge ${sc.badge}`}>{sc.label}</span></TD>
-                          <TD><button className="btn btn-primary btn-sm">Mua lại</button></TD>
+                          <TD><button className="btn btn-primary btn-sm" onClick={() => handleAddToCart(o.id, o.items[0].name)}>{addedToCart.has(o.id) ? 'Da them \u2713' : 'Mua lai'}</button></TD>
                         </tr>
                       );
                     })}
@@ -670,21 +818,32 @@ export default function Dashboard() {
             {/* Saved payment methods */}
             <div style={{ fontWeight: 600, fontSize: '.88rem', marginBottom: 12 }}>Phương thức thanh toán đã lưu</div>
             <div className="flex-col gap-8" style={{ marginBottom: 24 }}>
-              {savedPaymentMethods.map(m => (
+              {payMethods.map(m => (
                 <div key={m.id} className="card" style={{ padding: '14px 20px' }}>
                   <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="flex gap-12" style={{ alignItems: 'center' }}>
-                      <span style={{ fontSize: '1.2rem' }}>{m.type === 'VNPay' ? '🏦' : m.type === 'MoMo' ? '📱' : '💳'}</span>
+                      <span style={{ fontSize: '1.2rem' }}>{m.type === 'VNPay' ? '\uD83C\uDFE6' : m.type === 'MoMo' ? '\uD83D\uDCF1' : '\uD83D\uDCB3'}</span>
                       <div>
                         <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{m.label}</div>
-                        {m.isDefault && <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>Mặc định</span>}
+                        {m.isDefault && <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>Mac dinh</span>}
                       </div>
                     </div>
-                    <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }}>Xóa</button>
+                    <div className="flex gap-8">
+                      {!m.isDefault && <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => { setPayMethods(prev => prev.map(p => ({ ...p, isDefault: p.id === m.id }))); showToast(`Da dat ${m.label} lam mac dinh`); }}>Dat mac dinh</button>}
+                      <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => {
+                        if (!confirm(`Xoa ${m.label}?`)) return;
+                        setPayMethods(prev => prev.filter(p => p.id !== m.id));
+                        showToast(`Da xoa ${m.label}`);
+                      }}>Xoa</button>
+                    </div>
                   </div>
                 </div>
               ))}
-              <button className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }}>+ Thêm phương thức</button>
+              <button className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => {
+                const newId = Math.max(...payMethods.map(p => p.id)) + 1;
+                setPayMethods(prev => [...prev, { id: newId, type: 'Bank', label: `Visa •••• ${String(newId).padStart(4, '0')}`, last4: String(newId).padStart(4, '0'), isDefault: false }]);
+                showToast('Da them phuong thuc thanh toan moi');
+              }}>+ Them phuong thuc</button>
             </div>
 
             {/* WK Pay quick view */}
@@ -695,8 +854,8 @@ export default function Dashboard() {
                   <div style={{ fontWeight: 800, fontSize: '1.3rem', color: 'var(--c4-500)' }}>{formatVND(wkPayData.balanceVND)}</div>
                 </div>
                 <div className="flex gap-8">
-                  <button className="btn btn-primary btn-sm">Nạp tiền</button>
-                  <button className="btn btn-secondary btn-sm">Rút tiền</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => { setActiveNav('wkpay'); showToast('Chuyen den vi WK Pay'); }}>Nap tien</button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => { setActiveNav('wkpay'); showToast('Chuyen den vi WK Pay'); }}>Rut tien</button>
                 </div>
               </div>
               <span style={{ fontSize: '.72rem', color: 'var(--text-3)', cursor: 'pointer' }} onClick={() => setActiveNav('wkpay')}>Quản lý ví WK Pay →</span>
@@ -772,7 +931,7 @@ export default function Dashboard() {
                 { label: 'Chuyển WK Token', desc: 'Tới ví khác', icon: '📤' },
                 { label: 'Mua WK Token', desc: 'Đổi VND sang WK', icon: '🔄' },
               ].map((a, i) => (
-                <div key={i} className="card card-hover" style={{ padding: 16, textAlign: 'center', cursor: 'pointer' }}>
+                <div key={i} className="card card-hover" style={{ padding: 16, textAlign: 'center', cursor: 'pointer' }} onClick={() => showToast(`Chuc nang "${a.label}" dang phat trien`)}>
                   <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>{a.icon}</div>
                   <div style={{ fontWeight: 600, fontSize: '.82rem', marginBottom: 2 }}>{a.label}</div>
                   <div style={{ fontSize: '.65rem', color: 'var(--text-3)' }}>{a.desc}</div>
@@ -885,8 +1044,8 @@ export default function Dashboard() {
                 <div key={item.id} className="card" style={{ padding: 16, textAlign: 'center' }}>
                   <div style={{ fontWeight: 600, fontSize: '.82rem', marginBottom: 8 }}>{item.name}</div>
                   <div style={{ fontWeight: 700, color: 'var(--c6-500)', marginBottom: 8 }}>{item.cost} Points</div>
-                  <button className={`btn btn-sm ${pointsConfig.currentPoints >= item.cost ? 'btn-primary' : 'btn-secondary'}`} disabled={pointsConfig.currentPoints < item.cost}>
-                    {pointsConfig.currentPoints >= item.cost ? 'Đổi ngay' : 'Chưa đủ points'}
+                  <button className={`btn btn-sm ${pointsConfig.currentPoints >= item.cost && !redeemedIds.has(item.id) ? 'btn-primary' : 'btn-secondary'}`} disabled={pointsConfig.currentPoints < item.cost || redeemedIds.has(item.id)} onClick={() => { setRedeemedIds(prev => new Set(prev).add(item.id)); showToast(`Da doi "${item.name}" thanh cong!`); }}>
+                    {redeemedIds.has(item.id) ? 'Da doi \u2713' : pointsConfig.currentPoints >= item.cost ? 'Doi ngay' : 'Chua du points'}
                   </button>
                 </div>
               ))}
@@ -1054,7 +1213,7 @@ export default function Dashboard() {
                   <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--c6-500)', marginBottom: 4 }}>{v.xp} XP</div>
                   <div style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{v.desc}</div>
                   <div style={{ fontSize: '.7rem', color: 'var(--text-4)', marginBottom: 10 }}>Đơn tối thiểu: {v.minOrder}</div>
-                  <button className="btn btn-primary" style={{ width: '100%', padding: '6px 12px', fontSize: '.78rem' }}>Đổi ngay</button>
+                  <button className="btn btn-primary" style={{ width: '100%', padding: '6px 12px', fontSize: '.78rem' }} onClick={() => showToast(`Da doi ${v.xp} XP lay "${v.desc}"`)}>Doi ngay</button>
                 </div>
               ))}
             </div>
@@ -1062,16 +1221,19 @@ export default function Dashboard() {
             {/* My Vouchers */}
             <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: 12, color: 'var(--text-1)' }}>🎫 Voucher của tôi</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {myVouchers.filter(v => !v.used).map((v, i) => (
+              {myVouchers.filter(v => !v.used && !usedVouchers.has(v.code)).map((v, i) => (
                 <div key={i} className="card" style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid var(--c5-500)' }}>
                   <div>
-                    <div style={{ fontFamily: 'var(--ff-mono)', fontSize: '.85rem', fontWeight: 700, color: 'var(--c5-500)', marginBottom: 2 }}>{v.code}</div>
+                    <div style={{ fontFamily: 'var(--ff-mono)', fontSize: '.85rem', fontWeight: 700, color: 'var(--c5-500)', marginBottom: 2, cursor: 'pointer' }} onClick={() => copyToClipboard(v.code, `ma voucher ${v.code}`)}>{v.code} {copiedId === v.code ? '\u2713' : ''}</div>
                     <div style={{ fontSize: '.8rem', color: 'var(--text-2)' }}>{v.desc}</div>
                     <div style={{ fontSize: '.7rem', color: 'var(--text-4)', marginTop: 2 }}>HSD: {v.expires}</div>
                   </div>
-                  <button className="btn btn-secondary" style={{ fontSize: '.75rem', padding: '6px 12px' }}>Dùng ngay</button>
+                  <button className="btn btn-secondary" style={{ fontSize: '.75rem', padding: '6px 12px' }} onClick={() => { setUsedVouchers(prev => new Set(prev).add(v.code)); showToast(`Da ap dung voucher ${v.code}`); }}>Dung ngay</button>
                 </div>
               ))}
+              {myVouchers.filter(v => !v.used && !usedVouchers.has(v.code)).length === 0 && (
+                <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: '.82rem' }}>Khong con voucher kha dung</div>
+              )}
             </div>
           </>
         );
@@ -1079,7 +1241,7 @@ export default function Dashboard() {
 
       /* ═══════════ 12. ĐỔI XP → WK3 TOKEN ═══════════ */
       case 'convert': {
-        const convertAmount = 500;
+        const convertAmount = convertAmt;
         const conversionRate = 100; // 100 XP = 1 WK3
         const currentXP = 3280;
         const wk3Balance = 12.5;
@@ -1111,7 +1273,7 @@ export default function Dashboard() {
 
               <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
                 {[100, 500, 1000, 2000, 3000].map(v => (
-                  <button key={v} onClick={() => {}} style={{ padding: '6px 14px', borderRadius: 8, border: convertAmount === v ? '1px solid var(--c6-500)' : '1px solid var(--border)', background: convertAmount === v ? 'rgba(99,102,241,.1)' : 'transparent', color: convertAmount === v ? 'var(--c6-500)' : 'var(--text-3)', fontSize: '.78rem', cursor: 'pointer', fontWeight: 600 }}>{v} XP</button>
+                  <button key={v} onClick={() => setConvertAmt(v)} style={{ padding: '6px 14px', borderRadius: 8, border: convertAmount === v ? '1px solid var(--c6-500)' : '1px solid var(--border)', background: convertAmount === v ? 'rgba(99,102,241,.1)' : 'transparent', color: convertAmount === v ? 'var(--c6-500)' : 'var(--text-3)', fontSize: '.78rem', cursor: 'pointer', fontWeight: 600 }}>{v} XP</button>
                 ))}
               </div>
 
@@ -1125,8 +1287,8 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <button className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={convertAmount > currentXP}>
-                {convertAmount > currentXP ? 'Không đủ XP' : `Quy đổi ${convertAmount} XP → ${(convertAmount / conversionRate).toFixed(1)} WK3`}
+              <button className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={convertAmount > currentXP} onClick={() => showToast(`Da quy doi ${convertAmount} XP thanh ${(convertAmount / conversionRate).toFixed(1)} WK3 thanh cong!`)}>
+                {convertAmount > currentXP ? 'Khong du XP' : `Quy doi ${convertAmount} XP \u2192 ${(convertAmount / conversionRate).toFixed(1)} WK3`}
               </button>
             </div>
 
@@ -1161,10 +1323,10 @@ export default function Dashboard() {
           <>
             <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Sản Phẩm Yêu Thích</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
-              {favoriteProducts.map(p => (
+              {favProducts.map(p => (
                 <div key={p.id} className="card card-hover" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
                   {/* Heart icon */}
-                  <div style={{ position: 'absolute', top: 10, right: 10, fontSize: '1.2rem', cursor: 'pointer', color: '#ef4444', zIndex: 1 }}>❤️</div>
+                  <div style={{ position: 'absolute', top: 10, right: 10, fontSize: '1.2rem', cursor: 'pointer', color: '#ef4444', zIndex: 1 }} onClick={() => { setFavProducts(prev => prev.filter(x => x.id !== p.id)); showToast(`Da bo "${p.name}" khoi yeu thich`); }}>{'\u2764\uFE0F'}</div>
                   {/* Product image area */}
                   <div style={{ background: 'var(--bg-1)', padding: 24, textAlign: 'center', fontSize: '2.5rem' }}>{p.emoji}</div>
                   {/* Product info */}
@@ -1180,8 +1342,10 @@ export default function Dashboard() {
                       {p.alert && <span className="badge badge-c5" style={{ fontSize: '.55rem' }}>Giá giảm!</span>}
                     </div>
                     <div className="flex gap-8">
-                      <button className="btn btn-primary btn-sm" style={{ flex: 1 }}>Thêm vào giỏ</button>
-                      <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem' }}>Xóa</button>
+                      <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={() => { setFavAddedToCart(prev => new Set(prev).add(p.id)); showToast(`Da them "${p.name}" vao gio hang`); setTimeout(() => setFavAddedToCart(prev => { const n = new Set(prev); n.delete(p.id); return n; }), 2000); }}>
+                        {favAddedToCart.has(p.id) ? 'Da them \u2713' : 'Them vao gio'}
+                      </button>
+                      <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem' }} onClick={() => { setFavProducts(prev => prev.filter(x => x.id !== p.id)); showToast(`Da xoa "${p.name}" khoi yeu thich`); }}>Xoa</button>
                     </div>
                   </div>
                 </div>
@@ -1196,7 +1360,7 @@ export default function Dashboard() {
           <>
             <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontWeight: 700, fontSize: '1.1rem', margin: 0 }}>Thông Báo</h2>
-              <span style={{ fontSize: '.72rem', color: 'var(--c5-400)', cursor: 'pointer' }}>Đánh dấu tất cả đã đọc</span>
+              <span style={{ fontSize: '.72rem', color: 'var(--c5-400)', cursor: 'pointer' }} onClick={() => { setNotifsState(prev => prev.map(n => ({ ...n, read: true }))); showToast('Da danh dau tat ca da doc'); }}>Danh dau tat ca da doc</span>
             </div>
 
             {/* Filter */}
@@ -1226,7 +1390,7 @@ export default function Dashboard() {
                         <div style={{ fontSize: '.78rem', color: 'var(--text-2)', marginBottom: 4 }}>{n.message}</div>
                         <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontSize: '.65rem', color: 'var(--text-4)' }}>{n.date}</span>
-                          {!n.read && <span style={{ fontSize: '.65rem', color: 'var(--c5-400)', cursor: 'pointer' }}>Đánh dấu đã đọc</span>}
+                          {!n.read && <span style={{ fontSize: '.65rem', color: 'var(--c5-400)', cursor: 'pointer' }} onClick={() => { setNotifsState(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)); showToast('Da danh dau da doc'); }}>Danh dau da doc</span>}
                         </div>
                       </div>
                     </div>
@@ -1282,7 +1446,7 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-                <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }}>Chỉnh sửa</button>
+                <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }} onClick={() => { setSettingsEditing(!settingsEditing); if (settingsEditing) showToast('Da luu thong tin ca nhan'); }}>{settingsEditing ? 'Luu' : 'Chinh sua'}</button>
               </div>
             )}
 
@@ -1297,15 +1461,15 @@ export default function Dashboard() {
                         {a.isDefault && <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>Mặc định</span>}
                       </div>
                       <div className="flex gap-8">
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }}>Sửa</button>
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }}>Xóa</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang sua dia chi ${a.label} (mock)`)}>Sua</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang xoa dia chi ${a.label} (mock)`)}>Xoa</button>
                       </div>
                     </div>
                     <div style={{ fontSize: '.82rem' }}>{a.name} · {a.phone}</div>
                     <div style={{ fontSize: '.78rem', color: 'var(--text-3)', marginTop: 4 }}>{a.address}</div>
                   </div>
                 ))}
-                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }}>+ Thêm địa chỉ mới</button>
+                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Chuc nang them dia chi moi (mock)')}>+ Them dia chi moi</button>
               </div>
             )}
 
@@ -1317,18 +1481,18 @@ export default function Dashboard() {
                     <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
                       <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{b.bank}</span>
                       <div className="flex gap-8">
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }}>Sửa</button>
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }}>Xóa</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang sua tai khoan ${b.bank} (mock)`)}>Sua</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang xoa tai khoan ${b.bank} (mock)`)}>Xoa</button>
                       </div>
                     </div>
                     <div className="flex-col gap-4" style={{ fontSize: '.82rem' }}>
-                      <div>Số tài khoản: <span className="mono" style={{ fontWeight: 600 }}>{b.accountNumber}</span></div>
-                      <div>Chủ tài khoản: <span style={{ fontWeight: 600 }}>{b.holder}</span></div>
-                      <div>Chi nhánh: <span style={{ color: 'var(--text-3)' }}>{b.branch}</span></div>
+                      <div>So tai khoan: <span className="mono" style={{ fontWeight: 600 }}>{b.accountNumber}</span></div>
+                      <div>Chu tai khoan: <span style={{ fontWeight: 600 }}>{b.holder}</span></div>
+                      <div>Chi nhanh: <span style={{ color: 'var(--text-3)' }}>{b.branch}</span></div>
                     </div>
                   </div>
                 ))}
-                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }}>+ Thêm tài khoản ngân hàng</button>
+                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Chuc nang them tai khoan ngan hang (mock)')}>+ Them tai khoan ngan hang</button>
               </div>
             )}
 
@@ -1372,7 +1536,7 @@ export default function Dashboard() {
                     <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Xác nhận mật khẩu mới</label>
                     <input type="password" placeholder="••••••••" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                   </div>
-                  <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }}>Cập nhật mật khẩu</button>
+                  <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Da cap nhat mat khau thanh cong')}>Cap nhat mat khau</button>
                 </div>
               </div>
             )}
@@ -1415,7 +1579,7 @@ export default function Dashboard() {
                 <div style={{ fontSize: '.82rem', color: 'var(--text-2)', marginBottom: 16 }}>
                   Khi xóa tài khoản, tất cả dữ liệu sẽ bị xóa vĩnh viễn bao gồm: đơn hàng, WK Points, WK Pay, lịch sử giao dịch. Hành động này không thể hoàn tác.
                 </div>
-                <button className="btn btn-sm" style={{ background: '#ef4444', color: '#fff', border: 'none' }}>Yêu cầu xóa tài khoản</button>
+                <button className="btn btn-sm" style={{ background: '#ef4444', color: '#fff', border: 'none' }} onClick={() => { if (confirm('Ban co chac chan muon xoa tai khoan? Hanh dong nay khong the hoan tac.')) showToast('Da gui yeu cau xoa tai khoan. Vui long kiem tra email.'); }}>Yeu cau xoa tai khoan</button>
               </div>
             )}
           </>
@@ -1426,7 +1590,7 @@ export default function Dashboard() {
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifsState.filter(n => !n.read).length;
 
   return (
     <div className="dash-wrap" style={{ paddingTop: 0, minHeight: '100vh', background: 'var(--bg-0)' }}>
@@ -1457,15 +1621,39 @@ export default function Dashboard() {
           >
             <span className="dash-nav-icon">{item.icon}</span>
             <span style={{ flex: 1 }}>{item.label}</span>
+            {item.key === 'orders' && (
+              <span style={{ background: 'var(--c5-500)', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length}</span>
+            )}
             {item.key === 'notifications' && unreadCount > 0 && (
               <span style={{ background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{unreadCount}</span>
             )}
           </div>
         ))}
+
+        {/* Logout */}
+        <div style={{ height: 1, background: 'var(--border)', margin: '12px 8px' }} />
+        <div
+          className="dash-nav-item"
+          onClick={handleLogout}
+          style={{ color: '#ef4444', cursor: 'pointer' }}
+        >
+          <span className="dash-nav-icon">🚪</span>
+          <span style={{ flex: 1 }}>Đăng xuất</span>
+        </div>
       </div>
 
       {/* Content */}
       <div className="dash-content">
+        {/* Toast notifications */}
+        {toasts.length > 0 && (
+          <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {toasts.map(t => (
+              <div key={t.id} style={{ background: 'var(--c4-500)', color: '#fff', padding: '12px 20px', borderRadius: 10, fontSize: '.82rem', fontWeight: 600, boxShadow: '0 4px 20px rgba(0,0,0,.3)', animation: 'fadeIn .2s ease', maxWidth: 360 }}>
+                {t.message}
+              </div>
+            ))}
+          </div>
+        )}
         {renderContent()}
       </div>
     </div>

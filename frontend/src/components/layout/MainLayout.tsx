@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Sun, Moon, ChevronDown, X } from 'lucide-react';
 import { useTheme } from '@hooks/useTheme';
 import { useI18n, LANGUAGES } from '@hooks/useI18n';
 import type { Locale } from '@hooks/useI18n';
+import { useAuth } from '@hooks/useAuth';
 
 /* ── WK Logo SVG — Brand chuẩn từ Design System ── */
 function WKLogo({ size = 38 }: { size?: number }) {
@@ -151,26 +152,44 @@ export default function MainLayout() {
   const { theme, toggleTheme, isDark } = useTheme();
   const { t, locale, setLocale, currentLanguage, languages } = useI18n();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const langRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close drawer on route change
   useEffect(() => {
     setDrawerOpen(false);
+    setUserMenuOpen(false);
   }, [location.pathname]);
 
-  // Close language dropdown on outside click
+  // Close language dropdown and user menu on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
         setLangDropdownOpen(false);
       }
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setUserMenuOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    setUserMenuOpen(false);
+    navigate('/login');
+  };
+
+  const userInitials = user?.name
+    ? user.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+    : '??';
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
@@ -376,23 +395,91 @@ export default function MainLayout() {
             {isDark ? <Sun size={15} /> : <Moon size={15} />}
           </button>
 
-          {/* Join button */}
-          <Link
-            to="/register"
-            style={{
-              padding: '7px 16px',
-              borderRadius: 8,
-              background: 'var(--chakra-flow)',
-              color: '#fff',
-              fontSize: '0.78rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
-              transition: 'var(--t-fast)',
-            }}
-          >
-            {t('btn.join')}
-          </Link>
+          {/* User menu or Auth buttons */}
+          {isAuthenticated && user ? (
+            <div ref={userMenuRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 10px 4px 4px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border)',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                  transition: 'var(--t-fast)',
+                }}
+              >
+                <div style={{
+                  width: 28, height: 28, borderRadius: '50%',
+                  background: 'var(--chakra-flow)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '.65rem', fontWeight: 700, color: '#fff',
+                }}>{userInitials}</div>
+                <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-2)', maxWidth: 80, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</span>
+                <ChevronDown size={12} style={{ color: 'var(--text-3)' }} />
+              </button>
+
+              {userMenuOpen && (
+                <div style={{
+                  position: 'absolute', top: '100%', right: 0, marginTop: 4,
+                  background: 'var(--surface-card)', border: '1px solid var(--border)',
+                  borderRadius: 12, padding: 6, minWidth: 180,
+                  boxShadow: 'var(--shadow-float)', zIndex: 1010,
+                }}>
+                  <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                    padding: '8px 12px', borderRadius: 8, fontSize: '0.82rem',
+                    color: 'var(--text-2)', textDecoration: 'none', transition: 'var(--t-fast)',
+                  }}>
+                    <span style={{ fontSize: '1rem' }}>👤</span> Hồ sơ
+                  </Link>
+                  <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                    padding: '8px 12px', borderRadius: 8, fontSize: '0.82rem',
+                    color: 'var(--text-2)', textDecoration: 'none', transition: 'var(--t-fast)',
+                  }}>
+                    <span style={{ fontSize: '1rem' }}>📊</span> Dashboard
+                  </Link>
+                  <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                    padding: '8px 12px', borderRadius: 8, fontSize: '0.82rem',
+                    color: 'var(--text-2)', textDecoration: 'none', transition: 'var(--t-fast)',
+                  }}>
+                    <span style={{ fontSize: '1rem' }}>⚙️</span> Cài đặt
+                  </Link>
+                  <div style={{ height: 1, background: 'var(--border)', margin: '4px 8px' }} />
+                  <button onClick={handleLogout} style={{
+                    display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                    padding: '8px 12px', borderRadius: 8, fontSize: '0.82rem',
+                    color: '#ef4444', background: 'transparent', border: 'none',
+                    cursor: 'pointer', transition: 'var(--t-fast)', textAlign: 'left',
+                  }}>
+                    <span style={{ fontSize: '1rem' }}>🚪</span> Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              style={{
+                padding: '8px 20px',
+                borderRadius: 10,
+                background: 'var(--chakra-flow)',
+                color: '#fff',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                transition: 'var(--t-fast)',
+              }}
+            >
+              Tham gia
+            </Link>
+          )}
 
           {/* Hamburger button */}
           <button
@@ -589,43 +676,73 @@ export default function MainLayout() {
             gap: 10,
           }}
         >
-          <Link
-            to="/register"
-            onClick={() => setDrawerOpen(false)}
-            style={{
-              display: 'block',
-              textAlign: 'center',
-              padding: '12px 20px',
-              borderRadius: 12,
-              background: 'var(--chakra-flow)',
-              color: '#fff',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              textDecoration: 'none',
-              transition: 'var(--t-fast)',
-            }}
-          >
-            {t('btn.joinFree')}
-          </Link>
-          <Link
-            to="/"
-            onClick={() => setDrawerOpen(false)}
-            style={{
-              display: 'block',
-              textAlign: 'center',
-              padding: '12px 20px',
-              borderRadius: 12,
-              border: '1px solid var(--border)',
-              background: 'transparent',
-              color: 'var(--text-2)',
-              fontSize: '0.85rem',
-              fontWeight: 500,
-              textDecoration: 'none',
-              transition: 'var(--t-fast)',
-            }}
-          >
-            {t('btn.tryDemo')}
-          </Link>
+          {isAuthenticated ? (
+            <>
+              {/* User info */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: 'var(--chakra-flow)', display: 'flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontSize: '.78rem', fontWeight: 700,
+                }}>{userInitials}</div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '.88rem', color: 'var(--text-1)' }}>{user?.name}</div>
+                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{user?.email}</div>
+                </div>
+              </div>
+              {/* Dashboard */}
+              <Link
+                to="/dashboard"
+                onClick={() => setDrawerOpen(false)}
+                style={{
+                  display: 'block', textAlign: 'center', padding: '12px 20px',
+                  borderRadius: 12, background: 'var(--chakra-flow)', color: '#fff',
+                  fontSize: '0.88rem', fontWeight: 600, textDecoration: 'none',
+                }}
+              >
+                📊 Dashboard
+              </Link>
+              {/* Logout */}
+              <button
+                onClick={() => { setDrawerOpen(false); handleLogout(); }}
+                style={{
+                  display: 'block', width: '100%', textAlign: 'center', padding: '12px 20px',
+                  borderRadius: 12, border: '1px solid rgba(239,68,68,.3)',
+                  background: 'rgba(239,68,68,.06)', color: '#ef4444',
+                  fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                🚪 Đăng xuất
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                onClick={() => setDrawerOpen(false)}
+                style={{
+                  display: 'block', textAlign: 'center', padding: '12px 20px',
+                  borderRadius: 12, background: 'var(--chakra-flow)', color: '#fff',
+                  fontSize: '0.9rem', fontWeight: 600, textDecoration: 'none',
+                }}
+              >
+                {t('btn.joinFree')}
+              </Link>
+              <Link
+                to="/"
+                onClick={() => setDrawerOpen(false)}
+                style={{
+                  display: 'block', textAlign: 'center', padding: '12px 20px',
+                  borderRadius: 12, border: '1px solid var(--border)',
+                  background: 'transparent', color: 'var(--text-2)',
+                  fontSize: '0.85rem', fontWeight: 500, textDecoration: 'none',
+                }}
+              >
+                {t('btn.tryDemo')}
+              </Link>
+            </>
+          )}
         </div>
       </div>
 

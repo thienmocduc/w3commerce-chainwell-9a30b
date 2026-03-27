@@ -12,7 +12,7 @@ from sqlalchemy import (
     String, Text, func, UniqueConstraint, Index,
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ENUM
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
 
 from app.core.database import Base
 
@@ -100,8 +100,10 @@ class User(Base):
     )
 
     # ── Relationships ────────────────────────────────────────
-    referred_by: Mapped[Optional["User"]] = relationship(
-        "User", remote_side="User.id", foreign_keys=[referred_by_id]
+    children = relationship(
+        "User",
+        backref=backref("parent", remote_side=[id]),
+        foreign_keys=[referred_by_id],
     )
 
     def __repr__(self) -> str:

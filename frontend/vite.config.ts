@@ -14,6 +14,7 @@ export default defineConfig({
       '@store': resolve(__dirname, './src/store'),
       '@utils': resolve(__dirname, './src/utils'),
       '@i18n': resolve(__dirname, './src/i18n'),
+      '@lib': resolve(__dirname, './src/lib'),
     },
   },
 
@@ -35,17 +36,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    target: 'esnext',
+    minify: 'esbuild',
+    cssMinify: true,
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
-          query: ['@tanstack/react-query'],
-          charts: ['recharts'],
-          web3: ['ethers', 'viem'],
-          ui: ['@radix-ui/react-dialog', '@radix-ui/react-tabs', 'lucide-react'],
+          supabase: ['@supabase/supabase-js'],
         },
       },
     },
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 300,
   },
 })

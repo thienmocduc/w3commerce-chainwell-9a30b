@@ -508,6 +508,59 @@ insert into public.categories (slug, name_vi, name_en, icon, sort_order) values
   ('sports',      'Thể thao & Fitness',   'Sports',       '🏃', 4),
   ('electronics', 'Điện tử',              'Electronics',  '⌚', 5);
 
+-- ============================================================
+-- RETURN REQUESTS
+-- ============================================================
+create type return_status as enum ('pending', 'approved', 'rejected', 'refunded');
+create type return_reason as enum ('damaged', 'wrong_item', 'not_as_described', 'other');
+create type refund_method as enum ('original_payment', 'wallet_credit');
+
+create table public.return_requests (
+  id              uuid primary key default uuid_generate_v4(),
+  order_id        uuid not null references public.orders(id) on delete cascade,
+  buyer_id        uuid not null references public.profiles(id) on delete cascade,
+  reason          return_reason not null,
+  description     text,
+  photo_urls      text[] default '{}',
+  status          return_status not null default 'pending',
+  vendor_response text,
+  refund_amount   numeric(18,2),
+  refund_method   refund_method,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+create index ix_return_requests_order_id on public.return_requests(order_id);
+create index ix_return_requests_buyer_id on public.return_requests(buyer_id);
+create index ix_return_requests_status   on public.return_requests(status);
+
+-- RLS policies for return_requests
+alter table public.return_requests enable row level security;
+
+create policy "Buyers can view own return requests"
+  on public.return_requests for select
+  using (auth.uid() = buyer_id);
+
+create policy "Buyers can create return requests"
+  on public.return_requests for insert
+  with check (auth.uid() = buyer_id);
+
+create policy "Vendors can view returns for their orders"
+  on public.return_requests for select
+  using (
+    order_id in (
+      select id from public.orders where vendor_id = auth.uid()
+    )
+  );
+
+create policy "Vendors can update return requests for their orders"
+  on public.return_requests for update
+  using (
+    order_id in (
+      select id from public.orders where vendor_id = auth.uid()
+    )
+  );
+
 -- Create current reward pools
 insert into public.reward_pools (pool_type, period) values
   ('A', to_char(now(), 'YYYY-MM')),
