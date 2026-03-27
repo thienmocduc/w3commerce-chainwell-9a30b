@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@hooks/useTheme';
 
-const ADMIN_EMAIL = 'admin@wellkoc.com';
 const STORAGE_KEY = 'wellkoc-auth';
 
 function isAdminLoggedIn(): boolean {
@@ -10,7 +9,7 @@ function isAdminLoggedIn(): boolean {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return false;
     const parsed = JSON.parse(stored);
-    return parsed?.user?.email === ADMIN_EMAIL && parsed?.user?.role === 'admin';
+    return parsed?.user?.role === 'admin';
   } catch {
     return false;
   }
