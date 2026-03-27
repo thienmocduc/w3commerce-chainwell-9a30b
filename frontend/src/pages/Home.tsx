@@ -1161,14 +1161,11 @@ export default function Home() {
               flexWrap: 'wrap',
             }}
           >
-            <Link to="/register?role=buyer" className="btn btn-primary btn-lg">
-              Đăng ký Người mua
+            <Link to="/login" className="btn btn-primary btn-lg">
+              Đăng nhập
             </Link>
-            <Link to="/register?role=koc" className="btn btn-primary btn-lg">
-              Đăng ký KOC
-            </Link>
-            <Link to="/register?role=vendor" className="btn btn-secondary btn-lg">
-              Đăng ký Vendor
+            <Link to="/register" className="btn btn-secondary btn-lg">
+              Đăng ký miễn phí
             </Link>
           </div>
 
