@@ -1,0 +1,14 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="wkApple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="33%" stop-color="#06b6d4"/>
+      <stop offset="66%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="180" height="180" rx="40" fill="#0f172a"/>
+  <circle cx="90" cy="90" r="75" stroke="url(#wkApple)" stroke-width="2" opacity="0.3"/>
+  <path d="M40 55L57 120L73 80L89 120L106 55" stroke="url(#wkApple)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M115 55V135M115 95L150 55M115 95L150 135" stroke="url(#wkApple)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
