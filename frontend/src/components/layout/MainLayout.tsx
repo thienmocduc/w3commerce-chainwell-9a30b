@@ -787,7 +787,7 @@ export default function MainLayout() {
       </div>
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <main style={{ marginTop: 84, flex: 1 }}>
+      <main style={{ marginTop: 100, flex: 1 }}>
         <Outlet />
       </main>
 

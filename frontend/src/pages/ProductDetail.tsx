@@ -30,8 +30,8 @@ const productDB: Record<string, ProductData> = {
     name: 'Serum Vitamin C 20% Brightening',
     price: 315000, originalPrice: 470000,
     category: 'Skincare', categorySlug: 'skincare',
-    description: 'Serum Vitamin C nong do cao 20% ket hop Vitamin E va Ferulic Acid. Cong nghe nano giup tham thau sau, lam sang da, mo vet tham va chong lao hoa hieu qua. Phu hop moi loai da, da duoc kiem nghiem lam sang tai phong thi nghiem KFDA.',
-    origin: 'Han Quoc', brand: 'WellKOC Beauty', dpp: true,
+    description: 'Serum Vitamin C nồng độ cao 20% kết hợp Vitamin E và Ferulic Acid. Công nghệ nano giúp thẩm thấu sâu, làm sáng da, mờ vết thâm và chống lão hoá hiệu quả. Phù hợp mọi loại da, đã được kiểm nghiệm lâm sàng tại phòng thí nghiệm KFDA.',
+    origin: 'Hàn Quốc', brand: 'WellKOC Beauty', dpp: true,
     dppHash: '0x8b4e2f1a3c5d7e9b...f2a1c3d5e7',
     certifications: ['KFDA', 'GMP', 'Cruelty Free'],
     chain: 'Polygon', rating: 4.8, reviewCount: 234, sold: 2341, xpReward: 10,
@@ -44,11 +44,11 @@ const productDB: Record<string, ProductData> = {
     ],
   },
   'tra-olong': {
-    name: 'Tra O Long Dai Loan Cao Cap',
+    name: 'Trà Ô Long Đài Loan Cao Cấp',
     price: 389000,
-    category: 'Thuc pham', categorySlug: 'food',
-    description: 'Tra O Long cao cap tu Ali Shan, Dai Loan. Thu hoach thu cong o do cao 1,200m. Huong thom dac trung, vi ngot hau thanh mat. Dong goi chan khong giu tron huong vi. San pham dat chung nhan Organic EU.',
-    origin: 'Ali Shan, Dai Loan', brand: 'WellKOC Origin', dpp: true,
+    category: 'Thực phẩm', categorySlug: 'food',
+    description: 'Trà Ô Long cao cấp từ Ali Shan, Đài Loan. Thu hoạch thủ công ở độ cao 1,200m. Hương thơm đặc trưng, vị ngọt hậu thanh mát. Đóng gói chân không giữ trọn hương vị. Sản phẩm đạt chứng nhận Organic EU.',
+    origin: 'Ali Shan, Đài Loan', brand: 'WellKOC Origin', dpp: true,
     dppHash: '0x7a3f8c2e1d5b9f4a...b92c1d4e',
     certifications: ['Organic EU', 'HACCP', 'ISO 22000'],
     chain: 'Polygon', rating: 4.9, reviewCount: 187, sold: 1247, xpReward: 10,
@@ -64,11 +64,11 @@ const productDB: Record<string, ProductData> = {
 
 // Default fallback for any product ID not explicitly in DB
 const defaultProduct: ProductData = {
-  name: 'Tra O Long Dai Loan Cao Cap',
+  name: 'Trà Ô Long Đài Loan Cao Cấp',
   price: 389000,
-  category: 'Thuc pham', categorySlug: 'food',
-  description: 'Tra O Long cao cap tu Ali Shan, Dai Loan. Thu hoach thu cong o do cao 1,200m. Huong thom dac trung, vi ngot hau thanh mat.',
-  origin: 'Ali Shan, Dai Loan', brand: 'WellKOC Origin', dpp: true,
+  category: 'Thực phẩm', categorySlug: 'food',
+  description: 'Trà Ô Long cao cấp từ Ali Shan, Đài Loan. Thu hoạch thủ công ở độ cao 1,200m. Hương thơm đặc trưng, vị ngọt hậu thanh mát.',
+  origin: 'Ali Shan, Đài Loan', brand: 'WellKOC Origin', dpp: true,
   dppHash: '0x7a3f8c2e1d5b9f4a...b92c1d4e',
   certifications: ['Organic EU', 'HACCP', 'ISO 22000'],
   chain: 'Polygon', rating: 4.9, reviewCount: 187, sold: 1247, xpReward: 10,
@@ -94,10 +94,10 @@ interface KocReview {
 }
 
 const kocReviews: KocReview[] = [
-  { id: 1, author: 'Linh Nguyen', avatar: 'LN', rating: 5, date: '2026-03-20', content: 'San pham chat luong tuyet voi! Da dung 2 thang va thay hieu qua ro ret. Nguon goc minh bach tren blockchain, rat yen tam.', verified: true, purchaseBadge: true, kocLevel: 'Gold KOC' },
-  { id: 2, author: 'Minh Tran', avatar: 'MT', rating: 5, date: '2026-03-18', content: 'Dong goi can than, giao hang nhanh. DPP xac minh duoc toan bo chuoi cung ung, tu nguyen lieu den san xuat.', verified: true, purchaseBadge: true, kocLevel: 'Silver KOC' },
-  { id: 3, author: 'Thu Ha', avatar: 'TH', rating: 4, date: '2026-03-15', content: 'Gia hop ly so voi chat luong. Da gioi thieu cho ban be va ai cung hai long. Se tiep tuc ung ho!', verified: true, purchaseBadge: true, kocLevel: 'Gold KOC' },
-  { id: 4, author: 'Van Anh', avatar: 'VA', rating: 4, date: '2026-03-12', content: 'San pham tot, dung nhu mo ta. Ship hoi lau nhung chap nhan duoc. Gia tri nhan duoc xung dang.', verified: false, purchaseBadge: false, kocLevel: '' },
+  { id: 1, author: 'Linh Nguyen', avatar: 'LN', rating: 5, date: '2026-03-20', content: 'Sản phẩm chất lượng tuyệt vời! Đã dùng 2 tháng và thấy hiệu quả rõ rệt. Nguồn gốc minh bạch trên blockchain, rất yên tâm.', verified: true, purchaseBadge: true, kocLevel: 'Gold KOC' },
+  { id: 2, author: 'Minh Tran', avatar: 'MT', rating: 5, date: '2026-03-18', content: 'Đóng gói cẩn thận, giao hàng nhanh. DPP xác minh được toàn bộ chuỗi cung ứng, từ nguyên liệu đến sản xuất.', verified: true, purchaseBadge: true, kocLevel: 'Silver KOC' },
+  { id: 3, author: 'Thu Ha', avatar: 'TH', rating: 4, date: '2026-03-15', content: 'Giá hợp lý so với chất lượng. Đã giới thiệu cho bạn bè và ai cũng hài lòng. Sẽ tiếp tục ủng hộ!', verified: true, purchaseBadge: true, kocLevel: 'Gold KOC' },
+  { id: 4, author: 'Van Anh', avatar: 'VA', rating: 4, date: '2026-03-12', content: 'Sản phẩm tốt, đúng như mô tả. Ship hơi lâu nhưng chấp nhận được. Giá trị nhận được xứng đáng.', verified: false, purchaseBadge: false, kocLevel: '' },
 ];
 
 type TabKey = 'description' | 'dpp' | 'reviews';
@@ -115,9 +115,9 @@ export default function ProductDetail() {
     : 0;
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: 'description', label: 'Mo ta' },
+    { key: 'description', label: 'Mô tả' },
     { key: 'dpp', label: 'DPP Blockchain' },
-    { key: 'reviews', label: `Danh gia KOC (${product.reviewCount})` },
+    { key: 'reviews', label: `Đánh giá KOC (${product.reviewCount})` },
   ];
 
   return (
@@ -128,7 +128,7 @@ export default function ProductDetail() {
           display: 'flex', alignItems: 'center', gap: 8,
           fontSize: '.75rem', color: 'var(--text-4)', marginBottom: 28,
         }}>
-          <Link to="/" style={{ color: 'var(--text-4)', textDecoration: 'none' }}>Trang chu</Link>
+          <Link to="/" style={{ color: 'var(--text-4)', textDecoration: 'none' }}>Trang chủ</Link>
           <span>/</span>
           <Link to="/marketplace" style={{ color: 'var(--text-4)', textDecoration: 'none' }}>Marketplace</Link>
           <span>/</span>
@@ -222,10 +222,10 @@ export default function ProductDetail() {
                 {'★'.repeat(Math.floor(product.rating))} <span style={{ color: 'var(--text-2)', fontWeight: 600 }}>{product.rating}</span>
               </span>
               <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>
-                {product.reviewCount} danh gia
+                {product.reviewCount} đánh giá
               </span>
               <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>
-                Da ban {product.sold.toLocaleString('vi-VN')}
+                Đã bán{product.sold.toLocaleString('vi-VN')}
               </span>
             </div>
 
@@ -271,7 +271,7 @@ export default function ProductDetail() {
                     DPP Verified on Blockchain
                   </div>
                   <div style={{ fontSize: '.65rem', color: 'var(--text-4)' }}>
-                    Xem chi tiet nguon goc san pham
+                    Xem chi tiết nguồn gốc sản phẩm
                   </div>
                 </div>
               </Link>
@@ -279,7 +279,7 @@ export default function ProductDetail() {
 
             {/* Quantity Selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-              <span style={{ fontSize: '.82rem', color: 'var(--text-3)', fontWeight: 600 }}>So luong:</span>
+              <span style={{ fontSize: '.82rem', color: 'var(--text-3)', fontWeight: 600 }}>Số lượng:</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <button
                   className="btn btn-secondary"
@@ -311,7 +311,7 @@ export default function ProductDetail() {
                 className="btn btn-primary btn-lg"
                 style={{ flex: 1, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
-                🛒 Them vao gio
+                🛒 Thêm vào giỏ
               </Link>
               <Link
                 to="/checkout"
@@ -330,7 +330,7 @@ export default function ProductDetail() {
             }}>
               <span style={{ fontSize: '1rem' }}>🎮</span>
               <span style={{ fontSize: '.82rem', color: 'var(--text-2)' }}>
-                Mua san pham nay de nhan
+                Mua sản phẩm này để nhận
               </span>
               <span className="badge badge-gold" style={{ fontSize: '.72rem' }}>
                 +{product.xpReward * quantity} XP
@@ -340,9 +340,9 @@ export default function ProductDetail() {
             {/* Quick Info Table */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {[
-                ['Thuong hieu', product.brand],
-                ['Xuat xu', product.origin],
-                ['Danh muc', product.category],
+                ['Thương hiệu', product.brand],
+                ['Xuất xứ', product.origin],
+                ['Danh mục', product.category],
               ].map(([label, val], i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between',
@@ -386,7 +386,7 @@ export default function ProductDetail() {
         {/* Tab Content */}
         {activeTab === 'description' && (
           <div className="card" style={{ padding: 28 }}>
-            <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 14 }}>Mo ta san pham</h3>
+            <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 14 }}>Mô tả sản phẩm</h3>
             <p style={{ fontSize: '.88rem', color: 'var(--text-2)', lineHeight: 1.8 }}>
               {product.description}
             </p>
@@ -399,15 +399,15 @@ export default function ProductDetail() {
               DPP Verified On-Chain
             </div>
             <p style={{ fontSize: '.82rem', color: 'var(--text-3)', marginBottom: 20, lineHeight: 1.6 }}>
-              San pham nay da duoc xac minh nguon goc va chuoi cung ung thong qua Digital Product Passport (DPP) tren blockchain.
+              Sản phẩm này đã được xác minh nguồn gốc và chuỗi cung ứng thông qua Digital Product Passport (DPP) trên blockchain.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
                 { label: 'DPP Hash', value: product.dppHash, mono: true },
                 { label: 'Blockchain', value: product.chain, badge: true },
-                { label: 'Xuat xu', value: product.origin },
-                { label: 'Thuong hieu', value: product.brand },
+                { label: 'Xuất xứ', value: product.origin },
+                { label: 'Thương hiệu', value: product.brand },
               ].map((row, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -428,7 +428,7 @@ export default function ProductDetail() {
               ))}
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', fontSize: '.82rem' }}>
-                <span style={{ color: 'var(--text-3)' }}>Chung nhan</span>
+                <span style={{ color: 'var(--text-3)' }}>Chứng nhận</span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {product.certifications.map(c => (
                     <span key={c} className="badge badge-c4" style={{ fontSize: '.65rem' }}>{c}</span>
@@ -442,7 +442,7 @@ export default function ProductDetail() {
               className="btn btn-primary btn-sm"
               style={{ marginTop: 20, textDecoration: 'none', display: 'inline-block' }}
             >
-              Xem chi tiet DPP
+              Xem chi tiết DPP
             </Link>
           </div>
         )}
@@ -464,7 +464,7 @@ export default function ProductDetail() {
                   {'★'.repeat(Math.floor(product.rating))}
                 </div>
                 <div style={{ fontSize: '.72rem', color: 'var(--text-4)', marginTop: 2 }}>
-                  {product.reviewCount} danh gia
+                  {product.reviewCount} đánh giá
                 </div>
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -504,7 +504,7 @@ export default function ProductDetail() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontWeight: 700, fontSize: '.85rem' }}>{review.author}</span>
                         {review.purchaseBadge && (
-                          <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>Da mua hang</span>
+                          <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>Đã mua hàng</span>
                         )}
                         {review.kocLevel && (
                           <span className="badge badge-c6" style={{ fontSize: '.55rem' }}>{review.kocLevel}</span>
@@ -525,7 +525,7 @@ export default function ProductDetail() {
                     display: 'inline-flex', alignItems: 'center', gap: 4,
                     marginTop: 8, fontSize: '.68rem', color: 'var(--c4-500, #22c55e)',
                   }}>
-                    ✓ Danh gia da xac minh
+                    ✓ Đánh giá đã xác minh
                   </div>
                 )}
               </div>

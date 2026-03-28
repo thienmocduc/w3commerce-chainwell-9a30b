@@ -181,7 +181,7 @@ export default function Vendor() {
 
   /* ── Product CRUD ──────────────────────────────── */
   const handleAddProduct = () => {
-    if (!newProduct.name.trim()) { showToast('Vui long nhap ten san pham', 'error'); return; }
+    if (!newProduct.name.trim()) { showToast('Vui lòng nhập tên sản phẩm', 'error'); return; }
     const p = {
       id: nextProductId++,
       name: newProduct.name,
@@ -198,13 +198,13 @@ export default function Vendor() {
     setProductList(prev => [...prev, p]);
     setNewProduct({ name: '', price: '', stock: '', commission: '' });
     setShowAddProduct(false);
-    showToast(`Da them san pham "${p.name}"`);
+    showToast(`Đã thêm sản phẩm "${p.name}"`);
   };
 
   const handleDeleteProduct = (id: number) => {
     const p = productList.find(x => x.id === id);
     setProductList(prev => prev.filter(x => x.id !== id));
-    showToast(`Da xoa san pham "${p?.name}"`);
+    showToast(`Đã xoá sản phẩm "${p?.name}"`);
   };
 
   const handleToggleProduct = (id: number) => {
@@ -214,7 +214,7 @@ export default function Vendor() {
       return { ...p, hidden: nowHidden, status: nowHidden ? 'hidden' : (p.stock === 0 ? 'out_of_stock' : p.stock <= 50 ? 'low_stock' : 'active') };
     }));
     const p = productList.find(x => x.id === id);
-    showToast(p?.hidden ? `Da hien san pham "${p.name}"` : `Da an san pham "${p?.name}"`);
+    showToast(p?.hidden ? `Đã hiện sản phẩm "${p.name}"` : `Đã ẩn sản phẩm "${p?.name}"`);
   };
 
   const handleSaveEditProduct = (id: number) => {
@@ -224,7 +224,7 @@ export default function Vendor() {
     }));
     setEditingProduct(null);
     setNewProduct({ name: '', price: '', stock: '', commission: '' });
-    showToast('Da cap nhat san pham');
+    showToast('Đã cập nhật sản phẩm');
   };
 
   /* ── Order status flow ─────────────────────────── */
@@ -238,7 +238,7 @@ export default function Vendor() {
     }));
     const o = orderList.find(x => x.id === orderId);
     const flow = orderStatusFlow[o?.status ?? ''];
-    showToast(`Don hang ${orderId}: ${flow?.action ?? 'Cap nhat'}`);
+    showToast(`Đơn hàng ${orderId}: ${flow?.action ?? 'Cập nhật'}`);
   };
 
   /* ── DPP Mint ──────────────────────────────────── */
@@ -258,14 +258,14 @@ export default function Vendor() {
       status: 'verified',
       ipfsHash: `Qm...${Math.random().toString(36).slice(2, 6)}`,
     }]);
-    showToast(`Da mint DPP cho "${product.name}" (${tokenId})`);
+    showToast(`Đã mint DPP cho "${product.name}" (${tokenId})`);
   };
 
   /* ── Withdraw ──────────────────────────────────── */
   const handleWithdraw = () => {
     const amt = parseInt(withdrawAmount.replace(/\D/g, '')) || 0;
     if (amt <= 0 || amt > pendingRevenue) {
-      showToast('So tien khong hop le', 'error');
+      showToast('Số tiền không hợp lệ', 'error');
       return;
     }
     setPendingRevenue(prev => prev - amt);
@@ -279,15 +279,15 @@ export default function Vendor() {
     }, ...prev]);
     setWithdrawAmount('');
     setShowWithdrawForm(false);
-    showToast(`Da rut ${formatVND(amt)} ve ngan hang`);
+    showToast(`Đã rút ${formatVND(amt)} về ngân hàng`);
   };
 
   /* ── Copy to clipboard ─────────────────────────── */
   const handleCopy = (text: string, label: string = '') => {
     navigator.clipboard.writeText(text).then(() => {
-      showToast(`Da sao chep ${label || text}`, 'info');
+      showToast(`Đã sao chép ${label || text}`, 'info');
     }).catch(() => {
-      showToast(`Da sao chep ${label || text}`, 'info');
+      showToast(`Đã sao chép ${label || text}`, 'info');
     });
   };
 
@@ -299,7 +299,7 @@ export default function Vendor() {
     }));
     setEditingSettings(null);
     setEditSettingsValue('');
-    showToast('Da luu cai dat');
+    showToast('Đã lưu cài đặt');
   };
 
   /* ── Filtered data ─────────────────────────────── */
@@ -819,8 +819,8 @@ export default function Vendor() {
 
             {/* Actions */}
             <div className="flex gap-8" style={{ marginBottom: 24 }}>
-              <button className="btn btn-secondary btn-sm" onClick={() => { setShowWithdrawForm(true); showToast('Chon so tien de rut ve ngan hang', 'info'); }}>Rút về ngân hàng</button>
-              <button className="btn btn-secondary btn-sm" onClick={() => showToast('Chuc nang chuyen token dang phat trien', 'info')}>Chuyển token</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setShowWithdrawForm(true); showToast('Chọn số tiền để rút về ngân hàng', 'info'); }}>Rút về ngân hàng</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => showToast('Chức năng chuyển token đang phát triển', 'info')}>Chuyển token</button>
             </div>
 
             {/* Transaction history */}
@@ -964,48 +964,53 @@ export default function Vendor() {
   };
 
   return (
-    <div style={{ paddingTop: 'var(--topbar-height)', minHeight: '100vh', background: 'var(--bg-0)' }}>
-      <div className="container" style={{ paddingTop: 32, paddingBottom: 64 }}>
-        <div className="section-badge">🏪 VENDOR DASHBOARD</div>
-        <h1 className="display-md" style={{ marginBottom: 24 }}>Quản Lý Cửa Hàng</h1>
-
-        <div className="dash-wrap">
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', overflow: 'hidden', background: 'var(--bg-0)' }}>
+        <div className="dash-wrap" style={{ flex: 1, minHeight: 0 }}>
           {/* Sidebar */}
           <div className="dash-sidebar">
-            <div style={{ padding: '0 8px 16px', borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
-              <div className="flex gap-8">
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'var(--chakra-flow)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '.8rem', fontWeight: 700,
-                }}>WO</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '.82rem' }}>WellKOC Origin</div>
-                  <span className="badge badge-c4" style={{ marginTop: 2 }}>Official Brand</span>
+            {/* Sidebar header — fixed */}
+            <div className="dash-sidebar-header">
+              <div style={{ padding: '0 0 16px', borderBottom: '1px solid var(--border)' }}>
+                <div className="flex gap-8">
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: 'var(--chakra-flow)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '.8rem', fontWeight: 700,
+                  }}>WO</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '.82rem' }}>WellKOC Origin</div>
+                    <span className="badge badge-c4" style={{ marginTop: 2 }}>Official Brand</span>
+                  </div>
                 </div>
               </div>
             </div>
-            {sidebarItems.map(item => (
-              <div
-                key={item.key}
-                className={`dash-nav-item ${activeNav === item.key ? 'on' : ''}`}
-                onClick={() => setActiveNav(item.key)}
-              >
-                <span className="dash-nav-icon">{item.icon}</span>
-                {item.label}
-              </div>
-            ))}
 
-            {/* Logout */}
-            <div style={{ height: 1, background: 'var(--border)', margin: '12px 8px' }} />
-            <div
-              className="dash-nav-item"
-              onClick={handleLogout}
-              style={{ color: '#ef4444', cursor: 'pointer' }}
-            >
-              <span className="dash-nav-icon">🚪</span>
-              Đăng xuất
+            {/* Sidebar nav — scrollable */}
+            <div className="dash-sidebar-nav">
+              {sidebarItems.map(item => (
+                <div
+                  key={item.key}
+                  className={`dash-nav-item ${activeNav === item.key ? 'on' : ''}`}
+                  onClick={() => setActiveNav(item.key)}
+                >
+                  <span className="dash-nav-icon">{item.icon}</span>
+                  {item.label}
+                </div>
+              ))}
+            </div>
+
+            {/* Sidebar footer — fixed */}
+            <div className="dash-sidebar-footer">
+              <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
+              <div
+                className="dash-nav-item"
+                onClick={handleLogout}
+                style={{ color: '#ef4444', cursor: 'pointer' }}
+              >
+                <span className="dash-nav-icon">🚪</span>
+                Đăng xuất
+              </div>
             </div>
           </div>
 
@@ -1042,7 +1047,6 @@ export default function Vendor() {
             {renderContent()}
           </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -1745,90 +1745,98 @@ export default function Admin() {
   };
 
   return (
-    <div style={{ paddingTop: 0, minHeight: '100vh', background: 'var(--bg-0)' }}>
-      <div className="container" style={{ paddingTop: 16, paddingBottom: 64 }}>
-        <div className="dash-wrap">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: 'var(--bg-0)' }}>
+        <div className="dash-wrap" style={{ flex: 1, minHeight: 0 }}>
           {/* Sidebar */}
           <div className="dash-sidebar">
-            <div style={{ padding: '0 8px 16px', borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
-              <div className="flex gap-8" style={{ alignItems: 'center' }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #ef4444, #f97316)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '.75rem', fontWeight: 700, color: '#fff',
-                }}>AD</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '.78rem' }}>WellKOC Admin</div>
-                  <span className="badge" style={{ background: 'rgba(239,68,68,.1)', color: '#ef4444', fontSize: '.55rem' }}>Super Admin</span>
+            {/* Sidebar header — fixed */}
+            <div className="dash-sidebar-header">
+              <div style={{ padding: '0 0 16px', borderBottom: '1px solid var(--border)' }}>
+                <div className="flex gap-8" style={{ alignItems: 'center' }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #ef4444, #f97316)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '.75rem', fontWeight: 700, color: '#fff',
+                  }}>AD</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '.78rem' }}>WellKOC Admin</div>
+                    <span className="badge" style={{ background: 'rgba(239,68,68,.1)', color: '#ef4444', fontSize: '.55rem' }}>Super Admin</span>
+                  </div>
+                  {/* Theme toggle */}
+                  <button
+                    onClick={toggleTheme}
+                    title={isDark ? 'Chế độ sáng' : 'Chế độ tối'}
+                    style={{
+                      width: 32, height: 32, borderRadius: 8,
+                      border: '1px solid var(--border)', background: 'var(--bg-2)',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: '.9rem', transition: 'all .2s',
+                    }}
+                  >{isDark ? '☀️' : '🌙'}</button>
                 </div>
-                {/* Theme toggle */}
-                <button
-                  onClick={toggleTheme}
-                  title={isDark ? 'Chế độ sáng' : 'Chế độ tối'}
-                  style={{
-                    width: 32, height: 32, borderRadius: 8,
-                    border: '1px solid var(--border)', background: 'var(--bg-2)',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '.9rem', transition: 'all .2s',
-                  }}
-                >{isDark ? '☀️' : '🌙'}</button>
               </div>
             </div>
-            {sidebarSections.map(section => {
-              const isOpen = openAdminGroups[section.title];
-              const hasActive = section.items.some(i => i.key === activeTab);
-              return (
-                <div key={section.title} style={{ marginBottom: 2 }}>
-                  {/* Accordion header */}
-                  <div
-                    onClick={() => toggleAdminGroup(section.title)}
-                    style={{
-                      padding: '9px 10px 9px 8px', display: 'flex', alignItems: 'center', gap: 8,
-                      cursor: 'pointer', borderLeft: `3px solid ${section.color}`, marginLeft: 4,
-                      borderRadius: '0 8px 8px 0',
-                      background: hasActive ? `${section.color}15` : 'transparent',
-                      transition: 'background .2s',
-                    }}
-                  >
-                    <span style={{ fontSize: '.85rem' }}>{section.groupIcon}</span>
-                    <span style={{ flex: 1, fontSize: '.65rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: section.color }}>{section.title}</span>
-                    <span style={{ fontSize: '.55rem', color: 'var(--text-4)', transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
-                  </div>
 
-                  {/* Collapsible items */}
-                  <div style={{
-                    maxHeight: isOpen ? `${section.items.length * 38 + 8}px` : '0',
-                    overflow: 'hidden', transition: 'max-height .25s ease-in-out',
-                  }}>
-                    {section.items.map(tab => (
-                      <div
-                        key={tab.key}
-                        className={`dash-nav-item ${activeTab === tab.key ? 'on' : ''}`}
-                        onClick={() => handleAdminNavClick(section.title, tab.key)}
-                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 20 }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span className="dash-nav-icon">{tab.icon}</span>
-                          {tab.label}
+            {/* Sidebar nav — scrollable */}
+            <div className="dash-sidebar-nav">
+              {sidebarSections.map(section => {
+                const isOpen = openAdminGroups[section.title];
+                const hasActive = section.items.some(i => i.key === activeTab);
+                return (
+                  <div key={section.title} style={{ marginBottom: 2 }}>
+                    {/* Accordion header */}
+                    <div
+                      onClick={() => toggleAdminGroup(section.title)}
+                      style={{
+                        padding: '9px 10px 9px 8px', display: 'flex', alignItems: 'center', gap: 8,
+                        cursor: 'pointer', borderLeft: `3px solid ${section.color}`, marginLeft: 4,
+                        borderRadius: '0 8px 8px 0',
+                        background: hasActive ? `${section.color}15` : 'transparent',
+                        transition: 'background .2s',
+                      }}
+                    >
+                      <span style={{ fontSize: '.85rem' }}>{section.groupIcon}</span>
+                      <span style={{ flex: 1, fontSize: '.65rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: section.color }}>{section.title}</span>
+                      <span style={{ fontSize: '.55rem', color: 'var(--text-4)', transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+                    </div>
+
+                    {/* Collapsible items */}
+                    <div style={{
+                      maxHeight: isOpen ? `${section.items.length * 38 + 8}px` : '0',
+                      overflow: 'hidden', transition: 'max-height .25s ease-in-out',
+                    }}>
+                      {section.items.map(tab => (
+                        <div
+                          key={tab.key}
+                          className={`dash-nav-item ${activeTab === tab.key ? 'on' : ''}`}
+                          onClick={() => handleAdminNavClick(section.title, tab.key)}
+                          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 20 }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span className="dash-nav-icon">{tab.icon}</span>
+                            {tab.label}
+                          </div>
+                          {tab.badge && <span style={{ fontSize: '.58rem', padding: '1px 6px', borderRadius: 8, background: 'var(--bg-2)', color: 'var(--text-4)', fontWeight: 600 }}>{tab.badge}</span>}
                         </div>
-                        {tab.badge && <span style={{ fontSize: '.58rem', padding: '1px 6px', borderRadius: 8, background: 'var(--bg-2)', color: 'var(--text-4)', fontWeight: 600 }}>{tab.badge}</span>}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
 
-            {/* Logout */}
-            <div style={{ height: 1, background: 'var(--border)', margin: '8px 8px' }} />
-            <div
-              className="dash-nav-item"
-              onClick={() => { localStorage.removeItem(STORAGE_KEY); navigate('/admin/login'); }}
-              style={{ color: '#ef4444', cursor: 'pointer' }}
-            >
-              <span className="dash-nav-icon">🚪</span>
-              <span style={{ flex: 1 }}>Đăng xuất</span>
+            {/* Sidebar footer — fixed */}
+            <div className="dash-sidebar-footer">
+              <div style={{ height: 1, background: 'var(--border)', margin: '8px 0' }} />
+              <div
+                className="dash-nav-item"
+                onClick={() => { localStorage.removeItem(STORAGE_KEY); navigate('/admin/login'); }}
+                style={{ color: '#ef4444', cursor: 'pointer' }}
+              >
+                <span className="dash-nav-icon">🚪</span>
+                <span style={{ flex: 1 }}>Đăng xuất</span>
+              </div>
             </div>
           </div>
 
@@ -1837,7 +1845,6 @@ export default function Admin() {
             {renderContent()}
           </div>
         </div>
-      </div>
     </div>
   );
 }

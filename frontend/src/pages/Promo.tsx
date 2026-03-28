@@ -21,7 +21,7 @@ const promoCards: PromoCard[] = [
     emoji: '\u26A1',
     type: 'Flash Sale',
     title: 'Flash Sale -50%',
-    description: 'Serum Vitamin C 20% - Chi con 12 san pham',
+    description: 'Serum Vitamin C 20% - Chỉ còn 12 sản phẩm',
     discount: '-50%',
     badge: 'FLASH',
     badgeClass: 'badge-gold',
@@ -33,7 +33,7 @@ const promoCards: PromoCard[] = [
     emoji: '\uD83D\uDC65',
     type: 'Group Buy',
     title: 'Group Buy -45%',
-    description: 'Collagen Marine - Can them 70 nguoi nua',
+    description: 'Collagen Marine - Cần thêm 70 người nữa',
     discount: '-45%',
     badge: 'GROUP',
     badgeClass: 'badge-c7',
@@ -57,7 +57,7 @@ const promoCards: PromoCard[] = [
     emoji: '\uD83C\uDF1F',
     type: 'KOC Deal',
     title: 'KOC Exclusive -40%',
-    description: 'Matcha Uji Premium - Chi qua link @linh.koc',
+    description: 'Matcha Uji Premium - Chỉ qua link @linh.koc',
     discount: '-40%',
     badge: 'KOC',
     badgeClass: 'badge-c5',
@@ -244,7 +244,7 @@ const Promo: React.FC = () => {
                       fontSize: '.6rem', color: 'var(--text-3)', marginBottom: '4px',
                     }}>
                       <span>Da ban {promo.progress.current}%</span>
-                      <span>Con {promo.progress.total - promo.progress.current} san pham</span>
+                      <span>Còn {promo.progress.total - promo.progress.current} sản phẩm</span>
                     </div>
                     <div className="progress-track">
                       <div
@@ -289,7 +289,7 @@ const Promo: React.FC = () => {
                   style={{ width: '100%' }}
                   onClick={(e) => { e.stopPropagation(); }}
                 >
-                  {promo.voucherCode ? '\uD83C\uDF9F\uFE0F Dung ngay' : '\u26A1 Mua ngay'}
+                  {promo.voucherCode ? '\uD83C\uDF9F\uFE0F Dùng ngay' : '\u26A1 Mua ngay'}
                 </button>
               </div>
             </div>

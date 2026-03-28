@@ -2218,7 +2218,7 @@ export default function KOC() {
             {settingsTab === 'profile' && (
               <div className="card" style={{ padding: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--chakra-flow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700 }}>MH</div>
+                  <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'var(--chakra-flow)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 700 }}>{userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{settingsFormData.name}</div>
                     <span className="badge badge-c6">KOC Level 18</span>
@@ -2343,95 +2343,101 @@ export default function KOC() {
 
   /* ── Render ──────────────────────────────────────── */
   return (
-    <div style={{ paddingTop: 0, minHeight: '100vh', background: 'var(--bg-0)' }}>
-      <div className="container" style={{ paddingTop: 0, paddingBottom: 64 }}>
-        <div className="dash-wrap">
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', overflow: 'hidden', background: 'var(--bg-0)' }}>
+        <div className="dash-wrap" style={{ flex: 1, minHeight: 0 }}>
           {/* Sidebar */}
           <div className="dash-sidebar" style={{ width: 240, minWidth: 240 }}>
-            {/* User profile header */}
-            <div style={{ padding: '0 8px 16px', borderBottom: '1px solid var(--border)', marginBottom: 12 }}>
-              <div className="flex gap-8">
-                <div style={{
-                  width: 40, height: 40, borderRadius: '50%',
-                  background: 'var(--chakra-flow)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '1rem', fontWeight: 700,
-                }}>MH</div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '.82rem' }}>Minh Hương</div>
-                  <span className="badge badge-c6" style={{ marginTop: 2 }}>KOC Level 18</span>
+            {/* Sidebar header — fixed */}
+            <div className="dash-sidebar-header">
+              <div style={{ padding: '0 0 16px', borderBottom: '1px solid var(--border)' }}>
+                <div className="flex gap-8">
+                  <div style={{
+                    width: 40, height: 40, borderRadius: '50%',
+                    background: 'var(--chakra-flow)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '1rem', fontWeight: 700,
+                  }}>{userName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}</div>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '.82rem' }}>{userName}</div>
+                    <span className="badge badge-c6" style={{ marginTop: 2 }}>KOC Level 18</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Accordion groups ── */}
-            {sidebarGroups.map(group => {
-              const isOpen = openGroups[group.key];
-              const hasActiveItem = group.items.some(i => i.key === activeNav);
-              return (
-                <div key={group.key} style={{ marginBottom: 4 }}>
-                  {/* Group header — clickable accordion */}
-                  <div
-                    onClick={() => toggleGroup(group.key)}
-                    style={{
-                      padding: '10px 10px 10px 8px', marginBottom: isOpen ? 2 : 0,
-                      display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-                      borderLeft: `3px solid ${group.color}`, marginLeft: 4,
-                      borderRadius: '0 8px 8px 0',
-                      background: hasActiveItem ? `${group.color}10` : 'transparent',
-                      transition: 'background .2s',
-                    }}
-                  >
-                    <span style={{ fontSize: '.9rem' }}>{group.icon}</span>
-                    <span style={{ flex: 1, fontSize: '.72rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: group.color }}>{group.label}</span>
-                    <span style={{ fontSize: '.6rem', color: 'var(--text-4)', transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+            {/* Sidebar nav — scrollable */}
+            <div className="dash-sidebar-nav">
+              {/* ── Accordion groups ── */}
+              {sidebarGroups.map(group => {
+                const isOpen = openGroups[group.key];
+                const hasActiveItem = group.items.some(i => i.key === activeNav);
+                return (
+                  <div key={group.key} style={{ marginBottom: 4 }}>
+                    {/* Group header — clickable accordion */}
+                    <div
+                      onClick={() => toggleGroup(group.key)}
+                      style={{
+                        padding: '10px 10px 10px 8px', marginBottom: isOpen ? 2 : 0,
+                        display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+                        borderLeft: `3px solid ${group.color}`, marginLeft: 4,
+                        borderRadius: '0 8px 8px 0',
+                        background: hasActiveItem ? `${group.color}10` : 'transparent',
+                        transition: 'background .2s',
+                      }}
+                    >
+                      <span style={{ fontSize: '.9rem' }}>{group.icon}</span>
+                      <span style={{ flex: 1, fontSize: '.72rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: group.color }}>{group.label}</span>
+                      <span style={{ fontSize: '.6rem', color: 'var(--text-4)', transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
+                    </div>
+
+                    {/* Group items — collapsible */}
+                    <div style={{
+                      maxHeight: isOpen ? `${group.items.length * 40 + 10}px` : '0',
+                      overflow: 'hidden', transition: 'max-height .25s ease-in-out',
+                    }}>
+                      {group.items.map(item => (
+                        <div
+                          key={item.key}
+                          className={`dash-nav-item ${activeNav === item.key ? 'on' : ''}`}
+                          onClick={() => handleNavClick(group.key, item.key)}
+                          style={{ position: 'relative', paddingLeft: 20 }}
+                        >
+                          <span className="dash-nav-icon">{item.icon}</span>
+                          <span style={{ flex: 1 }}>{item.label}</span>
+                          {item.key === 'orders' && pendingOrderCount > 0 && (
+                            <span style={{ background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{pendingOrderCount}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
                   </div>
+                );
+              })}
 
-                  {/* Group items — collapsible */}
-                  <div style={{
-                    maxHeight: isOpen ? `${group.items.length * 40 + 10}px` : '0',
-                    overflow: 'hidden', transition: 'max-height .25s ease-in-out',
-                  }}>
-                    {group.items.map(item => (
-                      <div
-                        key={item.key}
-                        className={`dash-nav-item ${activeNav === item.key ? 'on' : ''}`}
-                        onClick={() => handleNavClick(group.key, item.key)}
-                        style={{ position: 'relative', paddingLeft: 20 }}
-                      >
-                        <span className="dash-nav-icon">{item.icon}</span>
-                        <span style={{ flex: 1 }}>{item.label}</span>
-                        {item.key === 'orders' && pendingOrderCount > 0 && (
-                          <span style={{ background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{pendingOrderCount}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Divider */}
-                  <div style={{ height: 1, background: 'var(--border)', margin: '6px 8px' }} />
-                </div>
-              );
-            })}
-
-            {/* Settings */}
-            <div
-              className={`dash-nav-item ${activeNav === 'settings' ? 'on' : ''}`}
-              onClick={() => setActiveNav('settings')}
-            >
-              <span className="dash-nav-icon">⚙️</span>
-              <span style={{ flex: 1 }}>Cài đặt</span>
+              {/* Settings */}
+              <div
+                className={`dash-nav-item ${activeNav === 'settings' ? 'on' : ''}`}
+                onClick={() => setActiveNav('settings')}
+              >
+                <span className="dash-nav-icon">⚙️</span>
+                <span style={{ flex: 1 }}>Cài đặt</span>
+              </div>
             </div>
 
-            {/* Logout */}
-            <div style={{ height: 1, background: 'var(--border)', margin: '12px 8px' }} />
-            <div
-              className="dash-nav-item"
-              onClick={handleLogout}
-              style={{ color: '#ef4444', cursor: 'pointer' }}
-            >
-              <span className="dash-nav-icon">🚪</span>
-              <span style={{ flex: 1 }}>Đăng xuất</span>
+            {/* Sidebar footer — fixed */}
+            <div className="dash-sidebar-footer">
+              <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
+              <div
+                className="dash-nav-item"
+                onClick={handleLogout}
+                style={{ color: '#ef4444', cursor: 'pointer' }}
+              >
+                <span className="dash-nav-icon">🚪</span>
+                <span style={{ flex: 1 }}>Đăng xuất</span>
+              </div>
             </div>
           </div>
 
@@ -2441,7 +2447,6 @@ export default function KOC() {
             {renderContent()}
           </div>
         </div>
-      </div>
     </div>
   );
 }

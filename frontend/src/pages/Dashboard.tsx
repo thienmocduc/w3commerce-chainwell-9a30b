@@ -838,7 +838,7 @@ export default function Dashboard() {
                         if (!confirm(`Xoá ${m.label}?`)) return;
                         setPayMethods(prev => prev.filter(p => p.id !== m.id));
                         showToast(`Đã xoá ${m.label}`);
-                      }}>Xoa</button>
+                      }}>Xoá</button>
                     </div>
                   </div>
                 </div>
@@ -846,8 +846,8 @@ export default function Dashboard() {
               <button className="btn btn-secondary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => {
                 const newId = Math.max(...payMethods.map(p => p.id)) + 1;
                 setPayMethods(prev => [...prev, { id: newId, type: 'Bank', label: `Visa •••• ${String(newId).padStart(4, '0')}`, last4: String(newId).padStart(4, '0'), isDefault: false }]);
-                showToast('Da them phuong thuc thanh toan moi');
-              }}>+ Them phuong thuc</button>
+                showToast('Đã thêm phương thức thanh toán mới');
+              }}>+ Thêm phương thức</button>
             </div>
 
             {/* WK Pay quick view */}
@@ -858,8 +858,8 @@ export default function Dashboard() {
                   <div style={{ fontWeight: 800, fontSize: '1.3rem', color: 'var(--c4-500)' }}>{formatVND(wkPayData.balanceVND)}</div>
                 </div>
                 <div className="flex gap-8">
-                  <button className="btn btn-primary btn-sm" onClick={() => { setActiveNav('wkpay'); showToast('Chuyen den vi WK Pay'); }}>Nap tien</button>
-                  <button className="btn btn-secondary btn-sm" onClick={() => { setActiveNav('wkpay'); showToast('Chuyen den vi WK Pay'); }}>Rut tien</button>
+                  <button className="btn btn-primary btn-sm" onClick={() => { setActiveNav('wkpay'); showToast('Chuyển đến ví WK Pay'); }}>Nạp tiền</button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => { setActiveNav('wkpay'); showToast('Chuyển đến ví WK Pay'); }}>Rút tiền</button>
                 </div>
               </div>
               <span style={{ fontSize: '.72rem', color: 'var(--text-3)', cursor: 'pointer' }} onClick={() => setActiveNav('wkpay')}>Quản lý ví WK Pay →</span>
@@ -935,7 +935,7 @@ export default function Dashboard() {
                 { label: 'Chuyển WK Token', desc: 'Tới ví khác', icon: '📤' },
                 { label: 'Mua WK Token', desc: 'Đổi VND sang WK', icon: '🔄' },
               ].map((a, i) => (
-                <div key={i} className="card card-hover" style={{ padding: 16, textAlign: 'center', cursor: 'pointer' }} onClick={() => showToast(`Chuc nang "${a.label}" dang phat trien`)}>
+                <div key={i} className="card card-hover" style={{ padding: 16, textAlign: 'center', cursor: 'pointer' }} onClick={() => showToast(`Chức năng "${a.label}" đang phát triển`)}>
                   <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>{a.icon}</div>
                   <div style={{ fontWeight: 600, fontSize: '.82rem', marginBottom: 2 }}>{a.label}</div>
                   <div style={{ fontSize: '.65rem', color: 'var(--text-3)' }}>{a.desc}</div>
@@ -1048,8 +1048,8 @@ export default function Dashboard() {
                 <div key={item.id} className="card" style={{ padding: 16, textAlign: 'center' }}>
                   <div style={{ fontWeight: 600, fontSize: '.82rem', marginBottom: 8 }}>{item.name}</div>
                   <div style={{ fontWeight: 700, color: 'var(--c6-500)', marginBottom: 8 }}>{item.cost} Points</div>
-                  <button className={`btn btn-sm ${pointsConfig.currentPoints >= item.cost && !redeemedIds.has(item.id) ? 'btn-primary' : 'btn-secondary'}`} disabled={pointsConfig.currentPoints < item.cost || redeemedIds.has(item.id)} onClick={() => { setRedeemedIds(prev => new Set(prev).add(item.id)); showToast(`Da doi "${item.name}" thanh cong!`); }}>
-                    {redeemedIds.has(item.id) ? 'Da doi \u2713' : pointsConfig.currentPoints >= item.cost ? 'Doi ngay' : 'Chua du points'}
+                  <button className={`btn btn-sm ${pointsConfig.currentPoints >= item.cost && !redeemedIds.has(item.id) ? 'btn-primary' : 'btn-secondary'}`} disabled={pointsConfig.currentPoints < item.cost || redeemedIds.has(item.id)} onClick={() => { setRedeemedIds(prev => new Set(prev).add(item.id)); showToast(`Đã đổi "${item.name}" thành công!`); }}>
+                    {redeemedIds.has(item.id) ? 'Đã đổi \u2713' : pointsConfig.currentPoints >= item.cost ? 'Đổi ngay' : 'Chưa đủ points'}
                   </button>
                 </div>
               ))}
@@ -1217,7 +1217,7 @@ export default function Dashboard() {
                   <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--c6-500)', marginBottom: 4 }}>{v.xp} XP</div>
                   <div style={{ fontSize: '.82rem', fontWeight: 600, color: 'var(--text-1)', marginBottom: 4 }}>{v.desc}</div>
                   <div style={{ fontSize: '.7rem', color: 'var(--text-4)', marginBottom: 10 }}>Đơn tối thiểu: {v.minOrder}</div>
-                  <button className="btn btn-primary" style={{ width: '100%', padding: '6px 12px', fontSize: '.78rem' }} onClick={() => showToast(`Da doi ${v.xp} XP lay "${v.desc}"`)}>Doi ngay</button>
+                  <button className="btn btn-primary" style={{ width: '100%', padding: '6px 12px', fontSize: '.78rem' }} onClick={() => showToast(`Đã đổi ${v.xp} XP lấy "${v.desc}"`)}>Đổi ngay</button>
                 </div>
               ))}
             </div>
@@ -1228,15 +1228,15 @@ export default function Dashboard() {
               {myVouchers.filter(v => !v.used && !usedVouchers.has(v.code)).map((v, i) => (
                 <div key={i} className="card" style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderLeft: '3px solid var(--c5-500)' }}>
                   <div>
-                    <div style={{ fontFamily: 'var(--ff-mono)', fontSize: '.85rem', fontWeight: 700, color: 'var(--c5-500)', marginBottom: 2, cursor: 'pointer' }} onClick={() => copyToClipboard(v.code, `ma voucher ${v.code}`)}>{v.code} {copiedId === v.code ? '\u2713' : ''}</div>
+                    <div style={{ fontFamily: 'var(--ff-mono)', fontSize: '.85rem', fontWeight: 700, color: 'var(--c5-500)', marginBottom: 2, cursor: 'pointer' }} onClick={() => copyToClipboard(v.code, `mã voucher ${v.code}`)}>{v.code} {copiedId === v.code ? '\u2713' : ''}</div>
                     <div style={{ fontSize: '.8rem', color: 'var(--text-2)' }}>{v.desc}</div>
                     <div style={{ fontSize: '.7rem', color: 'var(--text-4)', marginTop: 2 }}>HSD: {v.expires}</div>
                   </div>
-                  <button className="btn btn-secondary" style={{ fontSize: '.75rem', padding: '6px 12px' }} onClick={() => { setUsedVouchers(prev => new Set(prev).add(v.code)); showToast(`Da ap dung voucher ${v.code}`); }}>Dung ngay</button>
+                  <button className="btn btn-secondary" style={{ fontSize: '.75rem', padding: '6px 12px' }} onClick={() => { setUsedVouchers(prev => new Set(prev).add(v.code)); showToast(`Đã áp dụng voucher ${v.code}`); }}>Dùng ngay</button>
                 </div>
               ))}
               {myVouchers.filter(v => !v.used && !usedVouchers.has(v.code)).length === 0 && (
-                <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: '.82rem' }}>Khong con voucher kha dung</div>
+                <div style={{ padding: 20, textAlign: 'center', color: 'var(--text-3)', fontSize: '.82rem' }}>Không còn voucher khả dụng</div>
               )}
             </div>
           </>
@@ -1292,7 +1292,7 @@ export default function Dashboard() {
               </div>
 
               <button className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={convertAmount > currentXP} onClick={() => showToast(`Da quy doi ${convertAmount} XP thanh ${(convertAmount / conversionRate).toFixed(1)} WK3 thanh cong!`)}>
-                {convertAmount > currentXP ? 'Khong du XP' : `Quy doi ${convertAmount} XP \u2192 ${(convertAmount / conversionRate).toFixed(1)} WK3`}
+                {convertAmount > currentXP ? 'Không đủ XP' : `Quy đổi ${convertAmount} XP \u2192 ${(convertAmount / conversionRate).toFixed(1)} WK3`}
               </button>
             </div>
 
@@ -1346,10 +1346,10 @@ export default function Dashboard() {
                       {p.alert && <span className="badge badge-c5" style={{ fontSize: '.55rem' }}>Giá giảm!</span>}
                     </div>
                     <div className="flex gap-8">
-                      <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={() => { setFavAddedToCart(prev => new Set(prev).add(p.id)); showToast(`Da them "${p.name}" vao gio hang`); setTimeout(() => setFavAddedToCart(prev => { const n = new Set(prev); n.delete(p.id); return n; }), 2000); }}>
-                        {favAddedToCart.has(p.id) ? 'Đã thêm \u2713' : 'Them vao gio'}
+                      <button className="btn btn-primary btn-sm" style={{ flex: 1 }} onClick={() => { setFavAddedToCart(prev => new Set(prev).add(p.id)); showToast(`Đã thêm "${p.name}" vào giỏ hàng`); setTimeout(() => setFavAddedToCart(prev => { const n = new Set(prev); n.delete(p.id); return n; }), 2000); }}>
+                        {favAddedToCart.has(p.id) ? 'Đã thêm \u2713' : 'Thêm vào giỏ'}
                       </button>
-                      <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem' }} onClick={() => { setFavProducts(prev => prev.filter(x => x.id !== p.id)); showToast(`Da xoa "${p.name}" khoi yeu thich`); }}>Xoa</button>
+                      <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem' }} onClick={() => { setFavProducts(prev => prev.filter(x => x.id !== p.id)); showToast(`Đã xoá "${p.name}" khỏi yêu thích`); }}>Xoá</button>
                     </div>
                   </div>
                 </div>
@@ -1364,7 +1364,7 @@ export default function Dashboard() {
           <>
             <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontWeight: 700, fontSize: '1.1rem', margin: 0 }}>Thông Báo</h2>
-              <span style={{ fontSize: '.72rem', color: 'var(--c5-400)', cursor: 'pointer' }} onClick={() => { setNotifsState(prev => prev.map(n => ({ ...n, read: true }))); showToast('Da danh dau tat ca da doc'); }}>Danh dau tat ca da doc</span>
+              <span style={{ fontSize: '.72rem', color: 'var(--c5-400)', cursor: 'pointer' }} onClick={() => { setNotifsState(prev => prev.map(n => ({ ...n, read: true }))); showToast('Đã đánh dấu tất cả đã đọc'); }}>Đánh dấu tất cả đã đọc</span>
             </div>
 
             {/* Filter */}
@@ -1394,7 +1394,7 @@ export default function Dashboard() {
                         <div style={{ fontSize: '.78rem', color: 'var(--text-2)', marginBottom: 4 }}>{n.message}</div>
                         <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                           <span style={{ fontSize: '.65rem', color: 'var(--text-4)' }}>{n.date}</span>
-                          {!n.read && <span style={{ fontSize: '.65rem', color: 'var(--c5-400)', cursor: 'pointer' }} onClick={() => { setNotifsState(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)); showToast('Da danh dau da doc'); }}>Danh dau da doc</span>}
+                          {!n.read && <span style={{ fontSize: '.65rem', color: 'var(--c5-400)', cursor: 'pointer' }} onClick={() => { setNotifsState(prev => prev.map(x => x.id === n.id ? { ...x, read: true } : x)); showToast('Đã đánh dấu đã đọc'); }}>Đánh dấu đã đọc</span>}
                         </div>
                       </div>
                     </div>
@@ -1418,7 +1418,7 @@ export default function Dashboard() {
                 { key: 'address', label: 'Địa chỉ giao hàng' },
                 { key: 'bank', label: 'Tài khoản ngân hàng' },
                 { key: 'wklink', label: 'Liên kết WK Pay' },
-                { key: 'vneid', label: 'Xac thuc VNeID' },
+                { key: 'vneid', label: 'Xác thực VNeID' },
                 { key: 'password', label: 'Đổi mật khẩu' },
                 { key: 'preferences', label: 'Ngôn ngữ & Giao diện' },
                 { key: 'delete', label: 'Xóa tài khoản' },
@@ -1451,7 +1451,7 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
-                <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }} onClick={() => { setSettingsEditing(!settingsEditing); if (settingsEditing) showToast('Da luu thong tin ca nhan'); }}>{settingsEditing ? 'Luu' : 'Chinh sua'}</button>
+                <button className="btn btn-primary btn-sm" style={{ marginTop: 16 }} onClick={() => { setSettingsEditing(!settingsEditing); if (settingsEditing) showToast('Đã lưu thông tin cá nhân'); }}>{settingsEditing ? 'Lưu' : 'Chỉnh sửa'}</button>
               </div>
             )}
 
@@ -1466,15 +1466,15 @@ export default function Dashboard() {
                         {a.isDefault && <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>Mặc định</span>}
                       </div>
                       <div className="flex gap-8">
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang sua dia chi ${a.label} (mock)`)}>Sua</button>
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang xoa dia chi ${a.label} (mock)`)}>Xoa</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chức năng sửa địa chỉ ${a.label} (mock)`)}>Sửa</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chức năng xoá địa chỉ ${a.label} (mock)`)}>Xoá</button>
                       </div>
                     </div>
                     <div style={{ fontSize: '.82rem' }}>{a.name} · {a.phone}</div>
                     <div style={{ fontSize: '.78rem', color: 'var(--text-3)', marginTop: 4 }}>{a.address}</div>
                   </div>
                 ))}
-                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Chuc nang them dia chi moi (mock)')}>+ Them dia chi moi</button>
+                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Chức năng thêm địa chỉ mới (mock)')}>+ Thêm địa chỉ mới</button>
               </div>
             )}
 
@@ -1486,18 +1486,18 @@ export default function Dashboard() {
                     <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
                       <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{b.bank}</span>
                       <div className="flex gap-8">
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang sua tai khoan ${b.bank} (mock)`)}>Sua</button>
-                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chuc nang xoa tai khoan ${b.bank} (mock)`)}>Xoa</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chức năng sửa tài khoản ${b.bank} (mock)`)}>Sửa</button>
+                        <button className="btn btn-secondary btn-sm" style={{ fontSize: '.7rem' }} onClick={() => showToast(`Chức năng xoá tài khoản ${b.bank} (mock)`)}>Xoá</button>
                       </div>
                     </div>
                     <div className="flex-col gap-4" style={{ fontSize: '.82rem' }}>
-                      <div>So tai khoan: <span className="mono" style={{ fontWeight: 600 }}>{b.accountNumber}</span></div>
-                      <div>Chu tai khoan: <span style={{ fontWeight: 600 }}>{b.holder}</span></div>
-                      <div>Chi nhanh: <span style={{ color: 'var(--text-3)' }}>{b.branch}</span></div>
+                      <div>Số tài khoản: <span className="mono" style={{ fontWeight: 600 }}>{b.accountNumber}</span></div>
+                      <div>Chủ tài khoản: <span style={{ fontWeight: 600 }}>{b.holder}</span></div>
+                      <div>Chi nhánh: <span style={{ color: 'var(--text-3)' }}>{b.branch}</span></div>
                     </div>
                   </div>
                 ))}
-                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Chuc nang them tai khoan ngan hang (mock)')}>+ Them tai khoan ngan hang</button>
+                <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Chức năng thêm tài khoản ngân hàng (mock)')}>+ Thêm tài khoản ngân hàng</button>
               </div>
             )}
 
@@ -1550,25 +1550,25 @@ export default function Dashboard() {
                             <span>&#x2705;</span>
                           </div>
                           <div>
-                            <div style={{ fontWeight: 700, fontSize: '.92rem', color: 'var(--c4-500, #22c55e)' }}>Da xac thuc VNeID</div>
-                            <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Dinh danh dien tu Quoc gia</div>
+                            <div style={{ fontWeight: 700, fontSize: '.92rem', color: 'var(--c4-500, #22c55e)' }}>Đã xác thực VNeID</div>
+                            <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Định danh điện tử Quốc gia</div>
                           </div>
                         </div>
                         <div className="flex-col gap-12">
                           <div className="flex" style={{ justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>Ho ten (verified)</span>
+                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>Họ tên (verified)</span>
                             <span style={{ fontSize: '.82rem', fontWeight: 600 }}>{vneidName}</span>
                           </div>
                           <div className="flex" style={{ justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>So CCCD</span>
+                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>Số CCCD</span>
                             <span className="mono" style={{ fontSize: '.82rem', fontWeight: 600 }}>{vneidCCCD}</span>
                           </div>
                           <div className="flex" style={{ justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>Phuong thuc</span>
+                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>Phương thức</span>
                             <span className="badge badge-c4" style={{ fontSize: '.65rem' }}>{vneidMethod === 'chip_nfc' ? 'NFC Chip' : 'Face Match'}</span>
                           </div>
                           <div className="flex" style={{ justifyContent: 'space-between', padding: '8px 0' }}>
-                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>Ngay xac thuc</span>
+                            <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>Ngày xác thực</span>
                             <span style={{ fontSize: '.82rem', color: 'var(--text-2)' }}>{new Date(vneidDate).toLocaleDateString('vi-VN')}</span>
                           </div>
                         </div>
@@ -1589,25 +1589,25 @@ export default function Dashboard() {
                           <span>🇻🇳</span>
                         </div>
                         <div>
-                          <div style={{ fontWeight: 700, fontSize: '.92rem', color: 'var(--text-1)' }}>Xac thuc qua VNeID</div>
-                          <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Xac thuc nhanh qua Dinh danh dien tu Quoc gia</div>
+                          <div style={{ fontWeight: 700, fontSize: '.92rem', color: 'var(--text-1)' }}>Xác thực qua VNeID</div>
+                          <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Xác thực nhanh qua Định danh điện tử Quốc gia</div>
                         </div>
                       </div>
                       <div style={{ padding: 16, borderRadius: 12, background: 'var(--bg-2)', marginBottom: 16, fontSize: '.78rem', color: 'var(--text-3)', lineHeight: 1.6 }}>
-                        VNeID la ung dung Dinh danh dien tu Quoc gia cua Bo Cong an. Xac thuc qua VNeID giup tu dong xac minh danh tinh cua ban (ho ten, CCCD, ngay sinh) voi do tin cay cao nhat.
+                        VNeID là ứng dụng Định danh điện tử Quốc gia của Bộ Công an. Xác thực qua VNeID giúp tự động xác minh danh tính của bạn (họ tên, CCCD, ngày sinh) với độ tin cậy cao nhất.
                       </div>
                       <div className="flex-col gap-8" style={{ marginBottom: 16, fontSize: '.78rem' }}>
                         <div className="flex gap-8" style={{ alignItems: 'center' }}>
                           <span style={{ color: 'var(--c4-500, #22c55e)' }}>&#x2713;</span>
-                          <span style={{ color: 'var(--text-2)' }}>Xac minh danh tinh tu dong, khong can upload CCCD</span>
+                          <span style={{ color: 'var(--text-2)' }}>Xác minh danh tính tự động, không cần upload CCCD</span>
                         </div>
                         <div className="flex gap-8" style={{ alignItems: 'center' }}>
                           <span style={{ color: 'var(--c4-500, #22c55e)' }}>&#x2713;</span>
-                          <span style={{ color: 'var(--text-2)' }}>Nang cap Verification Level len cap 3 ngay lap tuc</span>
+                          <span style={{ color: 'var(--text-2)' }}>Nâng cấp Verification Level lên cấp 3 ngay lập tức</span>
                         </div>
                         <div className="flex gap-8" style={{ alignItems: 'center' }}>
                           <span style={{ color: 'var(--c4-500, #22c55e)' }}>&#x2713;</span>
-                          <span style={{ color: 'var(--text-2)' }}>Mo khoa quyen tro thanh KOC va rut tien</span>
+                          <span style={{ color: 'var(--text-2)' }}>Mở khoá quyền trở thành KOC và rút tiền</span>
                         </div>
                       </div>
                       <button
@@ -1618,7 +1618,7 @@ export default function Dashboard() {
                           })
                             .then(r => r.json())
                             .then(data => { if (data.auth_url) window.location.href = data.auth_url; })
-                            .catch(() => showToast('Khong the ket noi VNeID. Vui long thu lai.'));
+                            .catch(() => showToast('Không thể kết nối VNeID. Vui lòng thử lại.'));
                         }}
                         style={{
                           width: '100%', padding: '12px 24px',
@@ -1627,7 +1627,7 @@ export default function Dashboard() {
                           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         }}
                       >
-                        <span>🇻🇳</span> Xac thuc qua VNeID
+                        <span>🇻🇳</span> Xác thực qua VNeID
                       </button>
                     </div>
                   );
@@ -1651,7 +1651,7 @@ export default function Dashboard() {
                     <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Xác nhận mật khẩu mới</label>
                     <input type="password" placeholder="••••••••" style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                   </div>
-                  <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Da cap nhat mat khau thanh cong')}>Cap nhat mat khau</button>
+                  <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Đã cập nhật mật khẩu thành công')}>Cập nhật mật khẩu</button>
                 </div>
               </div>
             )}
@@ -1694,7 +1694,7 @@ export default function Dashboard() {
                 <div style={{ fontSize: '.82rem', color: 'var(--text-2)', marginBottom: 16 }}>
                   Khi xóa tài khoản, tất cả dữ liệu sẽ bị xóa vĩnh viễn bao gồm: đơn hàng, WK Points, WK Pay, lịch sử giao dịch. Hành động này không thể hoàn tác.
                 </div>
-                <button className="btn btn-sm" style={{ background: '#ef4444', color: '#fff', border: 'none' }} onClick={() => { if (confirm('Ban co chac chan muon xoa tai khoan? Hanh dong nay khong the hoan tac.')) showToast('Da gui yeu cau xoa tai khoan. Vui long kiem tra email.'); }}>Yeu cau xoa tai khoan</button>
+                <button className="btn btn-sm" style={{ background: '#ef4444', color: '#fff', border: 'none' }} onClick={() => { if (confirm('Bạn có chắc chắn muốn xoá tài khoản? Hành động này không thể hoàn tác.')) showToast('Đã gửi yêu cầu xoá tài khoản. Vui lòng kiểm tra email.'); }}>Yêu cầu xoá tài khoản</button>
               </div>
             )}
           </>
@@ -1708,52 +1708,59 @@ export default function Dashboard() {
   const unreadCount = notifsState.filter(n => !n.read).length;
 
   return (
-    <div className="dash-wrap" style={{ paddingTop: 0, minHeight: '100vh', background: 'var(--bg-0)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 100px)', overflow: 'hidden', background: 'var(--bg-0)' }}>
+    <div className="dash-wrap" style={{ flex: 1, minHeight: 0 }}>
       {/* Sidebar */}
       <div className="dash-sidebar">
-        {/* User profile */}
-        <div style={{ padding: '16px 16px 16px', borderBottom: '1px solid var(--border)', marginBottom: 8 }}>
-          <div className="flex gap-8" style={{ alignItems: 'center' }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%',
-              background: 'var(--chakra-flow)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1rem', fontWeight: 700, flexShrink: 0,
-            }}>TT</div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: '.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</div>
-              <span className="badge badge-c6" style={{ marginTop: 2 }}>Silver Lv.7</span>
+        {/* Sidebar header — fixed */}
+        <div className="dash-sidebar-header">
+          <div style={{ padding: '16px 0 16px', borderBottom: '1px solid var(--border)' }}>
+            <div className="flex gap-8" style={{ alignItems: 'center' }}>
+              <div style={{
+                width: 40, height: 40, borderRadius: '50%',
+                background: 'var(--chakra-flow)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '1rem', fontWeight: 700, flexShrink: 0,
+              }}>TT</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: '.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{userName}</div>
+                <span className="badge badge-c6" style={{ marginTop: 2 }}>Silver Lv.7</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Nav items */}
-        {sidebarItems.map(item => (
-          <div
-            key={item.key}
-            className={`dash-nav-item ${activeNav === item.key ? 'on' : ''}`}
-            onClick={() => setActiveNav(item.key)}
-          >
-            <span className="dash-nav-icon">{item.icon}</span>
-            <span style={{ flex: 1 }}>{item.label}</span>
-            {item.key === 'orders' && (
-              <span style={{ background: 'var(--c5-500)', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length}</span>
-            )}
-            {item.key === 'notifications' && unreadCount > 0 && (
-              <span style={{ background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{unreadCount}</span>
-            )}
-          </div>
-        ))}
+        {/* Sidebar nav — scrollable */}
+        <div className="dash-sidebar-nav">
+          {sidebarItems.map(item => (
+            <div
+              key={item.key}
+              className={`dash-nav-item ${activeNav === item.key ? 'on' : ''}`}
+              onClick={() => setActiveNav(item.key)}
+            >
+              <span className="dash-nav-icon">{item.icon}</span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              {item.key === 'orders' && (
+                <span style={{ background: 'var(--c5-500)', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length}</span>
+              )}
+              {item.key === 'notifications' && unreadCount > 0 && (
+                <span style={{ background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{unreadCount}</span>
+              )}
+            </div>
+          ))}
+        </div>
 
-        {/* Logout */}
-        <div style={{ height: 1, background: 'var(--border)', margin: '12px 8px' }} />
-        <div
-          className="dash-nav-item"
-          onClick={handleLogout}
-          style={{ color: '#ef4444', cursor: 'pointer' }}
-        >
-          <span className="dash-nav-icon">🚪</span>
-          <span style={{ flex: 1 }}>Đăng xuất</span>
+        {/* Sidebar footer — fixed */}
+        <div className="dash-sidebar-footer">
+          <div style={{ height: 1, background: 'var(--border)', margin: '12px 0' }} />
+          <div
+            className="dash-nav-item"
+            onClick={handleLogout}
+            style={{ color: '#ef4444', cursor: 'pointer' }}
+          >
+            <span className="dash-nav-icon">🚪</span>
+            <span style={{ flex: 1 }}>Đăng xuất</span>
+          </div>
         </div>
       </div>
 
@@ -1771,6 +1778,7 @@ export default function Dashboard() {
         )}
         {renderContent()}
       </div>
+    </div>
     </div>
   );
 }

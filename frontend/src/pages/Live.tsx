@@ -63,7 +63,7 @@ const smallLives: LiveStream[] = [
     id: 'live-s1',
     kocName: '@hana.beauty',
     kocAvatar: 'HB',
-    title: 'Skincare routine buoi toi',
+    title: 'Skincare routine buổi tối',
     viewers: 567,
     revenue: '\u20AB3.2M',
     emoji: '\u2728',
