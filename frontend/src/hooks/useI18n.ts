@@ -49,6 +49,7 @@ const translations: TranslationMap = {
   'drawer.creatorToken': { vi: 'Creator Token', en: 'Creator Token', zh: '创作者代币', th: 'โทเค็นผู้สร้าง', hi: 'क्रिएटर टोकन' },
   'drawer.reputationNft': { vi: 'Reputation NFT', en: 'Reputation NFT', zh: '声誉 NFT', th: 'NFT ชื่อเสียง', hi: 'रेपुटेशन NFT' },
   'drawer.wallet': { vi: 'Ví · Wallet', en: 'Wallet', zh: '钱包', th: 'กระเป๋าเงิน', hi: 'वॉलेट' },
+  'drawer.pricing': { vi: 'Bảng giá', en: 'Pricing', zh: '定价', th: 'ราคา', hi: 'मूल्य निर्धारण' },
 
   // Drawer items - AI
   'drawer.agents': { vi: '333 AI Agents', en: '333 AI Agents', zh: '333 AI 代理', th: '333 เอไอเอเจนท์', hi: '333 AI एजेंट' },
