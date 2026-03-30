@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 const formatVND = (price: number): string =>
   new Intl.NumberFormat('vi-VN').format(price) + ' \u20AB';
@@ -103,6 +104,7 @@ const kocReviews: KocReview[] = [
 type TabKey = 'description' | 'dpp' | 'reviews';
 
 export default function ProductDetail() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
@@ -115,9 +117,9 @@ export default function ProductDetail() {
     : 0;
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: 'description', label: 'Mô tả' },
-    { key: 'dpp', label: 'DPP Blockchain' },
-    { key: 'reviews', label: `Đánh giá KOC (${product.reviewCount})` },
+    { key: 'description', label: t('product.tab.description') },
+    { key: 'dpp', label: t('product.tab.dpp') },
+    { key: 'reviews', label: `${t('product.tab.reviews')} (${product.reviewCount})` },
   ];
 
   return (
@@ -128,7 +130,7 @@ export default function ProductDetail() {
           display: 'flex', alignItems: 'center', gap: 8,
           fontSize: '.75rem', color: 'var(--text-4)', marginBottom: 28,
         }}>
-          <Link to="/" style={{ color: 'var(--text-4)', textDecoration: 'none' }}>Trang chủ</Link>
+          <Link to="/" style={{ color: 'var(--text-4)', textDecoration: 'none' }}>{t('product.breadcrumb.home')}</Link>
           <span>/</span>
           <Link to="/marketplace" style={{ color: 'var(--text-4)', textDecoration: 'none' }}>Marketplace</Link>
           <span>/</span>
@@ -222,10 +224,10 @@ export default function ProductDetail() {
                 {'★'.repeat(Math.floor(product.rating))} <span style={{ color: 'var(--text-2)', fontWeight: 600 }}>{product.rating}</span>
               </span>
               <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>
-                {product.reviewCount} đánh giá
+                {product.reviewCount} {t('product.reviews')}
               </span>
               <span style={{ fontSize: '.82rem', color: 'var(--text-3)' }}>
-                Đã bán{product.sold.toLocaleString('vi-VN')}
+                {t('product.sold')} {product.sold.toLocaleString('vi-VN')}
               </span>
             </div>
 
@@ -271,7 +273,7 @@ export default function ProductDetail() {
                     DPP Verified on Blockchain
                   </div>
                   <div style={{ fontSize: '.65rem', color: 'var(--text-4)' }}>
-                    Xem chi tiết nguồn gốc sản phẩm
+                    {t('product.dpp.viewDetail')}
                   </div>
                 </div>
               </Link>
@@ -279,7 +281,7 @@ export default function ProductDetail() {
 
             {/* Quantity Selector */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-              <span style={{ fontSize: '.82rem', color: 'var(--text-3)', fontWeight: 600 }}>Số lượng:</span>
+              <span style={{ fontSize: '.82rem', color: 'var(--text-3)', fontWeight: 600 }}>{t('product.quantity')}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 <button
                   className="btn btn-secondary"
@@ -311,14 +313,14 @@ export default function ProductDetail() {
                 className="btn btn-primary btn-lg"
                 style={{ flex: 1, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
-                🛒 Thêm vào giỏ
+                🛒 {t('product.addToCart')}
               </Link>
               <Link
                 to="/checkout"
                 className="btn btn-secondary btn-lg"
                 style={{ flex: 1, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
               >
-                Mua ngay
+                {t('product.buyNow')}
               </Link>
             </div>
 
@@ -330,7 +332,7 @@ export default function ProductDetail() {
             }}>
               <span style={{ fontSize: '1rem' }}>🎮</span>
               <span style={{ fontSize: '.82rem', color: 'var(--text-2)' }}>
-                Mua sản phẩm này để nhận
+                {t('product.xp.prefix')}
               </span>
               <span className="badge badge-gold" style={{ fontSize: '.72rem' }}>
                 +{product.xpReward * quantity} XP
@@ -340,9 +342,9 @@ export default function ProductDetail() {
             {/* Quick Info Table */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               {[
-                ['Thương hiệu', product.brand],
-                ['Xuất xứ', product.origin],
-                ['Danh mục', product.category],
+                [t('product.info.brand'), product.brand],
+                [t('product.info.origin'), product.origin],
+                [t('product.info.category'), product.category],
               ].map(([label, val], i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between',
@@ -386,7 +388,7 @@ export default function ProductDetail() {
         {/* Tab Content */}
         {activeTab === 'description' && (
           <div className="card" style={{ padding: 28 }}>
-            <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 14 }}>Mô tả sản phẩm</h3>
+            <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 14 }}>{t('product.description.title')}</h3>
             <p style={{ fontSize: '.88rem', color: 'var(--text-2)', lineHeight: 1.8 }}>
               {product.description}
             </p>
@@ -399,15 +401,15 @@ export default function ProductDetail() {
               DPP Verified On-Chain
             </div>
             <p style={{ fontSize: '.82rem', color: 'var(--text-3)', marginBottom: 20, lineHeight: 1.6 }}>
-              Sản phẩm này đã được xác minh nguồn gốc và chuỗi cung ứng thông qua Digital Product Passport (DPP) trên blockchain.
+              {t('product.dpp.desc')}
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {[
                 { label: 'DPP Hash', value: product.dppHash, mono: true },
                 { label: 'Blockchain', value: product.chain, badge: true },
-                { label: 'Xuất xứ', value: product.origin },
-                { label: 'Thương hiệu', value: product.brand },
+                { label: t('product.info.origin'), value: product.origin },
+                { label: t('product.info.brand'), value: product.brand },
               ].map((row, i) => (
                 <div key={i} style={{
                   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -428,7 +430,7 @@ export default function ProductDetail() {
               ))}
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', fontSize: '.82rem' }}>
-                <span style={{ color: 'var(--text-3)' }}>Chứng nhận</span>
+                <span style={{ color: 'var(--text-3)' }}>{t('product.dpp.certifications')}</span>
                 <div style={{ display: 'flex', gap: 6 }}>
                   {product.certifications.map(c => (
                     <span key={c} className="badge badge-c4" style={{ fontSize: '.65rem' }}>{c}</span>
@@ -442,7 +444,7 @@ export default function ProductDetail() {
               className="btn btn-primary btn-sm"
               style={{ marginTop: 20, textDecoration: 'none', display: 'inline-block' }}
             >
-              Xem chi tiết DPP
+              {t('product.dpp.viewDetail')}
             </Link>
           </div>
         )}
@@ -464,7 +466,7 @@ export default function ProductDetail() {
                   {'★'.repeat(Math.floor(product.rating))}
                 </div>
                 <div style={{ fontSize: '.72rem', color: 'var(--text-4)', marginTop: 2 }}>
-                  {product.reviewCount} đánh giá
+                  {product.reviewCount} {t('product.reviews')}
                 </div>
               </div>
               <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -504,7 +506,7 @@ export default function ProductDetail() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         <span style={{ fontWeight: 700, fontSize: '.85rem' }}>{review.author}</span>
                         {review.purchaseBadge && (
-                          <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>Đã mua hàng</span>
+                          <span className="badge badge-c4" style={{ fontSize: '.55rem' }}>{t('product.review.purchased')}</span>
                         )}
                         {review.kocLevel && (
                           <span className="badge badge-c6" style={{ fontSize: '.55rem' }}>{review.kocLevel}</span>
@@ -525,7 +527,7 @@ export default function ProductDetail() {
                     display: 'inline-flex', alignItems: 'center', gap: 4,
                     marginTop: 8, fontSize: '.68rem', color: 'var(--c4-500, #22c55e)',
                   }}>
-                    ✓ Đánh giá đã xác minh
+                    ✓ {t('product.review.verified')}
                   </div>
                 )}
               </div>

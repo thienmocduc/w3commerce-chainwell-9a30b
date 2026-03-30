@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 interface PromoCard {
   id: string;
   emoji: string;
   type: string;
   title: string;
-  description: string;
+  descKey: string;
   discount: string;
   badge: string;
   badgeClass: string;
@@ -21,7 +22,7 @@ const promoCards: PromoCard[] = [
     emoji: '\u26A1',
     type: 'Flash Sale',
     title: 'Flash Sale -50%',
-    description: 'Serum Vitamin C 20% - Chỉ còn 12 sản phẩm',
+    descKey: 'promo.flash50.desc',
     discount: '-50%',
     badge: 'FLASH',
     badgeClass: 'badge-gold',
@@ -33,7 +34,7 @@ const promoCards: PromoCard[] = [
     emoji: '\uD83D\uDC65',
     type: 'Group Buy',
     title: 'Group Buy -45%',
-    description: 'Collagen Marine - Cần thêm 70 người nữa',
+    descKey: 'promo.group45.desc',
     discount: '-45%',
     badge: 'GROUP',
     badgeClass: 'badge-c7',
@@ -45,7 +46,7 @@ const promoCards: PromoCard[] = [
     emoji: '\uD83C\uDF9F\uFE0F',
     type: 'Voucher',
     title: 'Voucher 200K',
-    description: 'Ap dung cho don tu 500K - Het han 24h',
+    descKey: 'promo.voucher200k.desc',
     discount: '200K',
     badge: 'VOUCHER',
     badgeClass: 'badge-c4',
@@ -57,7 +58,7 @@ const promoCards: PromoCard[] = [
     emoji: '\uD83C\uDF1F',
     type: 'KOC Deal',
     title: 'KOC Exclusive -40%',
-    description: 'Matcha Uji Premium - Chỉ qua link @linh.koc',
+    descKey: 'promo.koc40.desc',
     discount: '-40%',
     badge: 'KOC',
     badgeClass: 'badge-c5',
@@ -84,6 +85,7 @@ function useCountdown(targetSeconds: number) {
 }
 
 const Promo: React.FC = () => {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const { hours, minutes, seconds } = useCountdown(7 * 3600 + 23 * 60 + 45);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -130,7 +132,7 @@ const Promo: React.FC = () => {
             </div>
 
             <h2 className="display-md" style={{ marginTop: '12px', marginBottom: '16px' }}>
-              <span className="gradient-text">Khuyến mại sắp kết thúc!</span>
+              <span className="gradient-text">{t('promo.flashSale.title')}</span>
             </h2>
 
             {/* Countdown Timer */}
@@ -149,7 +151,7 @@ const Promo: React.FC = () => {
                 }}>
                   {pad(hours)}
                 </div>
-                <div style={{ fontSize: '.58rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>Gio</div>
+                <div style={{ fontSize: '.58rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{t('promo.countdown.hours')}</div>
               </div>
               <span style={{ fontSize: '1.4rem', color: 'var(--text-4)', fontWeight: 700 }}>:</span>
               <div style={{ textAlign: 'center' }}>
@@ -162,7 +164,7 @@ const Promo: React.FC = () => {
                 }}>
                   {pad(minutes)}
                 </div>
-                <div style={{ fontSize: '.58rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>Phut</div>
+                <div style={{ fontSize: '.58rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{t('promo.countdown.minutes')}</div>
               </div>
               <span style={{ fontSize: '1.4rem', color: 'var(--text-4)', fontWeight: 700 }}>:</span>
               <div style={{ textAlign: 'center' }}>
@@ -175,7 +177,7 @@ const Promo: React.FC = () => {
                 }}>
                   {pad(seconds)}
                 </div>
-                <div style={{ fontSize: '.58rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>Giay</div>
+                <div style={{ fontSize: '.58rem', color: 'var(--text-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.06em' }}>{t('promo.countdown.seconds')}</div>
               </div>
             </div>
           </div>
@@ -184,7 +186,7 @@ const Promo: React.FC = () => {
         {/* Section Header */}
         <div className="section-header" style={{ marginBottom: '32px' }}>
           <h3 className="display-md" style={{ fontSize: '1.4rem' }}>
-            <span className="gradient-text">Ưu đãi đang hoạt động</span>
+            <span className="gradient-text">{t('promo.activeDeals')}</span>
           </h3>
         </div>
 
@@ -233,7 +235,7 @@ const Promo: React.FC = () => {
                   fontSize: '.72rem', color: 'var(--text-3)',
                   lineHeight: 1.5, marginBottom: '12px',
                 }}>
-                  {promo.description}
+                  {t(promo.descKey)}
                 </div>
 
                 {/* Progress Bar */}
@@ -243,8 +245,8 @@ const Promo: React.FC = () => {
                       display: 'flex', justifyContent: 'space-between',
                       fontSize: '.6rem', color: 'var(--text-3)', marginBottom: '4px',
                     }}>
-                      <span>Da ban {promo.progress.current}%</span>
-                      <span>Còn {promo.progress.total - promo.progress.current} sản phẩm</span>
+                      <span>{t('promo.sold')} {promo.progress.current}%</span>
+                      <span>{t('promo.remaining')} {promo.progress.total - promo.progress.current} {t('promo.remainingSuffix')}</span>
                     </div>
                     <div className="progress-track">
                       <div
@@ -278,7 +280,7 @@ const Promo: React.FC = () => {
                         copyVoucher(promo.voucherCode!);
                       }}
                     >
-                      {copiedCode === promo.voucherCode ? '\u2705 Da copy' : '\uD83D\uDCCB Copy'}
+                      {copiedCode === promo.voucherCode ? `\u2705 ${t('promo.copied')}` : `\uD83D\uDCCB ${t('promo.copy')}`}
                     </button>
                   </div>
                 )}
@@ -289,7 +291,7 @@ const Promo: React.FC = () => {
                   style={{ width: '100%' }}
                   onClick={(e) => { e.stopPropagation(); }}
                 >
-                  {promo.voucherCode ? '\uD83C\uDF9F\uFE0F Dùng ngay' : '\u26A1 Mua ngay'}
+                  {promo.voucherCode ? `\uD83C\uDF9F\uFE0F ${t('promo.useNow')}` : `\u26A1 ${t('promo.buyNow')}`}
                 </button>
               </div>
             </div>

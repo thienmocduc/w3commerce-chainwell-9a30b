@@ -38,16 +38,16 @@ function WKLogo({ size = 38 }: { size?: number }) {
   );
 }
 
-/* ── Ticker bar items ── */
-const TICKER_ITEMS = [
-  '🔥 Flash Sale -50% Mỹ phẩm Hàn',
-  '🎯 KOC @MinhAnh +2,340 followers hôm nay',
-  '⛓️ 14,203 DPP scans hôm nay',
-  '🛒 Mua nhóm AI: Serum Vitamin C — 234 người tham gia',
-  '🏆 Top KOC tuần: @beautyLien · 89 đơn',
-  '💎 Creator Token $BIEN +12.5% 24h',
-  '🤖 333 AI Agents đang hoạt động',
-  '📦 12,847 đơn hàng hôm nay',
+/* ── Ticker bar items (translation keys + emoji prefix) ── */
+const TICKER_ITEMS_DEF = [
+  { emoji: '🔥', key: 'ticker.flashSale' },
+  { emoji: '🎯', key: 'ticker.kocFollowers' },
+  { emoji: '⛓️', key: 'ticker.dppScans' },
+  { emoji: '🛒', key: 'ticker.groupBuy' },
+  { emoji: '🏆', key: 'ticker.topKoc' },
+  { emoji: '💎', key: 'ticker.creatorToken' },
+  { emoji: '🤖', key: 'ticker.aiAgents' },
+  { emoji: '📦', key: 'ticker.ordersToday' },
 ];
 
 /* ── Primary nav links (visible in top bar — 5 items only) ── */
@@ -138,10 +138,10 @@ const FOOTER_LINKS = [
   {
     titleKey: 'footer.legal',
     links: [
-      { to: '/pricing', label: 'Điều khoản' },
-      { to: '/pricing', label: 'Chính sách riêng tư' },
+      { to: '/pricing', labelKey: 'layout.footer.terms' },
+      { to: '/pricing', labelKey: 'layout.footer.privacy' },
       { to: '/pricing', label: 'Cookie Policy' },
-      { to: '/pricing', label: 'Liên hệ' },
+      { to: '/pricing', labelKey: 'layout.footer.contact' },
     ],
   },
 ];
@@ -154,6 +154,8 @@ export default function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+
+  const TICKER_ITEMS = TICKER_ITEMS_DEF.map(item => `${item.emoji} ${t(item.key)}`);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
@@ -434,7 +436,7 @@ export default function MainLayout() {
                     padding: '8px 12px', borderRadius: 8, fontSize: '0.82rem',
                     color: 'var(--text-2)', textDecoration: 'none', transition: 'var(--t-fast)',
                   }}>
-                    <span style={{ fontSize: '1rem' }}>👤</span> Hồ sơ
+                    <span style={{ fontSize: '1rem' }}>👤</span> {t('layout.profile')}
                   </Link>
                   <Link to="/dashboard" onClick={() => setUserMenuOpen(false)} style={{
                     display: 'flex', alignItems: 'center', gap: 10, width: '100%',
@@ -448,7 +450,7 @@ export default function MainLayout() {
                     padding: '8px 12px', borderRadius: 8, fontSize: '0.82rem',
                     color: 'var(--text-2)', textDecoration: 'none', transition: 'var(--t-fast)',
                   }}>
-                    <span style={{ fontSize: '1rem' }}>⚙️</span> Cài đặt
+                    <span style={{ fontSize: '1rem' }}>⚙️</span> {t('layout.settings')}
                   </Link>
                   <div style={{ height: 1, background: 'var(--border)', margin: '4px 8px' }} />
                   <button onClick={handleLogout} style={{
@@ -457,7 +459,7 @@ export default function MainLayout() {
                     color: '#ef4444', background: 'transparent', border: 'none',
                     cursor: 'pointer', transition: 'var(--t-fast)', textAlign: 'left',
                   }}>
-                    <span style={{ fontSize: '1rem' }}>🚪</span> Đăng xuất
+                    <span style={{ fontSize: '1rem' }}>🚪</span> {t('layout.logout')}
                   </button>
                 </div>
               )}
@@ -477,7 +479,7 @@ export default function MainLayout() {
                 transition: 'var(--t-fast)',
               }}
             >
-              Tham gia
+              {t('layout.join')}
             </Link>
           )}
 
@@ -713,7 +715,7 @@ export default function MainLayout() {
                   fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer',
                 }}
               >
-                🚪 Đăng xuất
+                🚪 {t('layout.logout')}
               </button>
             </>
           ) : (
@@ -878,9 +880,9 @@ export default function MainLayout() {
                   {t(col.titleKey)}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {col.links.map((link) => (
+                  {col.links.map((link: any) => (
                     <Link
-                      key={link.label}
+                      key={link.labelKey || link.label}
                       to={link.to}
                       style={{
                         fontSize: '0.85rem',
@@ -889,7 +891,7 @@ export default function MainLayout() {
                         transition: 'var(--t-fast)',
                       }}
                     >
-                      {link.label}
+                      {link.labelKey ? t(link.labelKey) : link.label}
                     </Link>
                   ))}
                 </div>

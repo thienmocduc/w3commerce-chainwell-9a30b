@@ -1,41 +1,42 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import { useI18n } from '@hooks/useI18n';
 
 /* ── Sidebar (accordion groups like Admin) ────────── */
 interface VendorSidebarGroup {
-  key: string; label: string; color: string; icon: string;
-  items: { key: string; icon: string; label: string }[];
+  key: string; labelKey: string; color: string; icon: string;
+  items: { key: string; icon: string; labelKey: string }[];
 }
 const vendorSidebarGroups: VendorSidebarGroup[] = [
   {
-    key: 'shop', label: 'CỬA HÀNG', color: 'var(--c4-500)', icon: '🏪',
+    key: 'shop', labelKey: 'vendor.sidebar.shop', color: 'var(--c4-500)', icon: '🏪',
     items: [
-      { key: 'overview', icon: '📊', label: 'Tổng quan' },
-      { key: 'products', icon: '📦', label: 'Sản phẩm' },
-      { key: 'orders', icon: '🛒', label: 'Đơn hàng' },
-      { key: 'analytics', icon: '📈', label: 'Analytics' },
+      { key: 'overview', icon: '📊', labelKey: 'vendor.sidebar.overview' },
+      { key: 'products', icon: '📦', labelKey: 'vendor.sidebar.products' },
+      { key: 'orders', icon: '🛒', labelKey: 'vendor.sidebar.orders' },
+      { key: 'analytics', icon: '📈', labelKey: 'vendor.analytics.title' },
     ],
   },
   {
-    key: 'network', label: 'MẠNG LƯỚI', color: 'var(--c6-500)', icon: '🌐',
+    key: 'network', labelKey: 'vendor.sidebar.network', color: 'var(--c6-500)', icon: '🌐',
     items: [
-      { key: 'koc', icon: '🌟', label: 'KOC Network' },
-      { key: 'commission', icon: '💰', label: 'Commission Rules' },
+      { key: 'koc', icon: '🌟', labelKey: 'vendor.koc.title' },
+      { key: 'commission', icon: '💰', labelKey: 'vendor.commissionRules.title' },
     ],
   },
   {
-    key: 'web3', label: 'WEB3 & DPP', color: '#f59e0b', icon: '🔗',
+    key: 'web3', labelKey: 'vendor.sidebar.web3', color: '#f59e0b', icon: '🔗',
     items: [
-      { key: 'dpp', icon: '🔐', label: 'DPP Management' },
-      { key: 'wallet', icon: '💎', label: 'Ví blockchain' },
+      { key: 'dpp', icon: '🔐', labelKey: 'vendor.sidebar.dppMgmt' },
+      { key: 'wallet', icon: '💎', labelKey: 'vendor.sidebar.walletBlockchain' },
     ],
   },
   {
-    key: 'account', label: 'TÀI KHOẢN', color: 'var(--c5-500)', icon: '👤',
+    key: 'account', labelKey: 'vendor.sidebar.account', color: 'var(--c5-500)', icon: '👤',
     items: [
-      { key: 'vendor_kyc', icon: '🛡️', label: 'Xác minh doanh nghiệp' },
-      { key: 'settings', icon: '⚙️', label: 'Cài đặt' },
+      { key: 'vendor_kyc', icon: '🛡️', labelKey: 'vendor.sidebar.verifyBusiness' },
+      { key: 'settings', icon: '⚙️', labelKey: 'vendor.sidebar.settings' },
     ],
   },
 ];
@@ -52,11 +53,11 @@ const initialProducts = [
   { id: 6, name: 'Nước Hoa Hồng Organic', price: '320.000₫', stock: 0, sold: 1890, status: 'out_of_stock', dppStatus: 'pending', commission: '19%', emoji: '🌹', dppTokenId: '—', hidden: false },
 ];
 
-const productStatusConfig: Record<string, { label: string; badge: string }> = {
-  active: { label: 'Đang bán', badge: 'badge-c4' },
-  low_stock: { label: 'Sắp hết', badge: 'badge-gold' },
-  out_of_stock: { label: 'Hết hàng', badge: 'badge-c5' },
-  hidden: { label: 'Đã ẩn', badge: 'badge-c6' },
+const productStatusConfig: Record<string, { labelKey: string; badge: string }> = {
+  active: { labelKey: 'vendor.status.active', badge: 'badge-c4' },
+  low_stock: { labelKey: 'vendor.status.lowStock', badge: 'badge-gold' },
+  out_of_stock: { labelKey: 'vendor.status.outOfStock', badge: 'badge-c5' },
+  hidden: { labelKey: 'vendor.status.hidden', badge: 'badge-c6' },
 };
 
 const dppStatusConfig: Record<string, { label: string; badge: string }> = {
@@ -73,17 +74,17 @@ const initialOrders = [
   { id: 'ORD-2026-005', customer: 'Hoàng Văn E', product: 'Bột Collagen', amount: '890.000₫', koc: 'Phương Thảo', commission: '222.500₫', status: 'pending', date: '2026-03-23', txHash: '' },
 ];
 
-const orderStatusConfig: Record<string, { label: string; badge: string }> = {
-  delivered: { label: 'Đã giao', badge: 'badge-c4' },
-  shipping: { label: 'Đang giao', badge: 'badge-c5' },
-  processing: { label: 'Đang xử lý', badge: 'badge-c6' },
-  pending: { label: 'Chờ xác nhận', badge: 'badge-gold' },
+const orderStatusConfig: Record<string, { labelKey: string; badge: string }> = {
+  delivered: { labelKey: 'vendor.order.delivered', badge: 'badge-c4' },
+  shipping: { labelKey: 'vendor.order.shipping', badge: 'badge-c5' },
+  processing: { labelKey: 'vendor.order.processing', badge: 'badge-c6' },
+  pending: { labelKey: 'vendor.order.pending', badge: 'badge-gold' },
 };
 
-const orderStatusFlow: Record<string, { next: string; action: string }> = {
-  pending: { next: 'processing', action: 'Xác nhận' },
-  processing: { next: 'shipping', action: 'Giao hàng' },
-  shipping: { next: 'delivered', action: 'Đã giao' },
+const orderStatusFlow: Record<string, { next: string; actionKey: string }> = {
+  pending: { next: 'processing', actionKey: 'vendor.order.confirm' },
+  processing: { next: 'shipping', actionKey: 'vendor.order.ship' },
+  shipping: { next: 'delivered', actionKey: 'vendor.order.markDelivered' },
 };
 
 /* ── KOC Network ─────────────────────────────────── */
@@ -111,9 +112,9 @@ const initialDppMints = [
 
 /* ── Commission Rules ────────────────────────────── */
 const commissionTiers = [
-  { tier: 'Tier 1 (T1)', description: 'KOC bán trực tiếp', rate: '40%', minSales: '10M₫+/tháng', color: 'var(--c4-500)', smartContract: true },
-  { tier: 'Tier 2 (T2)', description: 'KOC giới thiệu bởi T1', rate: '13%', minSales: '5M₫+/tháng', color: 'var(--c5-500)', smartContract: true },
-  { tier: 'Tier 3 (T3)', description: 'KOC giới thiệu bởi T2', rate: '5%', minSales: 'Không yêu cầu', color: 'var(--c6-500)', smartContract: true },
+  { tier: 'Tier 1 (T1)', descKey: 'vendor.commission.t1Desc', rate: '40%', minSales: '10M₫+', color: 'var(--c4-500)', smartContract: true },
+  { tier: 'Tier 2 (T2)', descKey: 'vendor.commission.t2Desc', rate: '13%', minSales: '5M₫+', color: 'var(--c5-500)', smartContract: true },
+  { tier: 'Tier 3 (T3)', descKey: 'vendor.commission.t3Desc', rate: '5%', minSalesKey: 'vendor.commission.noMinSales', color: 'var(--c6-500)', smartContract: true },
 ];
 
 /* ── Wallet data ─────────────────────────────────── */
@@ -130,19 +131,19 @@ const initialWalletData = {
 };
 
 const initialWalletTxHistory = [
-  { hash: '0xrev1...1111', type: 'Doanh thu đơn hàng', amount: '+389.000₫', token: 'USDT', date: '2026-03-25', status: 'confirmed' },
-  { hash: '0xrev2...2222', type: 'Doanh thu đơn hàng', amount: '+459.000₫', token: 'USDT', date: '2026-03-24', status: 'confirmed' },
-  { hash: '0xcom1...3333', type: 'Commission payout (KOC)', amount: '-70.020₫', token: 'USDT', date: '2026-03-25', status: 'confirmed' },
-  { hash: '0xwd01...4444', type: 'Rút về ngân hàng', amount: '-20.000.000₫', token: 'USDT', date: '2026-03-20', status: 'confirmed' },
-  { hash: '0xdpp1...5555', type: 'DPP Mint Fee', amount: '-0.5 MATIC', token: 'MATIC', date: '2026-03-15', status: 'confirmed' },
+  { hash: '0xrev1...1111', typeKey: 'vendor.wallet.txOrderRevenue', amount: '+389.000₫', token: 'USDT', date: '2026-03-25', status: 'confirmed' },
+  { hash: '0xrev2...2222', typeKey: 'vendor.wallet.txOrderRevenue', amount: '+459.000₫', token: 'USDT', date: '2026-03-24', status: 'confirmed' },
+  { hash: '0xcom1...3333', typeKey: 'vendor.wallet.txCommissionPayout', amount: '-70.020₫', token: 'USDT', date: '2026-03-25', status: 'confirmed' },
+  { hash: '0xwd01...4444', typeKey: 'vendor.wallet.txBankWithdraw', amount: '-20.000.000₫', token: 'USDT', date: '2026-03-20', status: 'confirmed' },
+  { hash: '0xdpp1...5555', typeKey: 'DPP Mint Fee', amount: '-0.5 MATIC', token: 'MATIC', date: '2026-03-15', status: 'confirmed' },
 ];
 
 /* ── Settings ────────────────────────────────────── */
-const initialSettings = [
-  { title: 'Thông tin cửa hàng', fields: [{ label: 'Tên', value: 'WellKOC Origin' }, { label: 'Loại', value: 'Official Brand' }, { label: 'Đánh giá', value: '4.8 / 5.0' }] },
-  { title: 'Blockchain', fields: [{ label: 'Chain', value: 'Polygon' }, { label: 'Ví', value: '0xVend...EF12' }, { label: 'DPP Contract', value: '0xDPP...7890' }] },
-  { title: 'Thanh toán', fields: [{ label: 'Rút tiền về', value: 'Vietcombank **** 5678' }, { label: 'Auto payout KOC', value: 'Bật' }, { label: 'Min withdraw', value: '1.000.000₫' }] },
-  { title: 'Commission', fields: [{ label: 'Smart contract', value: 'Active' }, { label: 'Tiers', value: 'T1: 40% / T2: 13% / T3: 5%' }, { label: 'Auto-distribute', value: 'Bật' }] },
+const getInitialSettings = (t: (k: string) => string) => [
+  { title: t('vendor.settings.shopInfo'), fields: [{ label: t('vendor.settings.name'), value: 'WellKOC Origin' }, { label: t('vendor.settings.type'), value: 'Official Brand' }, { label: t('vendor.settings.rating'), value: '4.8 / 5.0' }] },
+  { title: t('vendor.settings.blockchain'), fields: [{ label: 'Chain', value: 'Polygon' }, { label: t('vendor.settings.wallet'), value: '0xVend...EF12' }, { label: 'DPP Contract', value: '0xDPP...7890' }] },
+  { title: t('vendor.settings.payment'), fields: [{ label: t('vendor.settings.withdrawTo'), value: 'Vietcombank **** 5678' }, { label: t('vendor.settings.autoPayoutKOC'), value: t('vendor.settings.enabled') }, { label: 'Min withdraw', value: '1.000.000₫' }] },
+  { title: t('vendor.settings.commission'), fields: [{ label: 'Smart contract', value: 'Active' }, { label: 'Tiers', value: 'T1: 40% / T2: 13% / T3: 5%' }, { label: t('vendor.settings.autoDistribute'), value: t('vendor.settings.enabled') }] },
 ];
 
 /* ── Helpers ──────────────────────────────────────── */
@@ -155,6 +156,7 @@ let nextDppTokenId = 1252;
 
 /* ── Component ───────────────────────────────────── */
 export default function Vendor() {
+  const { t } = useI18n();
   const [activeNav, setActiveNav] = useState('overview');
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ shop: true, network: false, web3: false, account: false });
   const toggleGroup = (key: string) => setOpenGroups(prev => ({ ...prev, [key]: !prev[key] }));
@@ -200,7 +202,7 @@ export default function Vendor() {
   const [withdrawAmount, setWithdrawAmount] = useState('');
 
   // Settings
-  const [settingsData, setSettingsData] = useState(initialSettings);
+  const [settingsData, setSettingsData] = useState(() => getInitialSettings(t));
   const [editingSettings, setEditingSettings] = useState<{ si: number; fi: number } | null>(null);
   const [editSettingsValue, setEditSettingsValue] = useState('');
 
@@ -214,7 +216,7 @@ export default function Vendor() {
 
   /* ── Product CRUD ──────────────────────────────── */
   const handleAddProduct = () => {
-    if (!newProduct.name.trim()) { showToast('Vui lòng nhập tên sản phẩm', 'error'); return; }
+    if (!newProduct.name.trim()) { showToast(t('vendor.toast.enterProductName'), 'error'); return; }
     const p = {
       id: nextProductId++,
       name: newProduct.name,
@@ -231,13 +233,13 @@ export default function Vendor() {
     setProductList(prev => [...prev, p]);
     setNewProduct({ name: '', price: '', stock: '', commission: '', description: '', category: '', origin: '', weight: '', sku: '', imageUrl: '' });
     setShowAddProduct(false);
-    showToast(`Đã thêm sản phẩm "${p.name}"`);
+    showToast(`${t('vendor.toast.productAdded')} "${p.name}"`);
   };
 
   const handleDeleteProduct = (id: number) => {
     const p = productList.find(x => x.id === id);
     setProductList(prev => prev.filter(x => x.id !== id));
-    showToast(`Đã xoá sản phẩm "${p?.name}"`);
+    showToast(`${t('vendor.toast.productDeleted')} "${p?.name}"`);
   };
 
   const handleToggleProduct = (id: number) => {
@@ -247,7 +249,7 @@ export default function Vendor() {
       return { ...p, hidden: nowHidden, status: nowHidden ? 'hidden' : (p.stock === 0 ? 'out_of_stock' : p.stock <= 50 ? 'low_stock' : 'active') };
     }));
     const p = productList.find(x => x.id === id);
-    showToast(p?.hidden ? `Đã hiện sản phẩm "${p.name}"` : `Đã ẩn sản phẩm "${p?.name}"`);
+    showToast(p?.hidden ? `${t('vendor.toast.productShown')} "${p.name}"` : `${t('vendor.toast.productHidden')} "${p?.name}"`);
   };
 
   const handleSaveEditProduct = (id: number) => {
@@ -257,7 +259,7 @@ export default function Vendor() {
     }));
     setEditingProduct(null);
     setNewProduct({ name: '', price: '', stock: '', commission: '', description: '', category: '', origin: '', weight: '', sku: '', imageUrl: '' });
-    showToast('Đã cập nhật sản phẩm');
+    showToast(t('vendor.toast.productUpdated'));
   };
 
   /* ── Order status flow ─────────────────────────── */
@@ -271,7 +273,7 @@ export default function Vendor() {
     }));
     const o = orderList.find(x => x.id === orderId);
     const flow = orderStatusFlow[o?.status ?? ''];
-    showToast(`Đơn hàng ${orderId}: ${flow?.action ?? 'Cập nhật'}`);
+    showToast(`${t('vendor.kpi.orders')} ${orderId}: ${flow ? t(flow.actionKey) : t('vendor.toast.orderUpdate')}`);
   };
 
   /* ── DPP Mint ──────────────────────────────────── */
@@ -291,20 +293,20 @@ export default function Vendor() {
       status: 'verified',
       ipfsHash: `Qm...${Math.random().toString(36).slice(2, 6)}`,
     }]);
-    showToast(`Đã mint DPP cho "${product.name}" (${tokenId})`);
+    showToast(`${t('vendor.toast.dppMinted')} "${product.name}" (${tokenId})`);
   };
 
   /* ── Withdraw ──────────────────────────────────── */
   const handleWithdraw = () => {
     const amt = parseInt(withdrawAmount.replace(/\D/g, '')) || 0;
     if (amt <= 0 || amt > pendingRevenue) {
-      showToast('Số tiền không hợp lệ', 'error');
+      showToast(t('vendor.toast.invalidAmount'), 'error');
       return;
     }
     setPendingRevenue(prev => prev - amt);
     setWalletTxHistory(prev => [{
       hash: `0xwd${Math.random().toString(16).slice(2, 6)}...${Math.random().toString(16).slice(2, 6)}`,
-      type: 'Rút về ngân hàng',
+      typeKey: 'vendor.wallet.txBankWithdraw',
       amount: `-${formatVND(amt)}`,
       token: 'USDT',
       date: new Date().toISOString().slice(0, 10),
@@ -312,15 +314,15 @@ export default function Vendor() {
     }, ...prev]);
     setWithdrawAmount('');
     setShowWithdrawForm(false);
-    showToast(`Đã rút ${formatVND(amt)} về ngân hàng`);
+    showToast(`${t('vendor.toast.withdrawn')} ${formatVND(amt)} ${t('vendor.toast.toBank')}`);
   };
 
   /* ── Copy to clipboard ─────────────────────────── */
   const handleCopy = (text: string, label: string = '') => {
     navigator.clipboard.writeText(text).then(() => {
-      showToast(`Đã sao chép ${label || text}`, 'info');
+      showToast(`${t('vendor.toast.copied')} ${label || text}`, 'info');
     }).catch(() => {
-      showToast(`Đã sao chép ${label || text}`, 'info');
+      showToast(`${t('vendor.toast.copied')} ${label || text}`, 'info');
     });
   };
 
@@ -332,7 +334,7 @@ export default function Vendor() {
     }));
     setEditingSettings(null);
     setEditSettingsValue('');
-    showToast('Đã lưu cài đặt');
+    showToast(t('vendor.toast.settingsSaved'));
   };
 
   /* ── Filtered data ─────────────────────────────── */
@@ -356,10 +358,10 @@ export default function Vendor() {
   /* ── KPI data (derived) ────────────────────────── */
   const visibleProducts = productList.filter(p => !p.hidden);
   const kpiData = [
-    { label: 'Doanh thu tháng', value: '89.5M₫', delta: '+28% MoM', up: true, color: 'var(--c4-500)' },
-    { label: 'Đơn hàng', value: String(orderList.length), delta: `${orderList.filter(o => o.status === 'pending').length} chờ xử lý`, up: true, color: 'var(--c5-500)' },
-    { label: 'Sản phẩm', value: String(visibleProducts.length), delta: `${productList.filter(p => p.dppStatus === 'minted').length} đã DPP`, up: true, color: 'var(--c6-500)' },
-    { label: 'KOC Partners', value: '156', delta: '+23 mới', up: true, color: 'var(--c7-500)' },
+    { label: t('vendor.kpi.monthlyRevenue'), value: '89.5M₫', delta: '+28% MoM', up: true, color: 'var(--c4-500)' },
+    { label: t('vendor.kpi.orders'), value: String(orderList.length), delta: `${orderList.filter(o => o.status === 'pending').length} ${t('vendor.kpi.pendingProcess')}`, up: true, color: 'var(--c5-500)' },
+    { label: t('vendor.kpi.products'), value: String(visibleProducts.length), delta: `${productList.filter(p => p.dppStatus === 'minted').length} ${t('vendor.kpi.dppDone')}`, up: true, color: 'var(--c6-500)' },
+    { label: 'KOC Partners', value: '156', delta: `+23 ${t('vendor.kpi.newKoc')}`, up: true, color: 'var(--c7-500)' },
   ];
 
   const renderContent = () => {
@@ -368,11 +370,11 @@ export default function Vendor() {
       case 'overview':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Tổng Quan Cửa Hàng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('vendor.overview.title')}</h2>
 
             <div className="chart-bar-wrap" style={{ marginBottom: 24 }}>
               <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-                <span className="label">DOANH THU 12 THÁNG</span>
+                <span className="label">{t('vendor.overview.revenue12m')}</span>
                 <span className="badge badge-c4">+28% YoY</span>
               </div>
               <div className="chart-bars">
@@ -389,7 +391,7 @@ export default function Vendor() {
 
             <div className="grid-2" style={{ gap: 20 }}>
               <div className="card" style={{ padding: 20 }}>
-                <div className="label" style={{ marginBottom: 12 }}>TOP SẢN PHẨM</div>
+                <div className="label" style={{ marginBottom: 12 }}>{t('vendor.overview.topProducts')}</div>
                 <div className="flex-col gap-10">
                   {visibleProducts.slice(0, 4).map((p, i) => (
                     <div key={i} className="flex" style={{ justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
@@ -403,7 +405,7 @@ export default function Vendor() {
                 </div>
               </div>
               <div className="card" style={{ padding: 20 }}>
-                <div className="label" style={{ marginBottom: 12 }}>TOP KOC</div>
+                <div className="label" style={{ marginBottom: 12 }}>{t('vendor.overview.topKoc')}</div>
                 <div className="flex-col gap-10">
                   {kocNetwork.slice(0, 4).map((k, i) => (
                     <div key={i} className="flex" style={{ justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
@@ -425,15 +427,15 @@ export default function Vendor() {
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 16 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Quản Lý Sản Phẩm ({visibleProducts.length})</h2>
-              <button className="btn btn-primary btn-sm" onClick={() => { setShowAddProduct(!showAddProduct); setEditingProduct(null); }}>+ Thêm sản phẩm</button>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('vendor.products.title')} ({visibleProducts.length})</h2>
+              <button className="btn btn-primary btn-sm" onClick={() => { setShowAddProduct(!showAddProduct); setEditingProduct(null); }}>{t('vendor.products.addBtn')}</button>
             </div>
 
             {/* Search */}
             <div style={{ marginBottom: 16 }}>
               <input
                 type="text"
-                placeholder="Tìm sản phẩm..."
+                placeholder={t('vendor.products.searchPlaceholder')}
                 value={productSearch}
                 onChange={e => setProductSearch(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }}
@@ -443,30 +445,30 @@ export default function Vendor() {
             {/* Add product form — full */}
             {showAddProduct && (
               <div className="card" style={{ padding: 24, marginBottom: 16, borderLeft: '3px solid var(--c4-500)' }}>
-                <div className="label" style={{ marginBottom: 16 }}>THÊM SẢN PHẨM MỚI</div>
+                <div className="label" style={{ marginBottom: 16 }}>{t('vendor.products.addFormTitle')}</div>
                 <div className="flex-col gap-14">
                   {/* Row 1: Name */}
                   <div>
-                    <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Tên sản phẩm *</label>
+                    <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelName')}</label>
                     <input placeholder="VD: Trà Ô Long Đài Loan Premium" value={newProduct.name} onChange={e => setNewProduct(p => ({ ...p, name: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                   </div>
 
                   {/* Row 2: Price, Stock, Commission, SKU */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                     <div>
-                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Giá bán *</label>
+                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelPrice')}</label>
                       <input placeholder="250.000₫" value={newProduct.price} onChange={e => setNewProduct(p => ({ ...p, price: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Tồn kho</label>
+                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelStock')}</label>
                       <input type="number" placeholder="100" value={newProduct.stock} onChange={e => setNewProduct(p => ({ ...p, stock: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Hoa hồng KOC (%)</label>
+                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelCommission')}</label>
                       <input placeholder="15%" value={newProduct.commission} onChange={e => setNewProduct(p => ({ ...p, commission: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Mã SKU</label>
+                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelSku')}</label>
                       <input placeholder="SP-001" value={newProduct.sku} onChange={e => setNewProduct(p => ({ ...p, sku: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                     </div>
                   </div>
@@ -474,40 +476,49 @@ export default function Vendor() {
                   {/* Row 3: Category, Origin, Weight */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
                     <div>
-                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Danh mục</label>
+                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelCategory')}</label>
                       <select value={newProduct.category} onChange={e => setNewProduct(p => ({ ...p, category: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }}>
-                        <option value="">-- Chọn danh mục --</option>
-                        {['Thực phẩm & Đồ uống', 'Mỹ phẩm & Skincare', 'Sức khỏe & Dinh dưỡng', 'Thời trang & Phụ kiện', 'Công nghệ & Điện tử', 'Nhà cửa & Đời sống', 'Thú cưng', 'Khác'].map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="">{t('vendor.products.selectCategory')}</option>
+                        {[
+                          { key: 'catFood', value: t('vendor.products.catFood') },
+                          { key: 'catBeauty', value: t('vendor.products.catBeauty') },
+                          { key: 'catHealth', value: t('vendor.products.catHealth') },
+                          { key: 'catFashion', value: t('vendor.products.catFashion') },
+                          { key: 'catTech', value: t('vendor.products.catTech') },
+                          { key: 'catHome', value: t('vendor.products.catHome') },
+                          { key: 'catPets', value: t('vendor.products.catPets') },
+                          { key: 'catOther', value: t('vendor.products.catOther') },
+                        ].map(c => <option key={c.key} value={c.value}>{c.value}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Xuất xứ</label>
+                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelOrigin')}</label>
                       <input placeholder="VD: Việt Nam, Đài Loan" value={newProduct.origin} onChange={e => setNewProduct(p => ({ ...p, origin: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                     </div>
                     <div>
-                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Khối lượng</label>
+                      <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelWeight')}</label>
                       <input placeholder="VD: 500g, 1 hộp" value={newProduct.weight} onChange={e => setNewProduct(p => ({ ...p, weight: e.target.value }))} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
                     </div>
                   </div>
 
                   {/* Row 4: Description */}
                   <div>
-                    <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Mô tả sản phẩm</label>
-                    <textarea placeholder="Mô tả chi tiết sản phẩm, thành phần, công dụng..." value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} rows={4} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem', resize: 'vertical' }} />
+                    <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelDescription')}</label>
+                    <textarea placeholder={t('vendor.products.descPlaceholder')} value={newProduct.description} onChange={e => setNewProduct(p => ({ ...p, description: e.target.value }))} rows={4} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem', resize: 'vertical' }} />
                   </div>
 
                   {/* Row 5: Image upload */}
                   <div>
-                    <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Hình ảnh sản phẩm</label>
+                    <label style={{ fontSize: '.72rem', color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('vendor.products.labelImage')}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                       <div style={{ textAlign: 'center', padding: 20, border: '2px dashed var(--border)', borderRadius: 12, cursor: 'pointer', background: newProduct.imageUrl ? 'rgba(16,185,129,.06)' : 'var(--bg-2)' }}
-                        onClick={() => { setNewProduct(p => ({ ...p, imageUrl: 'uploaded' })); showToast('Đã upload ảnh chính'); }}>
+                        onClick={() => { setNewProduct(p => ({ ...p, imageUrl: 'uploaded' })); showToast(t('vendor.toast.imageUploaded')); }}>
                         <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>{newProduct.imageUrl ? '✅' : '📷'}</div>
-                        <div style={{ fontSize: '.68rem', color: 'var(--text-3)' }}>{newProduct.imageUrl ? 'Ảnh đã upload' : 'Ảnh chính *'}</div>
+                        <div style={{ fontSize: '.68rem', color: 'var(--text-3)' }}>{newProduct.imageUrl ? t('vendor.products.imageUploaded') : t('vendor.products.mainImage')}</div>
                       </div>
-                      {['Ảnh 2', 'Ảnh 3', 'Ảnh 4'].map((label, i) => (
+                      {['Image 2', 'Image 3', 'Image 4'].map((label, i) => (
                         <div key={i} style={{ textAlign: 'center', padding: 20, border: '2px dashed var(--border)', borderRadius: 12, cursor: 'pointer', background: 'var(--bg-2)', opacity: 0.6 }}
-                          onClick={() => showToast(`Đã upload ${label} thành công`)}>
+                          onClick={() => showToast(`${t('vendor.toast.imageNUploaded')} ${label} ${t('vendor.toast.imageNSuccess')}`)}>
                           <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>➕</div>
                           <div style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>{label}</div>
                         </div>
@@ -520,17 +531,17 @@ export default function Vendor() {
                     <div className="flex gap-8" style={{ alignItems: 'center' }}>
                       <span style={{ fontSize: '1.1rem' }}>🔐</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: '.82rem' }}>Tạo DPP (Digital Product Passport)</div>
-                        <div style={{ fontSize: '.7rem', color: 'var(--text-3)' }}>Mint NFT xác thực nguồn gốc trên Polygon — tự động sau khi lưu sản phẩm</div>
+                        <div style={{ fontWeight: 700, fontSize: '.82rem' }}>{t('vendor.products.dppOption')}</div>
+                        <div style={{ fontSize: '.7rem', color: 'var(--text-3)' }}>{t('vendor.products.dppOptionDesc')}</div>
                       </div>
-                      <span className="badge badge-c6" style={{ fontSize: '.65rem' }}>Tự động</span>
+                      <span className="badge badge-c6" style={{ fontSize: '.65rem' }}>{t('vendor.products.auto')}</span>
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="flex gap-8" style={{ paddingTop: 4 }}>
-                    <button className="btn btn-primary btn-sm" onClick={handleAddProduct}>💾 Lưu sản phẩm</button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setShowAddProduct(false)}>Hủy</button>
+                    <button className="btn btn-primary btn-sm" onClick={handleAddProduct}>💾 {t('vendor.products.saveBtn')}</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setShowAddProduct(false)}>{t('vendor.products.cancelBtn')}</button>
                   </div>
                 </div>
               </div>
@@ -541,7 +552,7 @@ export default function Vendor() {
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['', 'Sản phẩm', 'Giá', 'Tồn kho', 'Đã bán', 'Hoa hồng', 'DPP', 'Trạng thái', 'Thao tác'].map(h => (
+                      {['', t('vendor.products.thProduct'), t('vendor.products.thPrice'), t('vendor.products.thStock'), t('vendor.products.thSold'), t('vendor.products.thCommission'), 'DPP', t('vendor.products.thStatus'), t('vendor.products.thActions')].map(h => (
                         <th key={h} style={{ padding: '12px 14px', textAlign: 'left', fontWeight: 700, fontSize: '.65rem', color: 'var(--text-3)', letterSpacing: '.06em', textTransform: 'uppercase' }}>{h}</th>
                       ))}
                     </tr>
@@ -567,19 +578,19 @@ export default function Vendor() {
                             <span className={`status-pill badge ${dsc.badge}`}>{dsc.label}</span>
                             {p.dppTokenId !== '—' && <span className="mono" style={{ fontSize: '.6rem', color: 'var(--text-4)', marginLeft: 4 }}>{p.dppTokenId}</span>}
                           </td>
-                          <td style={{ padding: '12px 14px' }}><span className={`badge ${sc.badge}`}>{sc.label}</span></td>
+                          <td style={{ padding: '12px 14px' }}><span className={`badge ${sc.badge}`}>{t(sc.labelKey)}</span></td>
                           <td style={{ padding: '12px 14px' }}>
                             <div className="flex gap-8" style={{ flexWrap: 'nowrap' }}>
                               {isEditing ? (
                                 <>
-                                  <button className="btn btn-primary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => handleSaveEditProduct(p.id)}>Lưu</button>
-                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => { setEditingProduct(null); setNewProduct({ name: '', price: '', stock: '', commission: '', description: '', category: '', origin: '', weight: '', sku: '', imageUrl: '' }); }}>Hủy</button>
+                                  <button className="btn btn-primary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => handleSaveEditProduct(p.id)}>{t('vendor.products.saveEditBtn')}</button>
+                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => { setEditingProduct(null); setNewProduct({ name: '', price: '', stock: '', commission: '', description: '', category: '', origin: '', weight: '', sku: '', imageUrl: '' }); }}>{t('vendor.products.cancelBtn')}</button>
                                 </>
                               ) : (
                                 <>
-                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => { setEditingProduct(p.id); setNewProduct({ name: p.name, price: p.price, stock: String(p.stock), commission: p.commission }); setShowAddProduct(false); }}>Sửa</button>
-                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => handleToggleProduct(p.id)}>{p.hidden ? 'Hiện' : 'Ẩn'}</button>
-                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px', color: '#ef4444' }} onClick={() => handleDeleteProduct(p.id)}>Xóa</button>
+                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => { setEditingProduct(p.id); setNewProduct({ name: p.name, price: p.price, stock: String(p.stock), commission: p.commission }); setShowAddProduct(false); }}>{t('vendor.products.editBtn')}</button>
+                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => handleToggleProduct(p.id)}>{p.hidden ? t('vendor.products.showBtn') : t('vendor.products.hideBtn')}</button>
+                                  <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px', color: '#ef4444' }} onClick={() => handleDeleteProduct(p.id)}>{t('vendor.products.deleteBtn')}</button>
                                 </>
                               )}
                             </div>
@@ -598,11 +609,11 @@ export default function Vendor() {
       case 'orders':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Quản Lý Đơn Hàng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('vendor.orders.title')}</h2>
 
             {/* Filters */}
             <div className="flex gap-8" style={{ marginBottom: 16, flexWrap: 'wrap' }}>
-              {[{ key: 'all', label: 'Tất cả' }, ...Object.entries(orderStatusConfig).map(([k, v]) => ({ key: k, label: v.label }))].map(f => (
+              {[{ key: 'all', label: t('vendor.orders.all') }, ...Object.entries(orderStatusConfig).map(([k, v]) => ({ key: k, label: t(v.labelKey) }))].map(f => (
                 <button key={f.key} className={`btn btn-sm ${orderFilter === f.key ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setOrderFilter(f.key)} style={{ fontSize: '.72rem' }}>
                   {f.label}
                   {f.key !== 'all' && <span style={{ marginLeft: 4, opacity: 0.7 }}>({orderList.filter(o => o.status === f.key).length})</span>}
@@ -614,7 +625,7 @@ export default function Vendor() {
             <div style={{ marginBottom: 16 }}>
               <input
                 type="text"
-                placeholder="Tìm đơn hàng (mã đơn, khách hàng, sản phẩm)..."
+                placeholder={t('vendor.orders.searchPlaceholder')}
                 value={orderSearch}
                 onChange={e => setOrderSearch(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }}
@@ -626,7 +637,7 @@ export default function Vendor() {
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['Mã đơn', 'Khách hàng', 'Sản phẩm', 'Giá trị', 'KOC', 'Hoa hồng', 'Trạng thái', 'TX Hash', 'Thao tác'].map(h => (
+                      {[t('vendor.orders.thOrderId'), t('vendor.orders.thCustomer'), t('vendor.orders.thProduct'), t('vendor.orders.thValue'), 'KOC', t('vendor.orders.thCommission'), t('vendor.orders.thStatus'), 'TX Hash', t('vendor.orders.thActions')].map(h => (
                         <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, fontSize: '.65rem', color: 'var(--text-3)', letterSpacing: '.06em', textTransform: 'uppercase' }}>{h}</th>
                       ))}
                     </tr>
@@ -643,7 +654,7 @@ export default function Vendor() {
                           <td style={{ padding: '12px 14px', fontFamily: 'var(--ff-display)', fontWeight: 700 }}>{o.amount}</td>
                           <td style={{ padding: '12px 14px', color: 'var(--c6-300)' }}>{o.koc}</td>
                           <td style={{ padding: '12px 14px', color: 'var(--c4-500)', fontWeight: 600 }}>{o.commission}</td>
-                          <td style={{ padding: '12px 14px' }}><span className={`status-pill badge ${sc.badge}`}>{sc.label}</span></td>
+                          <td style={{ padding: '12px 14px' }}><span className={`status-pill badge ${sc.badge}`}>{t(sc.labelKey)}</span></td>
                           <td style={{ padding: '12px 14px' }} className="mono tx-hash">
                             {o.txHash ? (
                               <span style={{ cursor: 'pointer', color: 'var(--c6-300)' }} onClick={() => handleCopy(o.txHash, 'TX Hash')}>{o.txHash}</span>
@@ -651,9 +662,9 @@ export default function Vendor() {
                           </td>
                           <td style={{ padding: '12px 14px' }}>
                             {flow ? (
-                              <button className="btn btn-primary btn-sm" style={{ fontSize: '.65rem', padding: '4px 10px' }} onClick={() => handleAdvanceOrder(o.id)}>{flow.action}</button>
+                              <button className="btn btn-primary btn-sm" style={{ fontSize: '.65rem', padding: '4px 10px' }} onClick={() => handleAdvanceOrder(o.id)}>{t(flow.actionKey)}</button>
                             ) : (
-                              <span style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>Hoàn thành</span>
+                              <span style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>{t('vendor.order.completed')}</span>
                             )}
                           </td>
                         </tr>
@@ -670,7 +681,7 @@ export default function Vendor() {
       case 'koc':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>KOC Network</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('vendor.koc.title')}</h2>
 
             {/* Tier summary */}
             <div className="kpi-grid" style={{ marginBottom: 24 }}>
@@ -678,11 +689,11 @@ export default function Vendor() {
                 { tier: 'Tier 1', count: 12, rate: '40%', revenue: '45.2M₫', color: 'var(--c4-500)' },
                 { tier: 'Tier 2', count: 48, rate: '13%', revenue: '28.7M₫', color: 'var(--c5-500)' },
                 { tier: 'Tier 3', count: 96, rate: '5%', revenue: '12.1M₫', color: 'var(--c6-500)' },
-              ].map((t, i) => (
+              ].map((ti, i) => (
                 <div key={i} className="kpi-card">
-                  <div className="kpi-label">{t.tier} ({t.rate})</div>
-                  <div className="kpi-val" style={{ color: t.color }}>{t.count} KOC</div>
-                  <div className="kpi-delta delta-up">Doanh thu: {t.revenue}</div>
+                  <div className="kpi-label">{ti.tier} ({ti.rate})</div>
+                  <div className="kpi-val" style={{ color: ti.color }}>{ti.count} KOC</div>
+                  <div className="kpi-delta delta-up">{t('vendor.koc.revenue')}: {ti.revenue}</div>
                 </div>
               ))}
             </div>
@@ -691,7 +702,7 @@ export default function Vendor() {
             <div style={{ marginBottom: 16 }}>
               <input
                 type="text"
-                placeholder="Tìm KOC..."
+                placeholder={t('vendor.koc.searchPlaceholder')}
                 value={kocSearch}
                 onChange={e => setKocSearch(e.target.value)}
                 style={{ width: '100%', padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }}
@@ -714,13 +725,13 @@ export default function Vendor() {
                         </div>
                         <div style={{ fontWeight: 700, fontSize: '.92rem' }}>{k.name}</div>
                         <div className="flex gap-16" style={{ fontSize: '.72rem', color: 'var(--text-3)', marginTop: 6 }}>
-                          <span>{k.orders} đơn</span>
+                          <span>{k.orders} {t('vendor.koc.orders')}</span>
                           <span>Conv: {k.conversion}</span>
                         </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
                         <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 700, color: 'var(--c4-500)' }}>{k.sales}</div>
-                        <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Hoa hồng: {k.commission}</div>
+                        <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t('vendor.koc.commission')}: {k.commission}</div>
                       </div>
                     </div>
                   </div>
@@ -735,16 +746,16 @@ export default function Vendor() {
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>DPP Management (Digital Product Passport)</h2>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('vendor.dpp.title')}</h2>
             </div>
 
             {/* DPP Stats */}
             <div className="kpi-grid" style={{ marginBottom: 24 }}>
               {[
-                { label: 'DPP đã mint', value: String(dppMintList.length), color: 'var(--c4-500)' },
-                { label: 'Đang chờ mint', value: String(productList.filter(p => p.dppStatus === 'pending').length), color: 'var(--gold-400)' },
-                { label: 'Verified on-chain', value: String(dppMintList.length), color: 'var(--c6-500)' },
-                { label: 'Gas fees tháng', value: '12.5 MATIC', color: 'var(--c7-500)' },
+                { label: t('vendor.dpp.minted'), value: String(dppMintList.length), color: 'var(--c4-500)' },
+                { label: t('vendor.dpp.pendingMint'), value: String(productList.filter(p => p.dppStatus === 'pending').length), color: 'var(--gold-400)' },
+                { label: t('vendor.dpp.verifiedOnchain'), value: String(dppMintList.length), color: 'var(--c6-500)' },
+                { label: t('vendor.dpp.gasFeesMonth'), value: '12.5 MATIC', color: 'var(--c7-500)' },
               ].map((s, i) => (
                 <div key={i} className="kpi-card">
                   <div className="kpi-label">{s.label}</div>
@@ -756,14 +767,14 @@ export default function Vendor() {
             {/* Pending DPP mints */}
             {productList.filter(p => p.dppStatus === 'pending').length > 0 && (
               <div className="card" style={{ padding: 20, marginBottom: 20, borderLeft: '3px solid var(--gold-400)' }}>
-                <div className="label" style={{ marginBottom: 12 }}>SẢN PHẨM CHỜ MINT DPP</div>
+                <div className="label" style={{ marginBottom: 12 }}>{t('vendor.dpp.pendingMintTitle')}</div>
                 {productList.filter(p => p.dppStatus === 'pending').map(p => (
                   <div key={p.id} className="flex" style={{ justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
                     <div className="flex gap-8">
                       <span>{p.emoji}</span>
                       <span style={{ fontWeight: 600, fontSize: '.85rem' }}>{p.name}</span>
                     </div>
-                    <button className="btn btn-primary btn-sm" onClick={() => handleMintDpp(p.id)}>Mint DPP NFT</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => handleMintDpp(p.id)}>{t('vendor.dpp.mintBtn')}</button>
                   </div>
                 ))}
               </div>
@@ -772,13 +783,13 @@ export default function Vendor() {
             {/* Minted DPPs table */}
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>DPP NFTs Đã Mint ({dppMintList.length})</span>
+                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{t('vendor.dpp.mintedTitle')} ({dppMintList.length})</span>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['Token ID', 'Sản phẩm', 'Ngày mint', 'Chain', 'TX Hash', 'IPFS', 'Trạng thái'].map(h => (
+                      {[t('vendor.dpp.thTokenId'), t('vendor.dpp.thProduct'), t('vendor.dpp.thMintDate'), 'Chain', 'TX Hash', 'IPFS', t('vendor.dpp.thStatus')].map(h => (
                         <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, fontSize: '.65rem', color: 'var(--text-3)', letterSpacing: '.06em', textTransform: 'uppercase' }}>{h}</th>
                       ))}
                     </tr>
@@ -806,9 +817,9 @@ export default function Vendor() {
 
             <div className="onchain-card" style={{ marginTop: 20 }}>
               <div className="verified-seal">On-chain DPP</div>
-              <div style={{ fontSize: '.82rem', fontWeight: 600, marginBottom: 8 }}>Digital Product Passport trên blockchain</div>
+              <div style={{ fontSize: '.82rem', fontWeight: 600, marginBottom: 8 }}>{t('vendor.dpp.onchainTitle')}</div>
               <div style={{ fontSize: '.72rem', color: 'var(--text-3)', lineHeight: 1.6 }}>
-                Mỗi sản phẩm được gắn DPP NFT chứa thông tin xuất xứ, thành phần, chứng nhận. Dữ liệu lưu trữ trên IPFS, hash ghi trên Polygon.
+                {t('vendor.dpp.onchainDesc')}
               </div>
               <div className="flex gap-8" style={{ marginTop: 12 }}>
                 <span className="badge badge-c4">ERC-721</span>
@@ -823,7 +834,7 @@ export default function Vendor() {
       case 'commission':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Commission Rules (Smart Contract)</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('vendor.commissionRules.title')}</h2>
 
             <div className="flex-col gap-12" style={{ marginBottom: 32 }}>
               {commissionTiers.map((rule, i) => (
@@ -831,8 +842,8 @@ export default function Vendor() {
                   <div className="flex" style={{ justifyContent: 'space-between' }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: '.92rem', color: rule.color }}>{rule.tier}</div>
-                      <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginTop: 2 }}>{rule.description}</div>
-                      <div style={{ fontSize: '.68rem', color: 'var(--text-4)', marginTop: 4 }}>Min doanh số: {rule.minSales}</div>
+                      <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginTop: 2 }}>{t(rule.descKey)}</div>
+                      <div style={{ fontSize: '.68rem', color: 'var(--text-4)', marginTop: 4 }}>{t('vendor.commission.minSales')}: {rule.minSalesKey ? t(rule.minSalesKey) : rule.minSales}</div>
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: rule.color }}>{rule.rate}</div>
@@ -846,7 +857,7 @@ export default function Vendor() {
             <div className="onchain-card" style={{ padding: 24 }}>
               <div className="verified-seal">Smart Contract Commission</div>
               <p style={{ fontSize: '.82rem', color: 'var(--text-2)', lineHeight: 1.6 }}>
-                Hoa hồng được tự động tính toán và phân phối qua smart contract trên Polygon. Tỷ lệ T1: 40%, T2: 13%, T3: 5% được hardcode trong contract, đảm bảo minh bạch tuyệt đối.
+                {t('vendor.commissionRules.desc')}
               </p>
               <div className="flex gap-8" style={{ marginTop: 12 }}>
                 <span className="badge badge-c4">Auto payout</span>
@@ -862,18 +873,18 @@ export default function Vendor() {
       case 'wallet':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Ví Blockchain</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('vendor.wallet.title')}</h2>
 
             {/* Wallet address */}
             <div className="onchain-card" style={{ marginBottom: 20 }}>
               <div className="flex" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                 <div>
-                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 4 }}>Địa chỉ ví Vendor (Polygon)</div>
-                  <div className="mono" style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--c6-300)', cursor: 'pointer' }} onClick={() => handleCopy(initialWalletData.address, 'địa chỉ ví')}>{initialWalletData.shortAddress} <span style={{ fontSize: '.65rem', color: 'var(--text-4)' }}>[Sao chép]</span></div>
+                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 4 }}>{t('vendor.wallet.addressLabel')}</div>
+                  <div className="mono" style={{ fontSize: '.88rem', fontWeight: 700, color: 'var(--c6-300)', cursor: 'pointer' }} onClick={() => handleCopy(initialWalletData.address, 'wallet')}>{initialWalletData.shortAddress} <span style={{ fontSize: '.65rem', color: 'var(--text-4)' }}>[{t('vendor.wallet.copy')}]</span></div>
                   <div className="mono" style={{ fontSize: '.65rem', color: 'var(--text-4)', marginTop: 2 }}>{initialWalletData.address}</div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Tổng giá trị</div>
+                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t('vendor.wallet.totalValue')}</div>
                   <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.3rem', color: 'var(--c4-500)' }}>{initialWalletData.totalUsd}</div>
                 </div>
               </div>
@@ -901,27 +912,27 @@ export default function Vendor() {
             <div className="card" style={{ padding: 20, marginBottom: 20, borderLeft: '3px solid var(--gold-400)' }}>
               <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '.78rem', color: 'var(--text-3)' }}>Doanh thu chờ rút</div>
+                  <div style={{ fontSize: '.78rem', color: 'var(--text-3)' }}>{t('vendor.wallet.pendingRevenue')}</div>
                   <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.2rem', color: 'var(--gold-400)' }}>{formatVND(pendingRevenue)}</div>
                 </div>
-                <button className="btn btn-primary btn-sm" onClick={() => setShowWithdrawForm(!showWithdrawForm)}>Rút tiền (Withdraw)</button>
+                <button className="btn btn-primary btn-sm" onClick={() => setShowWithdrawForm(!showWithdrawForm)}>{t('vendor.wallet.withdrawBtn')}</button>
               </div>
 
               {/* Withdraw form */}
               {showWithdrawForm && (
                 <div style={{ marginTop: 16, padding: 16, borderRadius: 8, background: 'var(--bg-1)', border: '1px solid var(--border)' }}>
-                  <div className="label" style={{ marginBottom: 8 }}>RÚT TIỀN VỀ NGÂN HÀNG</div>
-                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 8 }}>Vietcombank **** 5678 | Khả dụng: {formatVND(pendingRevenue)}</div>
+                  <div className="label" style={{ marginBottom: 8 }}>{t('vendor.wallet.withdrawTitle')}</div>
+                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 8 }}>Vietcombank **** 5678 | {t('vendor.wallet.available')}: {formatVND(pendingRevenue)}</div>
                   <div className="flex gap-8">
                     <input
                       type="text"
-                      placeholder="Số tiền (VD: 5000000)"
+                      placeholder={t('vendor.wallet.amountPlaceholder')}
                       value={withdrawAmount}
                       onChange={e => setWithdrawAmount(e.target.value)}
                       style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-0)', color: 'var(--text-1)', fontSize: '.82rem' }}
                     />
-                    <button className="btn btn-primary btn-sm" onClick={handleWithdraw}>Xác nhận rút</button>
-                    <button className="btn btn-secondary btn-sm" onClick={() => { setShowWithdrawForm(false); setWithdrawAmount(''); }}>Hủy</button>
+                    <button className="btn btn-primary btn-sm" onClick={handleWithdraw}>{t('vendor.wallet.confirmWithdraw')}</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setShowWithdrawForm(false); setWithdrawAmount(''); }}>{t('vendor.products.cancelBtn')}</button>
                   </div>
                 </div>
               )}
@@ -929,20 +940,20 @@ export default function Vendor() {
 
             {/* Actions */}
             <div className="flex gap-8" style={{ marginBottom: 24 }}>
-              <button className="btn btn-secondary btn-sm" onClick={() => { setShowWithdrawForm(true); showToast('Chọn số tiền để rút về ngân hàng', 'info'); }}>Rút về ngân hàng</button>
-              <button className="btn btn-secondary btn-sm" onClick={() => showToast('Đang kết nối blockchain để chuyển token...', 'info')}>Chuyển token</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => { setShowWithdrawForm(true); showToast(t('vendor.toast.selectWithdrawAmount'), 'info'); }}>{t('vendor.wallet.bankWithdraw')}</button>
+              <button className="btn btn-secondary btn-sm" onClick={() => showToast(t('vendor.toast.connectingBlockchain'), 'info')}>{t('vendor.wallet.transferToken')}</button>
             </div>
 
             {/* Transaction history */}
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>Lịch Sử Giao Dịch On-chain ({walletTxHistory.length})</span>
+                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{t('vendor.wallet.txHistoryTitle')} ({walletTxHistory.length})</span>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['TX Hash', 'Loại', 'Số tiền', 'Token', 'Ngày', 'Trạng thái'].map(h => (
+                      {[t('vendor.wallet.thTxHash'), t('vendor.wallet.thType'), t('vendor.wallet.thAmount'), 'Token', t('vendor.wallet.thDate'), t('vendor.wallet.thStatus')].map(h => (
                         <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontWeight: 700, fontSize: '.65rem', color: 'var(--text-3)', letterSpacing: '.06em', textTransform: 'uppercase' }}>{h}</th>
                       ))}
                     </tr>
@@ -953,7 +964,7 @@ export default function Vendor() {
                         <td style={{ padding: '12px 14px' }} className="mono">
                           <span style={{ color: 'var(--c6-300)', cursor: 'pointer' }} onClick={() => handleCopy(tx.hash, 'TX Hash')}>{tx.hash}</span>
                         </td>
-                        <td style={{ padding: '12px 14px' }}>{tx.type}</td>
+                        <td style={{ padding: '12px 14px' }}>{t(tx.typeKey)}</td>
                         <td style={{ padding: '12px 14px', fontFamily: 'var(--ff-display)', fontWeight: 700, color: tx.amount.startsWith('+') ? 'var(--c4-500)' : 'var(--text-1)' }}>{tx.amount}</td>
                         <td style={{ padding: '12px 14px' }}><span className="badge badge-c7">{tx.token}</span></td>
                         <td style={{ padding: '12px 14px', color: 'var(--text-3)' }}>{tx.date}</td>
@@ -971,10 +982,10 @@ export default function Vendor() {
       case 'analytics':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Analytics</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('vendor.analytics.title')}</h2>
             <div className="grid-2" style={{ gap: 20, marginBottom: 24 }}>
               <div className="card" style={{ padding: 20 }}>
-                <div className="label" style={{ marginBottom: 12 }}>DOANH THU THEO KÊNH</div>
+                <div className="label" style={{ marginBottom: 12 }}>{t('vendor.analytics.revenueByChannel')}</div>
                 <div className="flex-col gap-10">
                   {[
                     { label: 'KOC Tier 1', value: '45.2M₫', pct: '52%', color: 'var(--c4-500)' },
@@ -990,13 +1001,13 @@ export default function Vendor() {
                 </div>
               </div>
               <div className="card" style={{ padding: 20 }}>
-                <div className="label" style={{ marginBottom: 12 }}>COMMISSION ĐÃ TRẢ</div>
+                <div className="label" style={{ marginBottom: 12 }}>{t('vendor.analytics.commissionPaid')}</div>
                 <div className="flex-col gap-10">
                   {[
                     { label: 'Tier 1 (40%)', value: '18.08M₫', color: 'var(--c4-500)' },
                     { label: 'Tier 2 (13%)', value: '3.73M₫', color: 'var(--c5-500)' },
                     { label: 'Tier 3 (5%)', value: '605K₫', color: 'var(--c6-500)' },
-                    { label: 'Tổng commission', value: '22.42M₫', color: 'var(--gold-400)' },
+                    { label: t('vendor.analytics.totalCommission'), value: '22.42M₫', color: 'var(--gold-400)' },
                   ].map((ch, i) => (
                     <div key={i} className="flex" style={{ justifyContent: 'space-between', padding: '8px 0', borderBottom: i < 3 ? '1px solid var(--border)' : 'none' }}>
                       <span style={{ fontSize: '.82rem' }}>{ch.label}</span>
@@ -1008,7 +1019,7 @@ export default function Vendor() {
             </div>
 
             <div className="chart-bar-wrap">
-              <div className="label" style={{ marginBottom: 12 }}>ĐƠN HÀNG 7 NGÀY</div>
+              <div className="label" style={{ marginBottom: 12 }}>{t('vendor.analytics.orders7d')}</div>
               <div className="chart-bars">
                 {[78, 92, 65, 110, 95, 88, 102].map((v, i) => (
                   <div key={i} className="chart-bar" style={{ height: `${Math.min(v, 100)}%` }} />
@@ -1026,25 +1037,25 @@ export default function Vendor() {
       /* ────── XÁC MINH DOANH NGHIỆP ────── */
       case 'vendor_kyc': {
         const vkycSteps = [
-          { key: 'identity', label: 'CCCD chủ doanh nghiệp', icon: '🪪', done: false, desc: 'Upload CCCD mặt trước & sau của người đại diện pháp luật' },
-          { key: 'business', label: 'Giấy phép kinh doanh', icon: '📋', done: false, desc: 'Upload GPKD/Giấy CNĐKKD (tên DN phải khớp tài khoản đăng ký)' },
-          { key: 'tax', label: 'Mã số thuế', icon: '🏛️', done: false, desc: 'Nhập MST doanh nghiệp' },
-          { key: 'bank', label: 'Tài khoản ngân hàng DN', icon: '🏦', done: false, desc: 'Tên chủ TK phải khớp với tên trên GPKD' },
-          { key: 'verified', label: 'Xác minh hoàn tất', icon: '✅', done: false, desc: 'Đủ điều kiện bán hàng & nhận thanh toán' },
+          { key: 'identity', label: t('vendor.kyc.stepIdentity'), icon: '🪪', done: false, desc: t('vendor.kyc.stepIdentityDesc') },
+          { key: 'business', label: t('vendor.kyc.stepBusiness'), icon: '📋', done: false, desc: t('vendor.kyc.stepBusinessDesc') },
+          { key: 'tax', label: t('vendor.kyc.stepTax'), icon: '🏛️', done: false, desc: t('vendor.kyc.stepTaxDesc') },
+          { key: 'bank', label: t('vendor.kyc.stepBank'), icon: '🏦', done: false, desc: t('vendor.kyc.stepBankDesc') },
+          { key: 'verified', label: t('vendor.kyc.stepComplete'), icon: '✅', done: false, desc: t('vendor.kyc.stepCompleteDesc') },
         ];
         const vCompletedCount = vkycSteps.filter(s => s.done).length;
         const vProgressPct = (vCompletedCount / vkycSteps.length) * 100;
 
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>🛡️ Xác Minh Doanh Nghiệp</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('vendor.kyc.title')}</h2>
             <div className="flex-col gap-16">
               {/* Progress */}
               <div className="card" style={{ padding: 20 }}>
                 <div className="flex" style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <h3 style={{ fontSize: '.95rem', fontWeight: 700, margin: 0 }}>Tiến độ xác minh</h3>
+                  <h3 style={{ fontSize: '.95rem', fontWeight: 700, margin: 0 }}>{t('vendor.kyc.progress')}</h3>
                   <span className="badge" style={{ background: vCompletedCount >= 4 ? 'rgba(34,197,94,.15)' : 'rgba(245,158,11,.15)', color: vCompletedCount >= 4 ? '#22c55e' : '#f59e0b', fontWeight: 700 }}>
-                    {vCompletedCount}/{vkycSteps.length} bước
+                    {vCompletedCount}/{vkycSteps.length} {t('vendor.kyc.steps')}
                   </span>
                 </div>
                 <div style={{ background: 'var(--bg-2)', borderRadius: 8, height: 10, overflow: 'hidden', marginBottom: 12 }}>
@@ -1052,7 +1063,7 @@ export default function Vendor() {
                 </div>
                 {vCompletedCount < 4 && (
                   <div style={{ fontSize: '.78rem', color: '#f59e0b', background: 'rgba(245,158,11,.08)', padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(245,158,11,.15)' }}>
-                    ⚠️ Vendor cần hoàn tất xác minh CCCD + GPKD + MST + TK ngân hàng DN (tên khớp GPKD) để bán hàng và nhận thanh toán.
+                    {t('vendor.kyc.warning')}
                   </div>
                 )}
               </div>
@@ -1064,12 +1075,12 @@ export default function Vendor() {
                     <div className="flex gap-12" style={{ alignItems: 'center' }}>
                       <span style={{ fontSize: '1.2rem' }}>{step.icon}</span>
                       <div>
-                        <div style={{ fontWeight: 700, fontSize: '.88rem' }}>Bước {i + 1}: {step.label}</div>
+                        <div style={{ fontWeight: 700, fontSize: '.88rem' }}>{t('vendor.kyc.step')} {i + 1}: {step.label}</div>
                         <div style={{ fontSize: '.75rem', color: 'var(--text-3)', marginTop: 2 }}>{step.desc}</div>
                       </div>
                     </div>
                     <span className="badge" style={{ background: step.done ? 'rgba(34,197,94,.15)' : 'rgba(156,163,175,.15)', color: step.done ? '#22c55e' : 'var(--text-4)', fontWeight: 600, flexShrink: 0 }}>
-                      {step.done ? '✓ Hoàn tất' : 'Chưa xác minh'}
+                      {step.done ? `✓ ${t('vendor.kyc.completed')}` : t('vendor.kyc.notVerified')}
                     </span>
                   </div>
 
@@ -1077,30 +1088,30 @@ export default function Vendor() {
                   {step.key === 'identity' && !step.done && i === vCompletedCount && (
                     <div className="flex-col gap-12" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Số CCCD người đại diện pháp luật</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.idNumber')}</label>
                         <input type="text" maxLength={12} placeholder="001234567890" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Họ tên (đúng trên CCCD)</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.fullName')}</label>
                         <input type="text" placeholder="NGUYEN VAN A" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none', textTransform: 'uppercase' }} />
                       </div>
                       <div className="flex gap-12">
                         <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Ảnh mặt trước CCCD</label>
+                          <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.frontPhoto')}</label>
                           <div style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer', background: 'var(--bg-2)' }}>
                             <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>📄</div>
-                            <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Kéo thả hoặc click</div>
+                            <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t('vendor.kyc.dragOrClick')}</div>
                           </div>
                         </div>
                         <div style={{ flex: 1 }}>
-                          <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Ảnh mặt sau CCCD</label>
+                          <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.backPhoto')}</label>
                           <div style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: 20, textAlign: 'center', cursor: 'pointer', background: 'var(--bg-2)' }}>
                             <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>📄</div>
-                            <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Kéo thả hoặc click</div>
+                            <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t('vendor.kyc.dragOrClick')}</div>
                           </div>
                         </div>
                       </div>
-                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Đã gửi CCCD để xác minh. Chờ admin duyệt (1-2 ngày)')}>Gửi xác minh</button>
+                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast(t('vendor.toast.cccdSubmitted'))}>{t('vendor.kyc.submitVerify')}</button>
                     </div>
                   )}
 
@@ -1108,25 +1119,25 @@ export default function Vendor() {
                   {step.key === 'business' && !step.done && i === vCompletedCount && (
                     <div className="flex-col gap-12" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
                       <div style={{ fontSize: '.78rem', color: '#3b82f6', background: 'rgba(59,130,246,.08)', padding: '8px 12px', borderRadius: 8 }}>
-                        ℹ️ Tên doanh nghiệp trên GPKD phải khớp với tên tài khoản đăng ký trên WellKOC.
+                        {t('vendor.kyc.businessNameMatch')}
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Tên doanh nghiệp (trên GPKD)</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.businessNameOnLicense')}</label>
                         <input type="text" placeholder="CÔNG TY TNHH ABC" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none', textTransform: 'uppercase' }} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Số GPKD / CNĐKKD</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.businessLicenseNo')}</label>
                         <input type="text" placeholder="0123456789" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Upload Giấy phép kinh doanh (PDF/ảnh)</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.uploadLicense')}</label>
                         <div style={{ border: '2px dashed var(--border)', borderRadius: 12, padding: 24, textAlign: 'center', cursor: 'pointer', background: 'var(--bg-2)' }}>
                           <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>📋</div>
-                          <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Kéo thả hoặc click để upload GPKD</div>
-                          <div style={{ fontSize: '.65rem', color: 'var(--text-4)', marginTop: 4 }}>PDF, JPG, PNG (tối đa 10MB)</div>
+                          <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t('vendor.kyc.dragUploadLicense')}</div>
+                          <div style={{ fontSize: '.65rem', color: 'var(--text-4)', marginTop: 4 }}>{t('vendor.kyc.fileFormats')}</div>
                         </div>
                       </div>
-                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Đã gửi GPKD/CNĐKKD để xác minh thành công')}>Gửi xác minh GPKD</button>
+                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast(t('vendor.toast.licenseSubmitted'))}>{t('vendor.kyc.submitLicense')}</button>
                     </div>
                   )}
 
@@ -1134,14 +1145,14 @@ export default function Vendor() {
                   {step.key === 'tax' && !step.done && i === vCompletedCount && (
                     <div className="flex-col gap-12" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Mã số thuế doanh nghiệp</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.taxCode')}</label>
                         <input type="text" placeholder="0123456789" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Địa chỉ đăng ký kinh doanh</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.businessAddress')}</label>
                         <input type="text" placeholder="123 Nguyễn Huệ, Q.1, TP.HCM" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none' }} />
                       </div>
-                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Đã xác minh mã số thuế thành công!')}>Xác minh MST</button>
+                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast(t('vendor.toast.taxVerified'))}>{t('vendor.kyc.verifyTax')}</button>
                     </div>
                   )}
 
@@ -1149,26 +1160,26 @@ export default function Vendor() {
                   {step.key === 'bank' && !step.done && i === vCompletedCount && (
                     <div className="flex-col gap-12" style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
                       <div style={{ fontSize: '.78rem', color: '#f59e0b', background: 'rgba(245,158,11,.08)', padding: '8px 12px', borderRadius: 8 }}>
-                        ⚠️ Tên chủ tài khoản ngân hàng phải khớp chính xác với tên doanh nghiệp trên GPKD.
+                        {t('vendor.kyc.bankNameMatch')}
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Ngân hàng</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.bankName')}</label>
                         <select style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none' }}>
-                          <option value="">-- Chọn ngân hàng --</option>
+                          <option value="">{t('vendor.kyc.selectBank')}</option>
                           <option>Vietcombank</option><option>BIDV</option><option>Agribank</option>
                           <option>VietinBank</option><option>Techcombank</option><option>MB Bank</option>
                           <option>ACB</option><option>VPBank</option><option>TPBank</option>
                         </select>
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Số tài khoản doanh nghiệp</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.bankAccountNumber')}</label>
                         <input type="text" placeholder="1234567890" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none' }} />
                       </div>
                       <div>
-                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>Tên chủ tài khoản (phải khớp tên DN trên GPKD)</label>
+                        <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 4, display: 'block' }}>{t('vendor.kyc.bankAccountHolder')}</label>
                         <input type="text" placeholder="CONG TY TNHH ABC" style={{ width: '100%', padding: '10px 14px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', fontSize: '.85rem', outline: 'none', textTransform: 'uppercase' }} />
                       </div>
-                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast('Đã gửi xác minh tài khoản ngân hàng doanh nghiệp!')}>Xác minh tài khoản</button>
+                      <button className="btn btn-primary btn-sm" style={{ alignSelf: 'flex-start' }} onClick={() => showToast(t('vendor.toast.bankSubmitted'))}>{t('vendor.kyc.verifyBank')}</button>
                     </div>
                   )}
                 </div>
@@ -1182,7 +1193,7 @@ export default function Vendor() {
       case 'settings':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Cài Đặt</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('vendor.settingsPage.title')}</h2>
             <div className="flex-col gap-16">
               {settingsData.map((section, si) => (
                 <div key={si} className="card" style={{ padding: 20 }}>
@@ -1203,13 +1214,13 @@ export default function Vendor() {
                                   onChange={e => setEditSettingsValue(e.target.value)}
                                   style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.78rem' }}
                                 />
-                                <button className="btn btn-primary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => handleSaveSettings(si, fi)}>Lưu</button>
-                                <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => setEditingSettings(null)}>Hủy</button>
+                                <button className="btn btn-primary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => handleSaveSettings(si, fi)}>{t('vendor.products.saveEditBtn')}</button>
+                                <button className="btn btn-secondary btn-sm" style={{ fontSize: '.65rem', padding: '4px 8px' }} onClick={() => setEditingSettings(null)}>{t('vendor.products.cancelBtn')}</button>
                               </>
                             ) : (
                               <>
                                 <span style={{ fontSize: '.82rem', fontWeight: 600 }}>{f.value}</span>
-                                <button className="btn btn-secondary btn-sm" style={{ fontSize: '.6rem', padding: '2px 8px' }} onClick={() => { setEditingSettings({ si, fi }); setEditSettingsValue(f.value); }}>Cập nhật</button>
+                                <button className="btn btn-secondary btn-sm" style={{ fontSize: '.6rem', padding: '2px 8px' }} onClick={() => { setEditingSettings({ si, fi }); setEditSettingsValue(f.value); }}>{t('vendor.settingsPage.updateBtn')}</button>
                               </>
                             )}
                           </div>
@@ -1270,7 +1281,7 @@ export default function Vendor() {
                       }}
                     >
                       <span style={{ fontSize: '.9rem' }}>{group.icon}</span>
-                      <span style={{ flex: 1, fontSize: '.72rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: group.color }}>{group.label}</span>
+                      <span style={{ flex: 1, fontSize: '.72rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: group.color }}>{t(group.labelKey)}</span>
                       <span style={{ fontSize: '.6rem', color: 'var(--text-4)', transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
                     </div>
                     <div style={{
@@ -1285,7 +1296,7 @@ export default function Vendor() {
                           style={{ position: 'relative', paddingLeft: 20 }}
                         >
                           <span className="dash-nav-icon">{item.icon}</span>
-                          <span style={{ flex: 1 }}>{item.label}</span>
+                          <span style={{ flex: 1 }}>{t(item.labelKey)}</span>
                         </div>
                       ))}
                     </div>
@@ -1304,7 +1315,7 @@ export default function Vendor() {
                 style={{ color: '#ef4444', cursor: 'pointer' }}
               >
                 <span className="dash-nav-icon">🚪</span>
-                Đăng xuất
+                {t('vendor.sidebar.logout')}
               </div>
             </div>
           </div>

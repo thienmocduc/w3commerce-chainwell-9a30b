@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, API_BASE } from '@hooks/useAuth';
+import { useI18n } from '@hooks/useI18n';
 
 /* ── Helpers ─────────────────────────────────────── */
 const formatVND = (n: number) => n.toLocaleString('vi-VN') + '₫';
@@ -25,49 +26,49 @@ interface SidebarGroup {
 
 const sidebarGroups: SidebarGroup[] = [
   {
-    key: 'koc', label: 'KOC PRO', color: 'var(--c6-500)', icon: '⭐',
+    key: 'koc', label: 'koc.sidebar.kocPro', color: 'var(--c6-500)', icon: '⭐',
     items: [
-      { key: 'overview',    icon: '📊', label: 'Tổng quan KOC' },
-      { key: 'content',     icon: '📝', label: 'Nội dung & Review' },
-      { key: 'campaigns',   icon: '📢', label: 'Chiến dịch' },
-      { key: 'commission',  icon: '💰', label: 'Hoa hồng & Rút tiền' },
-      { key: 'automkt',     icon: '🤖', label: 'Marketing tự động' },
-      { key: 'community',   icon: '👥', label: 'Cộng đồng' },
-      { key: 'performance', icon: '📈', label: 'Hiệu suất & Thống kê' },
-      { key: 'ranking',     icon: '🏆', label: 'Xếp hạng & Giải thưởng' },
-      { key: 'token',       icon: '🪙', label: 'Creator Token' },
-      { key: 'missions',    icon: '🎯', label: 'Nhiệm vụ & XP' },
-      { key: 'convert',     icon: '🔄', label: 'Đổi XP → WK3' },
+      { key: 'overview',    icon: '📊', label: 'koc.sidebar.overview' },
+      { key: 'content',     icon: '📝', label: 'koc.sidebar.content' },
+      { key: 'campaigns',   icon: '📢', label: 'koc.sidebar.campaigns' },
+      { key: 'commission',  icon: '💰', label: 'koc.sidebar.commission' },
+      { key: 'automkt',     icon: '🤖', label: 'koc.sidebar.automkt' },
+      { key: 'community',   icon: '👥', label: 'koc.sidebar.community' },
+      { key: 'performance', icon: '📈', label: 'koc.sidebar.performance' },
+      { key: 'ranking',     icon: '🏆', label: 'koc.sidebar.ranking' },
+      { key: 'token',       icon: '🪙', label: 'koc.sidebar.creatorToken' },
+      { key: 'missions',    icon: '🎯', label: 'koc.sidebar.missions' },
+      { key: 'convert',     icon: '🔄', label: 'koc.sidebar.convert' },
     ],
   },
   {
-    key: 'aff', label: 'AFFILIATE', color: '#f59e0b', icon: '🔗',
+    key: 'aff', label: 'koc.sidebar.affiliate', color: '#f59e0b', icon: '🔗',
     items: [
-      { key: 'affiliate',   icon: '🔗', label: 'Link Affiliate' },
-      { key: 'share',       icon: '📤', label: 'Chia sẻ đa nền tảng' },
-      { key: 'affTeam',     icon: '🌳', label: 'Cây đội nhóm' },
-      { key: 'affStats',    icon: '📊', label: 'Thống kê Affiliate' },
-      { key: 'affPayout',   icon: '💸', label: 'Hoa hồng Affiliate' },
-      { key: 'affMaterials',icon: '🖼️', label: 'Tài liệu quảng bá' },
+      { key: 'affiliate',   icon: '🔗', label: 'koc.sidebar.linkAffiliate' },
+      { key: 'share',       icon: '📤', label: 'koc.sidebar.share' },
+      { key: 'affTeam',     icon: '🌳', label: 'koc.sidebar.affTeam' },
+      { key: 'affStats',    icon: '📊', label: 'koc.sidebar.affStats' },
+      { key: 'affPayout',   icon: '💸', label: 'koc.sidebar.affPayout' },
+      { key: 'affMaterials',icon: '🖼️', label: 'koc.sidebar.affMaterials' },
     ],
   },
   {
-    key: 'buyer', label: 'MUA SẮM', color: 'var(--c4-500)', icon: '🛒',
+    key: 'buyer', label: 'koc.sidebar.shopping', color: 'var(--c4-500)', icon: '🛒',
     items: [
-      { key: 'orders',    icon: '📦', label: 'Đơn hàng của tôi' },
-      { key: 'tracking',  icon: '🚚', label: 'Theo dõi đơn hàng' },
-      { key: 'history',   icon: '🕐', label: 'Lịch sử mua hàng' },
-      { key: 'wkpay',     icon: '👛', label: 'Ví WK Pay' },
-      { key: 'payments',  icon: '💳', label: 'Thanh toán' },
-      { key: 'vouchers',  icon: '🎟️', label: 'Kho Voucher' },
-      { key: 'favorites', icon: '❤️', label: 'Yêu thích' },
+      { key: 'orders',    icon: '📦', label: 'koc.sidebar.orders' },
+      { key: 'tracking',  icon: '🚚', label: 'koc.sidebar.tracking' },
+      { key: 'history',   icon: '🕐', label: 'koc.sidebar.history' },
+      { key: 'wkpay',     icon: '👛', label: 'koc.sidebar.wkpay' },
+      { key: 'payments',  icon: '💳', label: 'koc.sidebar.payments' },
+      { key: 'vouchers',  icon: '🎟️', label: 'koc.sidebar.vouchers' },
+      { key: 'favorites', icon: '❤️', label: 'koc.sidebar.favorites' },
     ],
   },
 ];
 
 /* Backward compat — flat lists for renderContent switch */
 const buyerItems = sidebarGroups.find(g => g.key === 'buyer')!.items;
-const kocItems = [...sidebarGroups.find(g => g.key === 'koc')!.items, { key: 'settings', icon: '⚙️', label: 'Cài đặt' }];
+const kocItems = [...sidebarGroups.find(g => g.key === 'koc')!.items, { key: 'settings', icon: '⚙️', label: 'koc.sidebar.settings' }];
 
 /* ═══════════════════════════════════════════════════ */
 /*  BUYER DATA                                        */
@@ -93,18 +94,18 @@ const allOrders: Order[] = [
   { id: 'ORD-2026-0091', date: '2026-02-28', items: [{ name: 'Trà Hoa Cúc Organic', qty: 1, price: 175000 }], total: 175000, status: 'return', payment: 'VNPay' },
 ];
 
-const orderStatusConfig: Record<string, { label: string; badge: string }> = {
-  pending: { label: 'Chờ xác nhận', badge: 'badge-c7' },
-  confirmed: { label: 'Đã xác nhận', badge: 'badge-c5' },
-  packing: { label: 'Đang đóng gói', badge: 'badge-c5' },
-  shipping: { label: 'Đang giao', badge: 'badge-c5' },
-  delivered: { label: 'Đã giao', badge: 'badge-c4' },
-  cancelled: { label: 'Đã hủy', badge: 'badge-rose' },
-  return: { label: 'Đổi/Trả', badge: 'badge-c7' },
+const orderStatusConfig: Record<string, { labelKey: string; badge: string }> = {
+  pending: { labelKey: 'koc.orderStatus.pending', badge: 'badge-c7' },
+  confirmed: { labelKey: 'koc.orderStatus.confirmed', badge: 'badge-c5' },
+  packing: { labelKey: 'koc.orderStatus.packing', badge: 'badge-c5' },
+  shipping: { labelKey: 'koc.orderStatus.shipping', badge: 'badge-c5' },
+  delivered: { labelKey: 'koc.orderStatus.delivered', badge: 'badge-c4' },
+  cancelled: { labelKey: 'koc.orderStatus.cancelled', badge: 'badge-rose' },
+  return: { labelKey: 'koc.orderStatus.return', badge: 'badge-c7' },
 };
 
 /* ── Tracking steps ──────────────────────────────── */
-const trackingSteps = ['Đặt hàng', 'Xác nhận', 'Đang đóng gói', 'Đang vận chuyển', 'Đã giao'];
+const trackingStepKeys = ['koc.tracking.placed', 'koc.tracking.confirmed', 'koc.tracking.packing', 'koc.tracking.shipping', 'koc.tracking.delivered'];
 const getTrackingStep = (status: string): number => {
   switch (status) {
     case 'pending': return 0;
@@ -196,10 +197,10 @@ const campaigns = [
   { id: 3, name: 'Tết Holiday', brand: 'Multiple', status: 'completed', commission: '18%', earned: '3.4M₫', startDate: '2026-01-15', endDate: '2026-02-15' },
   { id: 4, name: 'Beauty Festival', brand: 'K-Beauty VN', status: 'upcoming', commission: '22%', earned: '—', startDate: '2026-04-01', endDate: '2026-04-15' },
 ];
-const campaignStatusConfig: Record<string, { label: string; badge: string }> = {
-  active: { label: 'Đang chạy', badge: 'badge-c4' },
-  completed: { label: 'Hoàn thành', badge: 'badge-c5' },
-  upcoming: { label: 'Sắp tới', badge: 'badge-gold' },
+const campaignStatusConfig: Record<string, { labelKey: string; badge: string }> = {
+  active: { labelKey: 'koc.campaigns.active', badge: 'badge-c4' },
+  completed: { labelKey: 'koc.campaigns.completed', badge: 'badge-c5' },
+  upcoming: { labelKey: 'koc.campaigns.upcoming', badge: 'badge-gold' },
 };
 
 /* ── Commission data ─────────────────────────────── */
@@ -210,10 +211,10 @@ const commissionData = [
   { id: 'TX-004', product: 'Cà Phê Arabica', buyer: 'Phạm Thị D', amount: '245.000₫', commission: '49.000₫', rate: '20%', status: 'processing', date: '2026-03-23', txHash: '' },
   { id: 'TX-005', product: 'Bột Collagen', buyer: 'Hoàng Văn E', amount: '890.000₫', commission: '222.500₫', rate: '25%', status: 'confirmed', date: '2026-03-23', txHash: '0x9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c' },
 ];
-const commStatusConfig: Record<string, { label: string; badge: string }> = {
-  confirmed: { label: 'Đã xác nhận', badge: 'badge-c4' },
-  pending: { label: 'Chờ duyệt', badge: 'badge-gold' },
-  processing: { label: 'Đang xử lý', badge: 'badge-c5' },
+const commStatusConfig: Record<string, { labelKey: string; badge: string }> = {
+  confirmed: { labelKey: 'koc.commission.confirmed', badge: 'badge-c4' },
+  pending: { labelKey: 'koc.commission.pendingReview', badge: 'badge-gold' },
+  processing: { labelKey: 'koc.commission.processing', badge: 'badge-c5' },
 };
 
 /* ── Withdrawal history ──────────────────────────── */
@@ -232,10 +233,10 @@ const mktAgents = [
   { id: 4, name: 'Email Nurture Flow', type: 'Email AI', status: 'completed', budget: '400.000₫', spent: '400.000₫', schedule: 'Hoàn thành', impressions: 12500, clicks: 1890, conversions: 234, cost: '400.000₫', roi: '+340%' },
 ];
 const agentTypes = ['Content AI', 'Analytics', 'Social Bot', 'Email AI', 'SEO Optimizer', 'Ad Manager'];
-const agentStatusConfig: Record<string, { label: string; badge: string }> = {
-  running: { label: 'Đang chạy', badge: 'badge-c4' },
-  paused: { label: 'Tạm dừng', badge: 'badge-gold' },
-  completed: { label: 'Hoàn thành', badge: 'badge-c5' },
+const agentStatusConfig: Record<string, { labelKey: string; badge: string }> = {
+  running: { labelKey: 'koc.automkt.running', badge: 'badge-c4' },
+  paused: { labelKey: 'koc.automkt.paused', badge: 'badge-gold' },
+  completed: { labelKey: 'koc.campaigns.completed', badge: 'badge-c5' },
 };
 
 /* ── Affiliate & CRM ─────────────────────────────── */
@@ -464,6 +465,7 @@ const TD = ({ children, mono, bold, color, style: s }: { children: React.ReactNo
 export default function KOC() {
   const navigate = useNavigate();
   const { user, token, logout } = useAuth();
+  const { t } = useI18n();
   const userName = user?.name || 'KOC';
   const userEmail = user?.email || '';
   const userRefCode = user?.referral_code || `WK-${(user?.id || '').slice(0, 6).toUpperCase()}`;
@@ -660,7 +662,7 @@ export default function KOC() {
       case 'orders':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Đơn Hàng Của Tôi</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('koc.orders.title')}</h2>
             <div className="flex gap-8" style={{ marginBottom: 20, flexWrap: 'wrap' }}>
               {[
                 { key: 'all', label: 'Tất cả' },
@@ -689,7 +691,7 @@ export default function KOC() {
                           <span style={{ fontSize: '.78rem', fontWeight: 600 }} className="mono">{order.id}</span>
                           <span style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>{order.date}</span>
                         </div>
-                        <span className={`badge ${sc.badge}`}>{sc.label}</span>
+                        <span className={`badge ${sc.badge}`}>{t(sc.labelKey)}</span>
                       </div>
                       <div style={{ padding: '14px 20px' }}>
                         {order.items.map((item, idx) => (
@@ -735,7 +737,7 @@ export default function KOC() {
       case 'tracking':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Theo Dõi Đơn Hàng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.tracking.title')}</h2>
             {activeTrackingOrders.length === 0 ? (
               <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>Không có đơn hàng đang vận chuyển</div>
             ) : (
@@ -758,9 +760,9 @@ export default function KOC() {
                       </div>
                       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' }}>
                         <div style={{ position: 'absolute', top: 14, left: 20, right: 20, height: 3, background: 'var(--border)', zIndex: 0 }}>
-                          <div style={{ width: `${(step / (trackingSteps.length - 1)) * 100}%`, height: '100%', background: 'var(--c4-500)', transition: 'width .4s ease' }} />
+                          <div style={{ width: `${(step / (trackingStepKeys.length - 1)) * 100}%`, height: '100%', background: 'var(--c4-500)', transition: 'width .4s ease' }} />
                         </div>
-                        {trackingSteps.map((s, i) => {
+                        {trackingStepKeys.map((s, i) => {
                           const isActive = i <= step;
                           const isCurrent = i === step;
                           return (
@@ -776,7 +778,7 @@ export default function KOC() {
                               }}>
                                 {isActive ? '✓' : i + 1}
                               </div>
-                              <div style={{ fontSize: '.65rem', fontWeight: isCurrent ? 700 : 400, color: isActive ? 'var(--text-1)' : 'var(--text-4)', marginTop: 8, textAlign: 'center' }}>{s}</div>
+                              <div style={{ fontSize: '.65rem', fontWeight: isCurrent ? 700 : 400, color: isActive ? 'var(--text-1)' : 'var(--text-4)', marginTop: 8, textAlign: 'center' }}>{t(s)}</div>
                             </div>
                           );
                         })}
@@ -793,7 +795,7 @@ export default function KOC() {
       case 'history':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Lịch Sử Mua Hàng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('koc.history.title')}</h2>
             <div className="flex gap-8" style={{ marginBottom: 20 }}>
               <input type="text" placeholder="Tìm kiếm sản phẩm hoặc mã đơn..." value={historySearch} onChange={e => setHistorySearch(e.target.value)} style={{ flex: 1, padding: '10px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'var(--bg-1)', color: 'var(--text-1)', fontSize: '.82rem' }} />
             </div>
@@ -814,7 +816,7 @@ export default function KOC() {
                           <TD mono>{o.id}</TD>
                           <TD>{o.items.map(it => it.name).join(', ')}</TD>
                           <TD bold>{formatVND(o.total)}</TD>
-                          <TD><span className={`badge ${sc.badge}`}>{sc.label}</span></TD>
+                          <TD><span className={`badge ${sc.badge}`}>{t(sc.labelKey)}</span></TD>
                           <TD><button className="btn btn-primary btn-sm" onClick={() => showToast(`Đã thêm sản phẩm từ đơn ${o.id} vào giỏ hàng`)}>Mua lại</button></TD>
                         </tr>
                       );
@@ -830,7 +832,7 @@ export default function KOC() {
       case 'wkpay':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Ví WK Pay</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.wkpay.title')}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
               <div className="onchain-card" style={{ padding: 20 }}>
                 <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 4 }}>Số dư VND</div>
@@ -906,7 +908,7 @@ export default function KOC() {
       case 'payments':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Thanh Toán</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.payments.title')}</h2>
             <div style={{ fontWeight: 600, fontSize: '.88rem', marginBottom: 12 }}>Phương thức thanh toán đã lưu</div>
             <div className="flex-col gap-8" style={{ marginBottom: 24 }}>
               {savedPaymentMethods.map(m => (
@@ -997,7 +999,7 @@ export default function KOC() {
       case 'favorites':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Sản Phẩm Yêu Thích</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.favorites.title')}</h2>
             {favs.length === 0 && <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-3)' }}>Chưa có sản phẩm yêu thích nào</div>}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16 }}>
               {favs.map(p => (
@@ -1047,7 +1049,7 @@ export default function KOC() {
             </div>
             <div className="chart-bar-wrap" style={{ marginBottom: 24 }}>
               <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-                <span className="label">DOANH THU 12 THÁNG GẦN ĐÂY</span>
+                <span className="label">{t('koc.overview.last12Months')}</span>
                 <span className="badge badge-c4">+23.5% YoY</span>
               </div>
               <div className="chart-bars">
@@ -1062,7 +1064,7 @@ export default function KOC() {
               </div>
             </div>
             <div className="card" style={{ padding: 20 }}>
-              <div className="label" style={{ marginBottom: 14 }}>HOẠT ĐỘNG GẦN ĐÂY</div>
+              <div className="label" style={{ marginBottom: 14 }}>{t('koc.overview.recentActivity')}</div>
               <div className="flex-col gap-10">
                 {recentActivities.map((a, i) => (
                   <div key={i} className="flex gap-12" style={{ padding: '8px 0', borderBottom: i < recentActivities.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'center' }}>
@@ -1083,7 +1085,7 @@ export default function KOC() {
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 20 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Quản Lý Nội Dung</h2>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('koc.content.title')}</h2>
               <button className="btn btn-primary btn-sm" onClick={() => {
                 const id = Date.now();
                 setPosts(prev => [{ id, type: 'review', title: `Bài viết mới #${prev.length + 1}`, date: new Date().toISOString().slice(0, 10), views: 0, likes: 0, comments: 0, revenue: '0₫', emoji: '📝' }, ...prev]);
@@ -1128,7 +1130,7 @@ export default function KOC() {
       case 'campaigns':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Chiến Dịch</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.campaigns.title')}</h2>
             <div className="flex-col gap-12">
               {camps.map(camp => {
                 const sc = campaignStatusConfig[camp.status];
@@ -1137,7 +1139,7 @@ export default function KOC() {
                     <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 10 }}>
                       <div>
                         <div className="flex gap-8" style={{ marginBottom: 4 }}>
-                          <span className={`badge ${sc.badge}`}>{sc.label}</span>
+                          <span className={`badge ${sc.badge}`}>{t(sc.labelKey)}</span>
                         </div>
                         <div style={{ fontWeight: 700, fontSize: '.92rem' }}>{camp.name}</div>
                         <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Brand: {camp.brand}</div>
@@ -1165,7 +1167,7 @@ export default function KOC() {
       case 'commission':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Hoa Hồng & Rút Tiền</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.commission.title')}</h2>
             <div className="grid-3" style={{ gap: 16, marginBottom: 24 }}>
               <div className="card" style={{ padding: 20, borderLeft: '3px solid var(--c4-500)' }}>
                 <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginBottom: 4 }}>Số dư khả dụng</div>
@@ -1208,7 +1210,7 @@ export default function KOC() {
                           <TD mono bold>{row.amount}</TD>
                           <TD mono bold color="var(--c4-500)">{row.commission}</TD>
                           <TD><span className="badge badge-c6">{row.rate}</span></TD>
-                          <TD><span className={`status-pill badge ${sc.badge}`}>{sc.label}</span></TD>
+                          <TD><span className={`status-pill badge ${sc.badge}`}>{t(sc.labelKey)}</span></TD>
                           <TD mono>
                             {row.txHash ? (
                               <div className="flex gap-4" style={{ alignItems: 'center' }}>
@@ -1315,7 +1317,7 @@ export default function KOC() {
       case 'automkt':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Marketing Tự Động (AI Agents)</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.automkt.title')}</h2>
             <div className="card" style={{ padding: 20, marginBottom: 20, borderLeft: '3px solid var(--c6-500)' }}>
               <div className="flex" style={{ justifyContent: 'space-between' }}>
                 <div>
@@ -1354,7 +1356,7 @@ export default function KOC() {
                     <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
                       <div>
                         <div className="flex gap-8" style={{ marginBottom: 4 }}>
-                          <span className={`badge ${sc.badge}`}>{sc.label}</span>
+                          <span className={`badge ${sc.badge}`}>{t(sc.labelKey)}</span>
                           <span className="badge badge-c6">{agent.type}</span>
                         </div>
                         <div style={{ fontWeight: 700, fontSize: '.92rem' }}>{agent.name}</div>
@@ -1389,7 +1391,7 @@ export default function KOC() {
       case 'affiliate':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Affiliate & CRM</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.affiliate.title')}</h2>
 
             {serverNotice && (
               <div style={{ padding: '8px 14px', borderRadius: 8, marginBottom: 16, background: 'rgba(251,191,36,.1)', border: '1px solid rgba(251,191,36,.25)', color: '#b45309', fontSize: '.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1520,7 +1522,7 @@ export default function KOC() {
         const shareLink = generatedShareLink || `https://wellkoc.com/p/${shareProducts.find(p => p.name === selectedShareProduct)?.id || 1}?ref=${refCode}&utm_source=direct`;
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Chia Sẻ Đa Nền Tảng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.share.title')}</h2>
 
             {serverNotice && (
               <div style={{ padding: '8px 14px', borderRadius: 8, marginBottom: 16, background: 'rgba(251,191,36,.1)', border: '1px solid rgba(251,191,36,.25)', color: '#b45309', fontSize: '.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1704,7 +1706,7 @@ export default function KOC() {
       case 'community':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Cộng Đồng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.community.title')}</h2>
             <div className="grid-3" style={{ gap: 16, marginBottom: 24 }}>
               {[
                 { label: 'Tổng thành viên', value: communityStats.totalMembers.toLocaleString(), color: 'var(--c4-500)' },
@@ -1762,7 +1764,7 @@ export default function KOC() {
       case 'performance':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Hiệu Suất & Thống Kê</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.performance.title')}</h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24 }}>
               {perfKpis.map((kpi, i) => (
                 <div key={i} className="kpi-card">
@@ -1820,7 +1822,7 @@ export default function KOC() {
       case 'ranking':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Xếp Hạng & Giải Thưởng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.ranking.title')}</h2>
             <div className="onchain-card" style={{ marginBottom: 24, position: 'relative', overflow: 'hidden' }}>
               <div style={{ position: 'absolute', top: -20, right: -20, fontSize: '6rem', opacity: 0.06 }}>🏆</div>
               <div className="flex" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
@@ -1952,7 +1954,7 @@ export default function KOC() {
       case 'token':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Creator Token</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.token.title')}</h2>
             <div className="onchain-card" style={{ marginBottom: 24 }}>
               <div className="flex" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 16 }}>
                 <div>
@@ -2185,7 +2187,7 @@ export default function KOC() {
       case 'affTeam':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>🌳 Cây Đội Nhóm Affiliate</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.affTeam.title')}</h2>
             {/* Stats */}
             <div className="grid-3 gap-12" style={{ marginBottom: 20 }}>
               {[
@@ -2224,7 +2226,7 @@ export default function KOC() {
       case 'affStats':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>📊 Thống Kê Affiliate</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.affStats.title')}</h2>
             <div className="grid-4 gap-12" style={{ marginBottom: 20 }}>
               {[
                 { label: 'Link clicks', value: '4,521', sub: '+12% tuần', color: 'var(--c6-500)' },
@@ -2263,7 +2265,7 @@ export default function KOC() {
       case 'affPayout':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>💸 Hoa Hồng Affiliate</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.affPayout.title')}</h2>
             <div className="grid-3 gap-12" style={{ marginBottom: 20 }}>
               {[
                 { label: 'Tổng kiếm được', value: '56.8M₫', color: 'var(--c4-500)' },
@@ -2305,7 +2307,7 @@ export default function KOC() {
       case 'affMaterials':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>🖼️ Tài Liệu Quảng Bá</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.affMaterials.title')}</h2>
             <p style={{ color: 'var(--text-3)', fontSize: '.82rem', marginBottom: 20 }}>Banner, hình ảnh, video mẫu để chia sẻ trên các nền tảng</p>
             <div className="grid-3 gap-16">
               {[
@@ -2332,7 +2334,7 @@ export default function KOC() {
       case 'settings':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Cài Đặt</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('koc.settings.title')}</h2>
 
             <div className="flex gap-8" style={{ marginBottom: 20, flexWrap: 'wrap' }}>
               {[
@@ -2683,7 +2685,7 @@ export default function KOC() {
                       }}
                     >
                       <span style={{ fontSize: '.9rem' }}>{group.icon}</span>
-                      <span style={{ flex: 1, fontSize: '.72rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: group.color }}>{group.label}</span>
+                      <span style={{ flex: 1, fontSize: '.72rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: group.color }}>{t(group.label)}</span>
                       <span style={{ fontSize: '.6rem', color: 'var(--text-4)', transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
                     </div>
 
@@ -2700,7 +2702,7 @@ export default function KOC() {
                           style={{ position: 'relative', paddingLeft: 20 }}
                         >
                           <span className="dash-nav-icon">{item.icon}</span>
-                          <span style={{ flex: 1 }}>{item.label}</span>
+                          <span style={{ flex: 1 }}>{t(item.label)}</span>
                           {item.key === 'orders' && pendingOrderCount > 0 && (
                             <span style={{ background: '#ef4444', color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: '.6rem', fontWeight: 700 }}>{pendingOrderCount}</span>
                           )}
@@ -2720,7 +2722,7 @@ export default function KOC() {
                 onClick={() => setActiveNav('settings')}
               >
                 <span className="dash-nav-icon">⚙️</span>
-                <span style={{ flex: 1 }}>Cài đặt</span>
+                <span style={{ flex: 1 }}>{t('koc.sidebar.settings')}</span>
               </div>
             </div>
 
@@ -2733,7 +2735,7 @@ export default function KOC() {
                 style={{ color: '#ef4444', cursor: 'pointer' }}
               >
                 <span className="dash-nav-icon">🚪</span>
-                <span style={{ flex: 1 }}>Đăng xuất</span>
+                <span style={{ flex: 1 }}>{t('koc.sidebar.logout')}</span>
               </div>
             </div>
           </div>

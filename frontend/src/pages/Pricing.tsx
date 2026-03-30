@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 /* ── Types ── */
 type Tab = 'buyer' | 'koc' | 'vendor';
@@ -29,24 +30,24 @@ const fmtUSD = (v: number) => `$${v}`;
 /* ══════════════════════════════════════════════════════════════
    BUYER PLANS — 2 tiers + Custom
    ══════════════════════════════════════════════════════════════ */
-const BUYER_PLANS: PricingPlan[] = [
+const getBuyerPlans = (t: (k: string) => string): PricingPlan[] => [
   {
     name: 'Free',
     badge: '🛒',
     monthlyUSD: 0,
     monthlyVND: 0,
     features: [
-      '✅ Mua sắm trên nền tảng',
-      '⚡ 10 XP mỗi đơn hàng',
-      '🎫 1 voucher 20K / tháng',
-      '❌ Không ưu tiên flash sale',
-      '📦 Free ship đơn từ 500K',
-      '💰 Hoàn xu 1%',
-      '❌ Không có badge VIP',
-      '📞 Hỗ trợ tiêu chuẩn',
-      '✅ Tham gia Group Buy',
+      `✅ ${t('pricing.buyer.shopOnPlatform')}`,
+      `⚡ 10 ${t('pricing.buyer.xpPerOrder')}`,
+      `🎫 1 voucher 20K / ${t('pricing.perMonth').replace('/', '')}`,
+      `❌ ${t('pricing.buyer.noFlashSale')}`,
+      `📦 Free ship ${t('pricing.compare.freeShip')} 500K`,
+      `💰 ${t('pricing.compare.cashback')} 1%`,
+      `❌ ${t('pricing.buyer.noVipBadge')}`,
+      `📞 ${t('pricing.buyer.standardSupport')}`,
+      `✅ ${t('pricing.buyer.joinGroupBuy')}`,
     ],
-    cta: 'Bắt đầu miễn phí',
+    cta: t('pricing.cta.startFree'),
     gradient: 'linear-gradient(135deg, #64748b, #94a3b8)',
   },
   {
@@ -56,17 +57,17 @@ const BUYER_PLANS: PricingPlan[] = [
     monthlyVND: 5 * USD_TO_VND,
     popular: true,
     features: [
-      '✅ Mua sắm trên nền tảng',
-      '⚡ 20 XP mỗi đơn (gấp đôi)',
+      `✅ ${t('pricing.buyer.shopOnPlatform')}`,
+      `⚡ 20 XP (${t('pricing.buyer.double')})`,
       '🎫 5 voucher (20K + 50K + 100K + FreeShip + DPP)',
-      '🔥 Truy cập flash sale sớm 30 phút',
-      '📦 Free ship mọi đơn từ 200K',
-      '💰 Hoàn xu 3%',
-      '✅ Huy hiệu vàng VIP',
-      '📞 Hỗ trợ ưu tiên 24/7',
-      '✅ Group Buy + Giá VIP riêng',
+      `🔥 ${t('pricing.buyer.flashSaleEarly')}`,
+      `📦 Free ship 200K+`,
+      `💰 ${t('pricing.compare.cashback')} 3%`,
+      `✅ ${t('pricing.buyer.goldBadge')}`,
+      `📞 ${t('pricing.buyer.prioritySupport')}`,
+      `✅ ${t('pricing.buyer.groupBuyVip')}`,
     ],
-    cta: 'Nâng cấp VIP',
+    cta: t('pricing.cta.upgradeVip'),
     gradient: 'linear-gradient(135deg, #f59e0b, #ef4444)',
   },
   {
@@ -76,37 +77,37 @@ const BUYER_PLANS: PricingPlan[] = [
     monthlyVND: null,
     isCustom: true,
     features: [
-      '🎯 Gói VIP tùy chỉnh cho doanh nghiệp',
-      '🤖 AI Shopping Assistant cá nhân hóa',
-      '🔥 Ưu tiên truy cập mọi flash sale',
-      '💰 Hoàn xu rate tùy chỉnh',
-      '👥 Group Buy với giá riêng',
-      '📦 Free ship mọi đơn hàng',
-      '🎫 Voucher bundle tùy chọn',
-      '📞 Hỗ trợ riêng + SLA',
-      '⛓️ On-chain loyalty rewards',
+      `🎯 ${t('pricing.buyer.customVip')}`,
+      `🤖 ${t('pricing.buyer.aiShopping')}`,
+      `🔥 ${t('pricing.val.allFlashSales')}`,
+      `💰 ${t('pricing.buyer.customCashback')}`,
+      `👥 ${t('pricing.buyer.groupBuyCustom')}`,
+      `📦 ${t('pricing.buyer.freeShipAll')}`,
+      `🎫 ${t('pricing.buyer.voucherBundle')}`,
+      `📞 ${t('pricing.buyer.dedicatedSla')}`,
+      `⛓️ ${t('pricing.buyer.onchainRewards')}`,
     ],
-    cta: 'Thiết kế gói riêng',
+    cta: t('pricing.cta.designCustom'),
     gradient: 'linear-gradient(135deg, #a855f7, #ec4899)',
   },
 ];
 
-const BUYER_COMPARISON: PlanFeature[] = [
-  { label: 'Mua sắm', values: ['✅', '✅', '✅'] },
-  { label: 'XP mỗi đơn', values: ['10 XP', '20 XP (gấp đôi)', 'Tùy chỉnh'] },
-  { label: 'Voucher hàng tháng', values: ['1 voucher 20K', '5 voucher (20K+50K+100K+FreeShip+DPP)', 'Bundle tùy chọn'] },
-  { label: 'Ưu tiên flash sale', values: ['❌', '✅ Sớm 30 phút', '✅ Mọi flash sale'] },
-  { label: 'Free ship', values: ['Đơn từ 500K', 'Mọi đơn từ 200K', 'Mọi đơn hàng'] },
-  { label: 'Hoàn xu', values: ['1%', '3%', 'Tùy chỉnh'] },
-  { label: 'AI Shopping Assistant', values: ['❌', '❌', '✅ Cá nhân hóa'] },
-  { label: 'Hỗ trợ', values: ['Tiêu chuẩn', 'Ưu tiên 24/7', 'SLA riêng'] },
-  { label: 'Group Buy', values: ['✅', '✅ + Giá VIP', '✅ + Giá riêng'] },
+const getBuyerComparison = (t: (k: string) => string): PlanFeature[] => [
+  { label: t('pricing.compare.shopping'), values: ['✅', '✅', '✅'] },
+  { label: t('pricing.compare.xpPerOrder'), values: ['10 XP', `20 XP (${t('pricing.buyer.double')})`, t('pricing.val.custom')] },
+  { label: t('pricing.compare.monthlyVoucher'), values: ['1 voucher 20K', '5 voucher (20K+50K+100K+FreeShip+DPP)', t('pricing.buyer.voucherBundle')] },
+  { label: t('pricing.compare.flashSalePriority'), values: ['❌', `✅ ${t('pricing.val.early30min')}`, `✅ ${t('pricing.val.allFlashSales')}`] },
+  { label: t('pricing.compare.freeShip'), values: ['500K+', '200K+', t('pricing.buyer.freeShipAll')] },
+  { label: t('pricing.compare.cashback'), values: ['1%', '3%', t('pricing.val.custom')] },
+  { label: 'AI Shopping Assistant', values: ['❌', '❌', `✅ ${t('pricing.val.personalised')}`] },
+  { label: t('pricing.compare.support'), values: [t('pricing.val.standard'), t('pricing.val.priority247'), 'SLA'] },
+  { label: 'Group Buy', values: ['✅', '✅ + VIP', `✅ + ${t('pricing.val.custom')}`] },
 ];
 
 /* ══════════════════════════════════════════════════════════════
    KOC/KOL PLANS — 3 tiers + Custom
    ══════════════════════════════════════════════════════════════ */
-const KOC_PLANS: PricingPlan[] = [
+const getKocPlans = (t: (k: string) => string): PricingPlan[] => [
   {
     name: 'Starter',
     badge: '⭐',
@@ -114,19 +115,19 @@ const KOC_PLANS: PricingPlan[] = [
     monthlyVND: 0,
     features: [
       '🤖 3 AI Agents',
-      '💳 100 AI Credits / tháng',
+      `💳 100 AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`,
       '🔄 1 Agent Workflow (auto-post)',
-      '📝 Script cơ bản',
+      `📝 ${t('pricing.koc.scriptBasic')}`,
       '💸 Affiliate T1 (13%)',
-      '📊 Commission cơ bản',
+      `📊 ${t('pricing.koc.commissionBasic')}`,
       '👥 100 contacts CRM',
       '📈 Basic Analytics',
-      '❌ Không Creator Token',
-      '🎥 Live Commerce (không giới hạn)',
+      `❌ ${t('pricing.koc.noCreatorToken')}`,
+      `🎥 Live Commerce (${t('pricing.val.noLimit')})`,
       '💾 1 GB Storage',
-      '📞 Community support',
+      `📞 ${t('pricing.koc.communitySupport')}`,
     ],
-    cta: 'Bắt đầu miễn phí',
+    cta: t('pricing.cta.startFree'),
     gradient: 'linear-gradient(135deg, #64748b, #94a3b8)',
   },
   {
@@ -137,19 +138,19 @@ const KOC_PLANS: PricingPlan[] = [
     popular: true,
     features: [
       '🤖 25 AI Agents',
-      '💳 3,000 AI Credits / tháng',
+      `💳 3,000 AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`,
       '🔄 5 Agent Workflows (marketing, content, trend, schedule, engagement)',
       '📝 Video script + Caption + Hashtag + SEO',
       '💸 Affiliate T1+T2 (13%+5%) + 5% bonus',
-      '🚀 3 chiến dịch auto marketing',
+      `🚀 3 ${t('pricing.val.campaigns')} auto marketing`,
       '👥 2,000 contacts CRM',
       '📈 Advanced Analytics + Export',
-      '❌ Không Creator Token',
-      '🎥 Live + AI Live Assistant (gợi ý SP, auto coupon, analytics)',
+      `❌ ${t('pricing.koc.noCreatorToken')}`,
+      '🎥 Live + AI Live Assistant',
       '💾 10 GB Storage',
       '📞 Email 24h support',
     ],
-    cta: 'Nâng cấp Pro',
+    cta: t('pricing.cta.upgradePro'),
     gradient: 'linear-gradient(135deg, #06b6d4, #6366f1)',
   },
   {
@@ -159,11 +160,11 @@ const KOC_PLANS: PricingPlan[] = [
     monthlyVND: 1_999_000,
     features: [
       '🤖 80 AI Agents',
-      '💳 20,000 AI Credits / tháng',
+      `💳 20,000 AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`,
       '🔄 Unlimited Agent Workflows',
       '📝 + Competitor analysis + Trend + Custom AI training',
       '💸 Affiliate T1+T2+T3 (40%+13%+5%) + 10% bonus',
-      '🚀 Unlimited auto marketing',
+      `🚀 Unlimited ${t('pricing.compare.autoMarketing').toLowerCase()}`,
       '👥 20,000 contacts CRM',
       '📈 Premium Analytics + API',
       '🪙 Creator Token + Launchpad',
@@ -171,7 +172,7 @@ const KOC_PLANS: PricingPlan[] = [
       '💾 100 GB Storage',
       '📞 Priority + Dedicated onboarding',
     ],
-    cta: 'Chọn Business',
+    cta: t('pricing.cta.chooseBusiness'),
     gradient: 'linear-gradient(135deg, #6366f1, #a855f7)',
   },
   {
@@ -181,65 +182,65 @@ const KOC_PLANS: PricingPlan[] = [
     monthlyVND: null,
     isCustom: true,
     features: [
-      '🤖 Tùy chỉnh đến 333 AI Agents',
-      '💳 AI Credits theo nhu cầu',
-      '🔄 Workflows thiết kế riêng theo ngành',
-      '📝 Custom AI training trên data riêng',
-      '💸 Affiliate rates tùy chỉnh',
-      '🚀 White-label marketing suite',
+      `🤖 ${t('pricing.koc.customAgents')}`,
+      `💳 ${t('pricing.koc.creditsByNeed')}`,
+      `🔄 ${t('pricing.koc.customWorkflows')}`,
+      `📝 ${t('pricing.koc.customTraining')}`,
+      `💸 ${t('pricing.koc.customAffiliateRates')}`,
+      `🚀 ${t('pricing.koc.whiteLabelMarketing')}`,
       '👥 Unlimited CRM + API',
       '📈 Enterprise Analytics + Forecast',
       '🪙 Creator Token + Custom Launchpad',
       '🎥 Unlimited Live + Multi-stream',
-      '💾 Dung lượng tùy chỉnh',
-      '📞 Dedicated manager + SLA',
+      `💾 ${t('pricing.koc.customStorage')}`,
+      `📞 ${t('pricing.koc.dedicatedManager')}`,
     ],
-    cta: 'Thiết kế gói riêng',
+    cta: t('pricing.cta.designCustom'),
     gradient: 'linear-gradient(135deg, #a855f7, #ec4899)',
   },
 ];
 
-const KOC_COMPARISON: PlanFeature[] = [
-  { label: 'Agent Workflows', values: ['1 workflow', '5 workflows', 'Unlimited', 'Tùy chỉnh theo ngành'] },
-  { label: 'AI Agents', values: ['3', '25', '80', 'Đến 333'] },
-  { label: 'AI Credits / tháng', values: ['100', '3,000', '20,000', 'Tùy chỉnh'] },
-  { label: 'Content AI', values: ['Script cơ bản', 'Video + Caption + Hashtag + SEO', '+ Competitor + Trend + Custom training', 'Full + Custom AI'] },
-  { label: 'Auto Marketing', values: ['❌', '3 chiến dịch', 'Unlimited', 'White-label suite'] },
-  { label: 'Affiliate tiers', values: ['T1 (13%)', 'T1+T2 (13%+5%)', 'T1+T2+T3 (40%+13%+5%)', 'Custom rates'] },
-  { label: 'Bonus commission', values: ['—', '+5%', '+10%', 'Tùy chỉnh'] },
+const getKocComparison = (t: (k: string) => string): PlanFeature[] => [
+  { label: 'Agent Workflows', values: ['1 workflow', '5 workflows', 'Unlimited', t('pricing.val.customByIndustry')] },
+  { label: 'AI Agents', values: ['3', '25', '80', t('pricing.val.upTo333')] },
+  { label: `AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`, values: ['100', '3,000', '20,000', t('pricing.val.custom')] },
+  { label: t('pricing.compare.contentAI'), values: [t('pricing.koc.scriptBasic'), 'Video + Caption + Hashtag + SEO', '+ Competitor + Trend + Custom training', 'Full + Custom AI'] },
+  { label: t('pricing.compare.autoMarketing'), values: ['❌', `3 ${t('pricing.val.campaigns')}`, 'Unlimited', 'White-label suite'] },
+  { label: t('pricing.compare.affiliateTiers'), values: ['T1 (13%)', 'T1+T2 (13%+5%)', 'T1+T2+T3 (40%+13%+5%)', 'Custom rates'] },
+  { label: t('pricing.compare.bonusCommission'), values: ['—', '+5%', '+10%', t('pricing.val.custom')] },
   { label: 'CRM', values: ['100 contacts', '2,000 contacts', '20,000 contacts', 'Unlimited + API'] },
   { label: 'Analytics', values: ['Basic', 'Advanced + Export', 'Premium + API', 'Enterprise + Forecast'] },
-  { label: 'Creator Token', values: ['❌', '❌', '✅ + Launchpad', '✅ + Custom Launchpad'] },
-  { label: 'Live Commerce', values: ['✅ Không giới hạn', '✅ + AI Live Assistant', '✅ + AI + Multi-stream + Replay', '✅ Full + Custom'] },
-  { label: 'Storage', values: ['1 GB', '10 GB', '100 GB', 'Tùy chỉnh'] },
-  { label: 'Support', values: ['Community', 'Email 24h', 'Priority + Dedicated', 'Dedicated + SLA'] },
+  { label: t('pricing.compare.creatorToken'), values: ['❌', '❌', '✅ + Launchpad', '✅ + Custom Launchpad'] },
+  { label: t('pricing.compare.liveCommerce'), values: [`✅ ${t('pricing.val.noLimit')}`, '✅ + AI Live Assistant', '✅ + AI + Multi-stream + Replay', '✅ Full + Custom'] },
+  { label: 'Storage', values: ['1 GB', '10 GB', '100 GB', t('pricing.val.custom')] },
+  { label: t('pricing.compare.support'), values: ['Community', 'Email 24h', 'Priority + Dedicated', 'Dedicated + SLA'] },
 ];
 
 /* ══════════════════════════════════════════════════════════════
    VENDOR PLANS — 3 tiers + Custom
    ══════════════════════════════════════════════════════════════ */
-const VENDOR_PLANS: PricingPlan[] = [
+const getVendorPlans = (t: (k: string) => string): PricingPlan[] => [
   {
     name: 'Basic',
     badge: '🏪',
     monthlyUSD: 0,
     monthlyVND: 0,
     features: [
-      '📦 20 sản phẩm',
+      `📦 20 ${t('pricing.vendor.products')}`,
       '🤖 3 AI Agents',
-      '💳 200 AI Credits / tháng',
+      `💳 200 AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`,
       '🔄 1 Agent Workflow (auto order notification)',
-      '⛓️ 5 DPP Mint / tháng',
+      `⛓️ 5 DPP Mint / ${t('pricing.billing.monthly').toLowerCase()}`,
       '⭐ 10 KOC Network',
       '📊 1 tier commission',
       '📈 Basic Analytics',
-      '❌ Không API access',
-      '🎥 Live Commerce (không giới hạn)',
+      `❌ ${t('pricing.vendor.noApiAccess')}`,
+      `🎥 Live Commerce (${t('pricing.val.noLimit')})`,
       '💾 5 GB Storage',
       '💸 5% transaction fee',
-      '📞 Community support',
+      `📞 ${t('pricing.koc.communitySupport')}`,
     ],
-    cta: 'Bắt đầu miễn phí',
+    cta: t('pricing.cta.startFree'),
     gradient: 'linear-gradient(135deg, #64748b, #94a3b8)',
   },
   {
@@ -249,11 +250,11 @@ const VENDOR_PLANS: PricingPlan[] = [
     monthlyVND: 999_000,
     popular: true,
     features: [
-      '📦 500 sản phẩm',
+      `📦 500 ${t('pricing.vendor.products')}`,
       '🤖 30 AI Agents',
-      '💳 10,000 AI Credits / tháng',
+      `💳 10,000 AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`,
       '🔄 10 Agent Workflows (marketing, KOC match, inventory, pricing, CS...)',
-      '⛓️ 100 DPP Mint / tháng',
+      `⛓️ 100 DPP Mint / ${t('pricing.billing.monthly').toLowerCase()}`,
       '⭐ 200 KOC Network',
       '📊 3 tiers commission',
       '📈 Advanced Analytics + Export',
@@ -263,7 +264,7 @@ const VENDOR_PLANS: PricingPlan[] = [
       '💸 2.5% transaction fee',
       '📞 Email + Chat support',
     ],
-    cta: 'Chọn Growth',
+    cta: t('pricing.cta.chooseGrowth'),
     gradient: 'linear-gradient(135deg, #22c55e, #06b6d4)',
   },
   {
@@ -272,9 +273,9 @@ const VENDOR_PLANS: PricingPlan[] = [
     monthlyUSD: 149,
     monthlyVND: 3_799_000,
     features: [
-      '📦 Unlimited sản phẩm',
+      `📦 ${t('pricing.vendor.unlimitedProducts')}`,
       '🤖 80 AI Agents',
-      '💳 30,000 AI Credits / tháng',
+      `💳 30,000 AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`,
       '🔄 Unlimited Agent Workflows',
       '⛓️ Unlimited DPP Mint',
       '⭐ 1,000 KOC Network',
@@ -286,7 +287,7 @@ const VENDOR_PLANS: PricingPlan[] = [
       '💸 1% transaction fee',
       '📞 Priority + Dedicated support',
     ],
-    cta: 'Chọn Scale',
+    cta: t('pricing.cta.chooseScale'),
     gradient: 'linear-gradient(135deg, #6366f1, #a855f7)',
   },
   {
@@ -296,82 +297,70 @@ const VENDOR_PLANS: PricingPlan[] = [
     monthlyVND: null,
     isCustom: true,
     features: [
-      '📦 Unlimited sản phẩm',
-      '🤖 Tùy chỉnh đến 333 AI Agents',
-      '💳 AI Credits theo nhu cầu',
-      '🔄 Workflows thiết kế riêng theo ngành',
+      `📦 ${t('pricing.vendor.unlimitedProducts')}`,
+      `🤖 ${t('pricing.koc.customAgents')}`,
+      `💳 ${t('pricing.koc.creditsByNeed')}`,
+      `🔄 ${t('pricing.koc.customWorkflows')}`,
       '⛓️ Unlimited DPP + White-label',
       '⭐ Unlimited KOC Network',
       '📊 Smart commission + Custom rules',
       '📈 Enterprise Analytics + Forecast + BI',
       '🔌 Full API + Webhooks + Custom SDK',
       '🎥 Unlimited Live + Multi-stream',
-      '💾 Dung lượng tùy chỉnh',
-      '💸 Custom fee (từ 0.5%)',
-      '📞 Dedicated manager + SLA',
+      `💾 ${t('pricing.koc.customStorage')}`,
+      '💸 Custom fee (0.5%+)',
+      `📞 ${t('pricing.koc.dedicatedManager')}`,
     ],
-    cta: 'Thiết kế gói riêng',
+    cta: t('pricing.cta.designCustom'),
     gradient: 'linear-gradient(135deg, #a855f7, #ec4899)',
   },
 ];
 
-const VENDOR_COMPARISON: PlanFeature[] = [
-  { label: 'Agent Workflows', values: ['1 workflow', '10 workflows', 'Unlimited', 'Tùy chỉnh theo ngành'] },
-  { label: 'Sản phẩm', values: ['20', '500', 'Unlimited', 'Unlimited'] },
-  { label: 'AI Agents', values: ['3', '30', '80', 'Đến 333'] },
-  { label: 'AI Credits / tháng', values: ['200', '10,000', '30,000', 'Tùy chỉnh'] },
-  { label: 'DPP Mint / tháng', values: ['5', '100', 'Unlimited', 'Unlimited + White-label'] },
+const getVendorComparison = (t: (k: string) => string): PlanFeature[] => [
+  { label: 'Agent Workflows', values: ['1 workflow', '10 workflows', 'Unlimited', t('pricing.val.customByIndustry')] },
+  { label: t('pricing.compare.products'), values: ['20', '500', 'Unlimited', 'Unlimited'] },
+  { label: 'AI Agents', values: ['3', '30', '80', t('pricing.val.upTo333')] },
+  { label: `AI Credits / ${t('pricing.billing.monthly').toLowerCase()}`, values: ['200', '10,000', '30,000', t('pricing.val.custom')] },
+  { label: t('pricing.compare.dppMint'), values: ['5', '100', 'Unlimited', 'Unlimited + White-label'] },
   { label: 'KOC Network', values: ['10 KOC', '200 KOC', '1,000 KOC', 'Unlimited'] },
-  { label: 'Commission rules', values: ['1 tier', '3 tiers', '5 tiers + custom', 'Smart + Custom rules'] },
+  { label: t('pricing.compare.commissionRules'), values: ['1 tier', '3 tiers', '5 tiers + custom', 'Smart + Custom rules'] },
   { label: 'Analytics', values: ['Basic', 'Advanced + Export', 'Premium + AI Forecast', 'Enterprise + BI'] },
-  { label: 'Auto marketing', values: ['❌', '10 workflows', 'Unlimited', 'White-label suite'] },
-  { label: 'Live Commerce', values: ['✅ Không giới hạn', '✅ + AI Live Assistant', '✅ + AI + Multi-stream + Replay', '✅ Full + Custom'] },
-  { label: 'API access', values: ['❌', 'Read/Write', 'Full + Webhooks', 'Full + SDK'] },
-  { label: 'Storage', values: ['5 GB', '50 GB', '500 GB', 'Tùy chỉnh'] },
-  { label: 'Transaction fee', values: ['5%', '2.5%', '1%', 'Custom (từ 0.5%)'] },
-  { label: 'Support', values: ['Community', 'Email + Chat', 'Priority + Dedicated', 'Dedicated + SLA'] },
+  { label: t('pricing.compare.autoMarketing'), values: ['❌', '10 workflows', 'Unlimited', 'White-label suite'] },
+  { label: t('pricing.compare.liveCommerce'), values: [`✅ ${t('pricing.val.noLimit')}`, '✅ + AI Live Assistant', '✅ + AI + Multi-stream + Replay', '✅ Full + Custom'] },
+  { label: t('pricing.compare.apiAccess'), values: ['❌', 'Read/Write', 'Full + Webhooks', 'Full + SDK'] },
+  { label: 'Storage', values: ['5 GB', '50 GB', '500 GB', t('pricing.val.custom')] },
+  { label: t('pricing.compare.transactionFee'), values: ['5%', '2.5%', '1%', 'Custom (0.5%+)'] },
+  { label: t('pricing.compare.support'), values: ['Community', 'Email + Chat', 'Priority + Dedicated', 'Dedicated + SLA'] },
 ];
 
 /* ── FAQ ── */
-const FAQ_ITEMS = [
-  {
-    q: 'Agent Workflow Automation là gì?',
-    a: 'Agent Workflow là quy trình tự động hóa nhiều bước do AI Agent thực hiện. Ví dụ: KOC Workflow tự động tạo content → tối ưu SEO → lên lịch đăng → phân tích hiệu suất → điều chỉnh chiến lược. Vendor Workflow tự động quản lý tồn kho → match KOC phù hợp → tối ưu giá → chăm sóc khách hàng. Mỗi bước tiêu tốn AI Credits.',
-  },
-  {
-    q: 'AI Credits hoạt động ra sao?',
-    a: 'AI Credits là đơn vị tính cho việc sử dụng các AI Agent và Workflow trên nền tảng. Mỗi thao tác AI (tạo script, phân tích, dự đoán trend, chạy workflow...) tiêu tốn một lượng credits nhất định. Credits được reset mỗi tháng. Gói cao hơn = nhiều credits hơn = chạy nhiều workflow tự động hơn.',
-  },
-  {
-    q: 'Tôi có thể thay đổi gói bất cứ lúc nào không?',
-    a: 'Có! Bạn có thể nâng cấp hoặc hạ cấp gói bất cứ lúc nào. Khi nâng cấp, phần chênh lệch sẽ được tính pro-rata. Khi hạ cấp, credit còn lại sẽ được chuyển sang chu kỳ tiếp theo.',
-  },
-  {
-    q: 'Thanh toán bằng phương thức nào?',
-    a: 'Chúng tôi hỗ trợ thanh toán qua VISA, Mastercard, MoMo, ZaloPay, chuyển khoản ngân hàng và các loại tiền mã hóa (USDT, USDC, ETH). Tất cả giao dịch được ghi nhận on-chain.',
-  },
-  {
-    q: 'Gói Custom hoạt động như thế nào?',
-    a: 'Bạn liên hệ đội sales, mô tả nhu cầu cụ thể (số agents, credits, loại workflows, quy mô KOC network...). Chúng tôi sẽ thiết kế gói riêng phù hợp ngân sách và mục tiêu kinh doanh. Bao gồm onboarding cá nhân hóa, dedicated manager, SLA cam kết uptime 99.9%.',
-  },
-  {
-    q: 'Chính sách hoàn tiền như thế nào?',
-    a: 'Hoàn tiền 100% trong 7 ngày đầu nếu không hài lòng, không cần lý do. Sau 7 ngày, chúng tôi sẽ hoàn trả pro-rata cho phần thời gian chưa sử dụng.',
-  },
-  {
-    q: '"On-chain, minh bạch" nghĩa là gì?',
-    a: 'Mọi giao dịch subscription, commission, và token đều được ghi nhận trên blockchain (Polygon). Bạn có thể verify bất cứ lúc nào qua blockchain explorer — hoàn toàn minh bạch, không chỉnh sửa được.',
-  },
+const getFaqItems = (t: (k: string) => string) => [
+  { q: t('pricing.faq.q1'), a: t('pricing.faq.a1') },
+  { q: t('pricing.faq.q2'), a: t('pricing.faq.a2') },
+  { q: t('pricing.faq.q3'), a: t('pricing.faq.a3') },
+  { q: t('pricing.faq.q4'), a: t('pricing.faq.a4') },
+  { q: t('pricing.faq.q5'), a: t('pricing.faq.a5') },
+  { q: t('pricing.faq.q6'), a: t('pricing.faq.a6') },
+  { q: t('pricing.faq.q7'), a: t('pricing.faq.a7') },
 ];
 
 /* ══════════════════════════════════════════════════════════════
    COMPONENT
    ══════════════════════════════════════════════════════════════ */
 export default function Pricing() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>('koc');
   const [yearly, setYearly] = useState(false);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [showComparison, setShowComparison] = useState(false);
+
+  const BUYER_PLANS = getBuyerPlans(t);
+  const KOC_PLANS = getKocPlans(t);
+  const VENDOR_PLANS = getVendorPlans(t);
+  const BUYER_COMPARISON = getBuyerComparison(t);
+  const KOC_COMPARISON = getKocComparison(t);
+  const VENDOR_COMPARISON = getVendorComparison(t);
+  const FAQ_ITEMS = getFaqItems(t);
 
   const plans = tab === 'buyer' ? BUYER_PLANS : tab === 'koc' ? KOC_PLANS : VENDOR_PLANS;
   const comparison = tab === 'buyer' ? BUYER_COMPARISON : tab === 'koc' ? KOC_COMPARISON : VENDOR_COMPARISON;
@@ -415,10 +404,10 @@ export default function Pricing() {
             className="display-lg gradient-text"
             style={{ fontSize: 'clamp(2rem, 5vw, 3.2rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: 16 }}
           >
-            333 AI Agents — Workflow tự động hóa
+            {t('pricing.hero.title')}
           </h1>
           <p style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)', color: 'var(--text-3)', maxWidth: 600, margin: '0 auto 32px', lineHeight: 1.6 }}>
-            Từ miễn phí đến doanh nghiệp. Agent Workflow Automation giúp bạn tự động hóa mọi quy trình — on-chain, minh bạch.
+            {t('pricing.hero.subtitle')}
           </p>
 
           {/* Billing toggle */}
@@ -427,13 +416,13 @@ export default function Pricing() {
               onClick={() => setYearly(false)}
               style={{ padding: '8px 20px', borderRadius: 50, border: 'none', background: !yearly ? 'var(--chakra-flow)' : 'transparent', color: !yearly ? '#fff' : 'var(--text-3)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all .25s' }}
             >
-              Hàng tháng
+              {t('pricing.billing.monthly')}
             </button>
             <button
               onClick={() => setYearly(true)}
               style={{ padding: '8px 20px', borderRadius: 50, border: 'none', background: yearly ? 'var(--chakra-flow)' : 'transparent', color: yearly ? '#fff' : 'var(--text-3)', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', transition: 'all .25s', position: 'relative' }}
             >
-              Hàng năm
+              {t('pricing.billing.yearly')}
               <span style={{ position: 'absolute', top: -8, right: -12, padding: '2px 8px', borderRadius: 50, background: 'linear-gradient(135deg, #22c55e, #06b6d4)', color: '#fff', fontSize: '0.65rem', fontWeight: 700, whiteSpace: 'nowrap' }}>
                 -20%
               </span>
@@ -446,9 +435,9 @@ export default function Pricing() {
       <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 24px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', gap: 4, marginBottom: 48, padding: '4px', borderRadius: 14, border: '1px solid var(--border)', background: 'var(--surface-card)', maxWidth: 480, margin: '0 auto 24px' }}>
           {([
-            { key: 'buyer' as Tab, label: 'Người mua', icon: '🛒' },
-            { key: 'koc' as Tab, label: 'KOC / KOL', icon: '⭐' },
-            { key: 'vendor' as Tab, label: 'Vendor', icon: '🏪' },
+            { key: 'buyer' as Tab, label: t('pricing.tab.buyer'), icon: '🛒' },
+            { key: 'koc' as Tab, label: t('pricing.tab.koc'), icon: '⭐' },
+            { key: 'vendor' as Tab, label: t('pricing.tab.vendor'), icon: '🏪' },
           ] as const).map((t) => (
             <button
               key={t.key}
@@ -516,14 +505,14 @@ export default function Pricing() {
                 {/* Popular badge */}
                 {isPopular && (
                   <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', padding: '6px 20px', borderRadius: 50, background: 'var(--chakra-flow)', color: '#fff', fontSize: '0.75rem', fontWeight: 700, whiteSpace: 'nowrap', boxShadow: '0 4px 15px rgba(99,102,241,.3)', zIndex: 3 }}>
-                    Phổ biến nhất
+                    {t('pricing.popular')}
                   </div>
                 )}
 
                 {/* Custom badge */}
                 {isCustom && (
                   <div style={{ position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)', padding: '6px 20px', borderRadius: 50, background: 'linear-gradient(135deg, #a855f7, #ec4899)', color: '#fff', fontSize: '0.75rem', fontWeight: 700, whiteSpace: 'nowrap', boxShadow: '0 4px 15px rgba(168,85,247,.3)', zIndex: 3 }}>
-                    Thiết kế riêng
+                    {t('pricing.customDesign')}
                   </div>
                 )}
 
@@ -540,16 +529,16 @@ export default function Pricing() {
                   {isCustom ? (
                     <div style={{ marginBottom: 4 }}>
                       <span className="gradient-text" style={{ fontSize: '1.5rem', fontWeight: 800, backgroundImage: 'linear-gradient(135deg, #a855f7, #ec4899)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                        Liên hệ
+                        {t('pricing.contactUs')}
                       </span>
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-3)', marginTop: 4 }}>
-                        Thiết kế theo nhu cầu
+                        {t('pricing.designByNeed')}
                       </div>
                     </div>
                   ) : isFree ? (
                     <div style={{ marginBottom: 4 }}>
                       <span className="gradient-text" style={{ fontSize: '1.6rem', fontWeight: 800 }}>
-                        Miễn phí
+                        {t('pricing.free')}
                       </span>
                     </div>
                   ) : price ? (
@@ -558,15 +547,15 @@ export default function Pricing() {
                         {fmtUSD(yearly ? (price.monthly ?? plan.monthlyUSD!) : plan.monthlyUSD!)}
                       </span>
                       <span style={{ fontSize: '0.9rem', color: 'var(--text-3)', marginLeft: 4 }}>
-                        /tháng
+                        {t('pricing.perMonth')}
                       </span>
                       {yearly && (
                         <div style={{ fontSize: '0.78rem', color: 'var(--c4-500, #22c55e)', marginTop: 2 }}>
-                          {fmtUSD(price.usd)} /năm — tiết kiệm {fmtUSD(plan.monthlyUSD! * 12 - price.usd)} /năm
+                          {fmtUSD(price.usd)} {t('pricing.perYear')} — {t('pricing.save')} {fmtUSD(plan.monthlyUSD! * 12 - price.usd)} {t('pricing.perYear')}
                         </div>
                       )}
                       <div style={{ fontSize: '0.78rem', color: 'var(--text-3)', marginTop: 4 }}>
-                        ≈ {fmtVND(yearly ? (price.monthlyVnd ?? plan.monthlyVND!) : plan.monthlyVND!)} /tháng
+                        ≈ {fmtVND(yearly ? (price.monthlyVnd ?? plan.monthlyVND!) : plan.monthlyVND!)} {t('pricing.perMonth')}
                       </div>
                     </div>
                   ) : null}
@@ -593,7 +582,7 @@ export default function Pricing() {
 
                   {/* CTA */}
                   <Link
-                    to={plan.isCustom || plan.cta === 'Liên hệ' || plan.cta === 'Thiết kế gói riêng' ? '#contact' : '/register'}
+                    to={plan.isCustom ? '#contact' : '/register'}
                     className={isPopular ? 'btn-primary btn-lg' : 'btn-secondary btn-lg'}
                     style={{
                       display: 'block',
@@ -628,7 +617,7 @@ export default function Pricing() {
             onClick={() => setShowComparison(!showComparison)}
             style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, margin: '0 auto 24px', padding: '12px 32px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface-card)', color: 'var(--text-2)', fontSize: '0.9rem', fontWeight: 600, cursor: 'pointer', transition: 'all .25s' }}
           >
-            {showComparison ? 'Ẩn bảng so sánh' : 'Xem bảng so sánh chi tiết'}
+            {showComparison ? t('pricing.comparison.hide') : t('pricing.comparison.show')}
             <span style={{ display: 'inline-block', transform: showComparison ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform .3s' }}>
               ▼
             </span>
@@ -640,7 +629,7 @@ export default function Pricing() {
                 <thead>
                   <tr style={{ borderBottom: '2px solid var(--border)', background: 'var(--surface-hover)' }}>
                     <th style={{ padding: '14px 16px', textAlign: 'left', fontWeight: 700, color: 'var(--text-1)', position: 'sticky', left: 0, background: 'var(--surface-hover)', zIndex: 2, minWidth: 160 }}>
-                      Tính năng
+                      {t('pricing.comparison.feature')}
                     </th>
                     {planNames.map((name, i) => (
                       <th
@@ -709,7 +698,7 @@ export default function Pricing() {
               FAQ
             </span>
             <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 700, color: 'var(--text-1)' }}>
-              Câu hỏi thường gặp
+              {t('pricing.faq.title')}
             </h2>
           </div>
 
@@ -745,10 +734,10 @@ export default function Pricing() {
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h2 className="gradient-text" style={{ fontSize: 'clamp(1.6rem, 4vw, 2.5rem)', fontWeight: 800, marginBottom: 16 }}>
-              Bắt đầu với 3 AI Agents miễn phí — Tự động hóa khi sẵn sàng
+              {t('pricing.bottomCta.title')}
             </h2>
             <p style={{ fontSize: '1rem', color: 'var(--text-3)', maxWidth: 500, margin: '0 auto 32px', lineHeight: 1.6 }}>
-              Không cần thẻ tín dụng. Trải nghiệm Agent Workflow Automation ngay. Nâng cấp bất kỳ lúc nào.
+              {t('pricing.bottomCta.subtitle')}
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link
@@ -756,14 +745,14 @@ export default function Pricing() {
                 className="btn-primary btn-lg"
                 style={{ padding: '16px 40px', borderRadius: 14, background: 'var(--chakra-flow)', color: '#fff', fontSize: '1rem', fontWeight: 700, textDecoration: 'none', transition: 'all .25s', boxShadow: '0 4px 20px rgba(99,102,241,.25)' }}
               >
-                Đăng ký miễn phí
+                {t('pricing.bottomCta.registerFree')}
               </Link>
               <Link
                 to="#contact"
                 className="btn-secondary btn-lg"
                 style={{ padding: '16px 40px', borderRadius: 14, border: '1px solid var(--border)', color: 'var(--text-2)', fontSize: '1rem', fontWeight: 600, textDecoration: 'none', transition: 'all .25s' }}
               >
-                Thiết kế gói Custom
+                {t('pricing.bottomCta.designCustom')}
               </Link>
             </div>
           </div>

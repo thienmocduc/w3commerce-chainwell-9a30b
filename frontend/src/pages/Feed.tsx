@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 interface VideoCard {
   id: string;
@@ -128,6 +129,7 @@ const videos: VideoCard[] = [
 
 const Feed: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [likedVideos, setLikedVideos] = useState<Record<string, boolean>>({});
 
   const toggleLike = (id: string) => {
@@ -141,13 +143,13 @@ const Feed: React.FC = () => {
         <div className="section-header">
           <div className="section-badge">
             <span className="dot-pulse dot-indigo"></span>
-            VIDEO FEED
+            {t('feed.badge')}
           </div>
           <h2 className="display-md gradient-text">
-            Video KOC nổi bật
+            {t('feed.title')}
           </h2>
           <p style={{ color: 'var(--text-3)', fontSize: '.85rem', marginTop: '8px' }}>
-            Khám phá video review sản phẩm từ các KOC hàng đầu
+            {t('feed.subtitle')}
           </p>
         </div>
 

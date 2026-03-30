@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '@hooks/useI18n';
 
 const levels = [
   { level: 1, name: 'Newcomer', xpRequired: 0, xpNext: 500, color: 'var(--c4-500)', perks: ['Truy cập marketplace', 'XP cơ bản'] },
@@ -45,6 +46,7 @@ const leaderboard = [
 ];
 
 export default function Gamification() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'missions' | 'achievements' | 'leaderboard' | 'nft'>('missions');
 
   const currentXP = 8450;
@@ -65,10 +67,10 @@ export default function Gamification() {
             🎮 GAMIFICATION
           </div>
           <h1 className="display-lg gradient-text" style={{ marginBottom: 12 }}>
-            XP & Phần Thưởng
+            {t('gamification.title')}
           </h1>
           <p style={{ color: 'var(--text-3)', maxWidth: 540, margin: '0 auto', fontSize: '.88rem' }}>
-            Tích lũy XP, hoàn thành nhiệm vụ, mở khóa thành tích và leo bảng xếp hạng.
+            {t('gamification.desc')}
           </p>
         </div>
       </div>
@@ -93,9 +95,9 @@ export default function Gamification() {
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '.7rem', color: 'var(--text-3)' }}>Tiếp theo: Influencer (Lv15)</div>
+              <div style={{ fontSize: '.7rem', color: 'var(--text-3)' }}>{t('gamification.nextLevel')}</div>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 700, color: 'var(--c6-300)' }}>
-                {(nextLevelXP - currentXP).toLocaleString()} XP còn lại
+                {(nextLevelXP - currentXP).toLocaleString()} {t('gamification.xpRemaining')}
               </div>
             </div>
           </div>
@@ -126,9 +128,9 @@ export default function Gamification() {
         {/* Tabs */}
         <div className="feature-tabs" style={{ marginBottom: 28 }}>
           {[
-            { key: 'missions', label: '📋 Nhiệm vụ' },
-            { key: 'achievements', label: '🏆 Thành tích' },
-            { key: 'leaderboard', label: '🏅 Bảng xếp hạng' },
+            { key: 'missions', label: `📋 ${t('gamification.tabMissions')}` },
+            { key: 'achievements', label: `🏆 ${t('gamification.tabAchievements')}` },
+            { key: 'leaderboard', label: `🏅 ${t('gamification.tabLeaderboard')}` },
             { key: 'nft', label: '🎖️ Reputation NFT' },
           ].map(tab => (
             <button key={tab.key} className={`feature-tab ${activeTab === tab.key ? 'on' : ''}`} onClick={() => setActiveTab(tab.key as typeof activeTab)}>
@@ -141,8 +143,8 @@ export default function Gamification() {
         {activeTab === 'missions' && (
           <div className="flex-col gap-8">
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-              <span className="label">NHIỆM VỤ HÀNG NGÀY</span>
-              <span className="badge badge-c4">{dailyMissions.filter(m => m.completed).length}/{dailyMissions.length} hoàn thành</span>
+              <span className="label">{t('gamification.dailyMissions')}</span>
+              <span className="badge badge-c4">{dailyMissions.filter(m => m.completed).length}/{dailyMissions.length} {t('gamification.completed')}</span>
             </div>
             {dailyMissions.map(mission => (
               <div key={mission.id} className="card" style={{
@@ -184,8 +186,8 @@ export default function Gamification() {
                     <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginTop: 2 }}>{ach.description}</div>
                     <div className="flex gap-8" style={{ marginTop: 8 }}>
                       <span className="badge badge-gold">+{ach.xp} XP</span>
-                      {ach.unlocked && ach.date && <span className="badge badge-c4">Mở khóa {ach.date}</span>}
-                      {!ach.unlocked && <span className="badge badge-c5">Chưa mở khóa</span>}
+                      {ach.unlocked && ach.date && <span className="badge badge-c4">{t('gamification.unlocked')} {ach.date}</span>}
+                      {!ach.unlocked && <span className="badge badge-c5">{t('gamification.locked')}</span>}
                     </div>
                   </div>
                 </div>
@@ -198,7 +200,7 @@ export default function Gamification() {
         {activeTab === 'leaderboard' && (
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
-              <span style={{ fontWeight: 700, fontSize: '.88rem' }}>Bảng Xếp Hạng XP Tuần Này</span>
+              <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{t('gamification.leaderboardTitle')}</span>
             </div>
             {leaderboard.map(user => (
               <div key={user.rank} className="tx-row" style={{ padding: '14px 24px' }}>
@@ -236,7 +238,7 @@ export default function Gamification() {
                 Minh Hương
               </h3>
               <p style={{ fontSize: '.75rem', color: 'var(--text-3)', marginBottom: 14 }}>
-                KOC Contributor · Thành viên từ 01/2026
+                KOC Contributor · {t('gamification.memberSince')} 01/2026
               </p>
               <div className="nft-stats">
                 <div className="nft-stat">
@@ -270,7 +272,7 @@ export default function Gamification() {
                 </div>
               </div>
               <button className="btn btn-primary" style={{ width: '100%', marginTop: 16 }}>
-                Xem trên Explorer
+                {t('gamification.viewExplorer')}
               </button>
             </div>
           </div>

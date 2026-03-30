@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '@hooks/useI18n';
 
 interface Agent {
   id: number;
@@ -11,6 +12,7 @@ interface Agent {
 interface Category {
   key: string;
   label: string;
+  labelKey: string;
   icon: string;
   color: string;
   agents: Agent[];
@@ -18,7 +20,7 @@ interface Category {
 
 const agentCategories: Category[] = [
   {
-    key: 'content', label: 'Sáng Tạo Nội Dung', icon: '✍️', color: 'var(--c6-500)',
+    key: 'content', label: 'Sáng Tạo Nội Dung', labelKey: 'agents.cat.content', icon: '✍️', color: 'var(--c6-500)',
     agents: [
       { id: 1, name: 'AI Copywriter', description: 'Viết bài review, caption, mô tả sản phẩm tự động', capabilities: ['Viết review sản phẩm', 'Tạo caption social', 'SEO optimization', 'Đa ngôn ngữ'], status: 'active' },
       { id: 2, name: 'AI Video Script', description: 'Tạo kịch bản video review, unboxing, so sánh', capabilities: ['Script video ngắn', 'Storyboard', 'Hook generation', 'CTA optimization'], status: 'active' },
@@ -39,7 +41,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'analytics', label: 'Phân Tích & Dữ Liệu', icon: '📊', color: 'var(--c5-500)',
+    key: 'analytics', label: 'Phân Tích & Dữ Liệu', labelKey: 'agents.cat.analytics', icon: '📊', color: 'var(--c5-500)',
     agents: [
       { id: 17, name: 'AI Performance Tracker', description: 'Theo dõi hiệu suất chiến dịch real-time', capabilities: ['Real-time dashboard', 'ROI calculation', 'Conversion tracking', 'A/B analysis'], status: 'active' },
       { id: 18, name: 'AI Audience Analyzer', description: 'Phân tích đối tượng khách hàng mục tiêu', capabilities: ['Demographics', 'Behavior patterns', 'Interest mapping', 'Lookalike audiences'], status: 'active' },
@@ -56,7 +58,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'customer', label: 'Chăm Sóc Khách Hàng', icon: '💬', color: 'var(--c4-500)',
+    key: 'customer', label: 'Chăm Sóc Khách Hàng', labelKey: 'agents.cat.customer', icon: '💬', color: 'var(--c4-500)',
     agents: [
       { id: 29, name: 'AI Chat Support', description: 'Chatbot hỗ trợ khách hàng 24/7', capabilities: ['Auto response', 'FAQ handling', 'Escalation', 'Multi-language'], status: 'active' },
       { id: 30, name: 'AI Review Responder', description: 'Phản hồi đánh giá sản phẩm tự động', capabilities: ['Positive thanks', 'Issue resolution', 'Brand voice', 'Sentiment-aware'], status: 'active' },
@@ -73,7 +75,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'commerce', label: 'Thương Mại & Bán Hàng', icon: '🛒', color: 'var(--c7-500)',
+    key: 'commerce', label: 'Thương Mại & Bán Hàng', labelKey: 'agents.cat.commerce', icon: '🛒', color: 'var(--c7-500)',
     agents: [
       { id: 41, name: 'AI Pricing Engine', description: 'Tối ưu giá bán theo thời gian thực', capabilities: ['Dynamic pricing', 'Competitor match', 'Demand-based', 'Margin protect'], status: 'active' },
       { id: 42, name: 'AI Product Matcher', description: 'Ghép sản phẩm phù hợp với KOC', capabilities: ['Interest match', 'Audience fit', 'Commission optimize', 'Brand alignment'], status: 'active' },
@@ -90,7 +92,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'blockchain', label: 'Blockchain & Web3', icon: '⛓️', color: 'var(--c4-300)',
+    key: 'blockchain', label: 'Blockchain & Web3', labelKey: 'agents.cat.blockchain', icon: '⛓️', color: 'var(--c4-300)',
     agents: [
       { id: 53, name: 'AI DPP Generator', description: 'Tạo Digital Product Passport on-chain', capabilities: ['Auto metadata', 'IPFS upload', 'Smart mint', 'QR generate'], status: 'active' },
       { id: 54, name: 'AI Gas Optimizer', description: 'Tối ưu gas fee cho on-chain transactions', capabilities: ['Gas prediction', 'Batch transactions', 'L2 routing', 'Priority queue'], status: 'active' },
@@ -107,7 +109,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'social', label: 'Mạng Xã Hội', icon: '📱', color: 'var(--rose-400)',
+    key: 'social', label: 'Mạng Xã Hội', labelKey: 'agents.cat.social', icon: '📱', color: 'var(--rose-400)',
     agents: [
       { id: 65, name: 'AI TikTok Optimizer', description: 'Tối ưu nội dung cho TikTok', capabilities: ['Trend detection', 'Sound match', 'Hashtag optimize', 'Best time post'], status: 'active' },
       { id: 66, name: 'AI Instagram Growth', description: 'Chiến lược tăng trưởng Instagram', capabilities: ['Content plan', 'Reel ideas', 'Story templates', 'Engagement boost'], status: 'active' },
@@ -124,7 +126,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'operations', label: 'Vận Hành & Quản Lý', icon: '⚙️', color: 'var(--gold-400)',
+    key: 'operations', label: 'Vận Hành & Quản Lý', labelKey: 'agents.cat.operations', icon: '⚙️', color: 'var(--gold-400)',
     agents: [
       { id: 77, name: 'AI Task Manager', description: 'Quản lý công việc và deadline tự động', capabilities: ['Auto prioritize', 'Deadline track', 'Team assign', 'Progress report'], status: 'active' },
       { id: 78, name: 'AI Quality Inspector', description: 'Kiểm tra chất lượng sản phẩm tự động', capabilities: ['Image analysis', 'Defect detect', 'Grade classify', 'Report generate'], status: 'active' },
@@ -141,7 +143,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'personalization', label: 'Cá Nhân Hóa', icon: '🎯', color: 'var(--c6-300)',
+    key: 'personalization', label: 'Cá Nhân Hóa', labelKey: 'agents.cat.personalization', icon: '🎯', color: 'var(--c6-300)',
     agents: [
       { id: 89, name: 'AI Recommendation Engine', description: 'Gợi ý sản phẩm cá nhân hóa', capabilities: ['Collaborative filter', 'Content-based', 'Hybrid model', 'Real-time update'], status: 'active' },
       { id: 90, name: 'AI Email Personalizer', description: 'Cá nhân hóa nội dung email', capabilities: ['Dynamic content', 'Send time optimize', 'Subject line AI', 'Segment adapt'], status: 'active' },
@@ -157,7 +159,7 @@ const agentCategories: Category[] = [
     ]
   },
   {
-    key: 'security', label: 'Bảo Mật & An Toàn', icon: '🔒', color: 'var(--c5-300)',
+    key: 'security', label: 'Bảo Mật & An Toàn', labelKey: 'agents.cat.security', icon: '🔒', color: 'var(--c5-300)',
     agents: [
       { id: 100, name: 'AI Fraud Detector', description: 'Phát hiện gian lận đơn hàng', capabilities: ['Pattern detect', 'Risk scoring', 'Real-time block', 'False positive reduce'], status: 'active' },
       { id: 101, name: 'AI Review Authenticator', description: 'Xác minh tính xác thực của review', capabilities: ['Fake review detect', 'Bot detection', 'Verified purchase', 'Quality score'], status: 'active' },
@@ -175,13 +177,14 @@ const agentCategories: Category[] = [
   },
 ];
 
-const statusConfig: Record<string, { label: string; badge: string }> = {
-  active: { label: 'Hoạt động', badge: 'badge-c4' },
-  beta: { label: 'Beta', badge: 'badge-gold' },
-  coming: { label: 'Sắp ra mắt', badge: 'badge-c5' },
+const statusConfig: Record<string, { labelKey: string; badge: string }> = {
+  active: { labelKey: 'agents.statusActive', badge: 'badge-c4' },
+  beta: { labelKey: 'agents.statusBeta', badge: 'badge-gold' },
+  coming: { labelKey: 'agents.statusComing', badge: 'badge-c5' },
 };
 
 export default function Agents() {
+  const { t } = useI18n();
   const [search, setSearch] = useState('');
   const [expandedCategory, setExpandedCategory] = useState<string | null>('content');
   const [expandedAgent, setExpandedAgent] = useState<number | null>(null);
@@ -211,23 +214,23 @@ export default function Agents() {
             🤖 AI AGENTS
           </div>
           <h1 className="display-lg gradient-text" style={{ marginBottom: 12 }}>
-            333 AI Agents
+            {t('agents.title')}
           </h1>
           <p style={{ color: 'var(--text-3)', maxWidth: 580, margin: '0 auto', fontSize: '.88rem' }}>
-            Hệ thống 333 AI agents chuyên biệt hỗ trợ mọi hoạt động trên nền tảng WellKOC.
+            {t('agents.subtitle')}
           </p>
           <div className="flex gap-16" style={{ justifyContent: 'center', marginTop: 24 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--c7-300)' }}>{totalAgents}</div>
-              <div className="label">Tổng Agents</div>
+              <div className="label">{t('agents.totalAgents')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--c4-500)' }}>{activeCount}</div>
-              <div className="label">Đang hoạt động</div>
+              <div className="label">{t('agents.activeAgents')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--c5-500)' }}>{agentCategories.length}</div>
-              <div className="label">Danh mục</div>
+              <div className="label">{t('agents.categories')}</div>
             </div>
           </div>
         </div>
@@ -239,7 +242,7 @@ export default function Agents() {
           <span style={{ fontSize: '1.1rem' }}>🔍</span>
           <input
             type="text"
-            placeholder="Tìm kiếm agent theo tên hoặc mô tả..."
+            placeholder={t('agents.searchPlaceholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{
@@ -248,7 +251,7 @@ export default function Agents() {
             }}
           />
           {search && (
-            <button className="btn btn-ghost btn-sm" onClick={() => setSearch('')}>Xóa</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => setSearch('')}>{t('agents.clear')}</button>
           )}
         </div>
 
@@ -267,7 +270,7 @@ export default function Agents() {
               >
                 <span style={{ fontSize: '1.4rem' }}>{cat.icon}</span>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '.92rem' }}>{cat.label}</div>
+                  <div style={{ fontWeight: 700, fontSize: '.92rem' }}>{t(cat.labelKey)}</div>
                   <div style={{ fontSize: '.7rem', color: 'var(--text-3)' }}>{cat.agents.length} agents</div>
                 </div>
                 <div className="flex gap-8">
@@ -298,7 +301,7 @@ export default function Agents() {
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div className="flex gap-8" style={{ marginBottom: 4 }}>
                                 <span className="mono" style={{ fontSize: '.62rem', color: 'var(--text-4)' }}>#{agent.id.toString().padStart(3, '0')}</span>
-                                <span className={`badge ${sc.badge}`}>{sc.label}</span>
+                                <span className={`badge ${sc.badge}`}>{t(sc.labelKey)}</span>
                               </div>
                               <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{agent.name}</div>
                               <div style={{ fontSize: '.7rem', color: 'var(--text-3)', marginTop: 2 }}>{agent.description}</div>
@@ -307,17 +310,17 @@ export default function Agents() {
 
                           {isExpanded && (
                             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-                              <div className="label" style={{ marginBottom: 8 }}>KHẢ NĂNG</div>
+                              <div className="label" style={{ marginBottom: 8 }}>{t('agents.capabilities')}</div>
                               <div className="flex gap-8" style={{ flexWrap: 'wrap' }}>
                                 {agent.capabilities.map((cap, ci) => (
                                   <span key={ci} className="badge badge-c6">{cap}</span>
                                 ))}
                               </div>
                               {agent.status === 'active' && (
-                                <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }}>Sử dụng Agent</button>
+                                <button className="btn btn-primary btn-sm" style={{ marginTop: 12 }}>{t('agents.useAgent')}</button>
                               )}
                               {agent.status === 'beta' && (
-                                <button className="btn btn-secondary btn-sm" style={{ marginTop: 12 }}>Tham gia Beta</button>
+                                <button className="btn btn-secondary btn-sm" style={{ marginTop: 12 }}>{t('agents.joinBeta')}</button>
                               )}
                             </div>
                           )}

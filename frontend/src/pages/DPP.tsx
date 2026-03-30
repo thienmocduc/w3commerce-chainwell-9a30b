@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
+import { useI18n } from '@hooks/useI18n';
 
 const productPassport = {
   name: 'Trà Ô Long Đài Loan Premium',
   sku: 'WK-TEA-001',
   brand: 'WellKOC Origin',
-  category: 'Thực phẩm & Đồ uống',
-  origin: 'Đài Loan',
+  category: 'dpp.passport.categoryValue',
+  origin: 'dpp.passport.originValue',
   certifications: ['Organic EU', 'HACCP', 'ISO 22000', 'Fair Trade'],
   dppHash: '0x7a3f...b92c1d4e',
   mintDate: '2026-01-15',
@@ -15,15 +16,16 @@ const productPassport = {
 };
 
 const supplyChainSteps = [
-  { step: 1, title: 'Thu hoạch', location: 'Ali Shan, Đài Loan', date: '2025-11-20', icon: '🌱', color: 'var(--c4-500)', verified: true, txHash: '0x1a2b...3c4d', description: 'Lá trà được thu hoạch thủ công từ vườn ở độ cao 1,200m tại Ali Shan.' },
-  { step: 2, title: 'Chế biến', location: 'Nhà máy Taipei', date: '2025-11-25', icon: '🏭', color: 'var(--c5-500)', verified: true, txHash: '0x5e6f...7g8h', description: 'Ôxi hóa nhẹ 15-20%, sấy ở nhiệt độ kiểm soát. Chứng nhận HACCP.' },
-  { step: 3, title: 'Kiểm định chất lượng', location: 'SGS Vietnam Lab', date: '2025-12-01', icon: '🔬', color: 'var(--c6-500)', verified: true, txHash: '0x9i0j...1k2l', description: 'Kiểm tra 127 chỉ tiêu an toàn thực phẩm. Không phát hiện dư lượng hóa chất.' },
-  { step: 4, title: 'Vận chuyển', location: 'Cảng Keelung → Cát Lái', date: '2025-12-10', icon: '🚢', color: 'var(--c7-500)', verified: true, txHash: '0x3m4n...5o6p', description: 'Container lạnh 18°C, GPS tracking toàn trình. Thời gian transit: 5 ngày.' },
-  { step: 5, title: 'Nhập kho WellKOC', location: 'Kho Bình Dương', date: '2025-12-15', icon: '📦', color: 'var(--c6-300)', verified: true, txHash: '0x7q8r...9s0t', description: 'Nhập kho với điều kiện bảo quản chuẩn. Mã lô: LOT-2025-TW-089.' },
-  { step: 6, title: 'Mint DPP NFT', location: 'Polygon Chain', date: '2026-01-15', icon: '⛓️', color: 'var(--c4-300)', verified: true, txHash: '0x1u2v...3w4x', description: 'Digital Product Passport được mint trên Polygon. ZKP proof được tạo.' },
+  { step: 1, titleKey: 'dpp.step1.title', location: 'Ali Shan, Đài Loan', date: '2025-11-20', icon: '🌱', color: 'var(--c4-500)', verified: true, txHash: '0x1a2b...3c4d', descKey: 'dpp.step1.desc' },
+  { step: 2, titleKey: 'dpp.step2.title', location: 'Nhà máy Taipei', date: '2025-11-25', icon: '🏭', color: 'var(--c5-500)', verified: true, txHash: '0x5e6f...7g8h', descKey: 'dpp.step2.desc' },
+  { step: 3, titleKey: 'dpp.step3.title', location: 'SGS Vietnam Lab', date: '2025-12-01', icon: '🔬', color: 'var(--c6-500)', verified: true, txHash: '0x9i0j...1k2l', descKey: 'dpp.step3.desc' },
+  { step: 4, titleKey: 'dpp.step4.title', location: 'Cảng Keelung → Cát Lái', date: '2025-12-10', icon: '🚢', color: 'var(--c7-500)', verified: true, txHash: '0x3m4n...5o6p', descKey: 'dpp.step4.desc' },
+  { step: 5, titleKey: 'dpp.step5.title', location: 'Kho Bình Dương', date: '2025-12-15', icon: '📦', color: 'var(--c6-300)', verified: true, txHash: '0x7q8r...9s0t', descKey: 'dpp.step5.desc' },
+  { step: 6, titleKey: 'dpp.step6.title', location: 'Polygon Chain', date: '2026-01-15', icon: '⛓️', color: 'var(--c4-300)', verified: true, txHash: '0x1u2v...3w4x', descKey: 'dpp.step6.desc' },
 ];
 
 export default function DPP() {
+  const { t } = useI18n();
   const [selectedStep, setSelectedStep] = useState<number | null>(null);
   const [showZKP, setShowZKP] = useState(false);
 
@@ -42,7 +44,7 @@ export default function DPP() {
             Digital Product Passport
           </h1>
           <p style={{ color: 'var(--text-3)', maxWidth: 580, margin: '0 auto', fontSize: '.88rem' }}>
-            Chứng nhận nguồn gốc sản phẩm trên blockchain. Minh bạch, bất biến, xác minh bởi ZKP.
+            {t('dpp.header.subtitle')}
           </p>
         </div>
       </div>
@@ -63,9 +65,9 @@ export default function DPP() {
               <div className="flex-col gap-8" style={{ fontSize: '.78rem' }}>
                 {[
                   ['SKU', productPassport.sku, true],
-                  ['Thương hiệu', productPassport.brand, false],
-                  ['Xuất xứ', productPassport.origin, false],
-                  ['Danh mục', productPassport.category, false],
+                  [t('dpp.passport.brand'), productPassport.brand, false],
+                  [t('dpp.passport.origin'), t(productPassport.origin), false],
+                  [t('dpp.passport.category'), t(productPassport.category), false],
                 ].map(([label, val, isMono]) => (
                   <div key={label as string} className="flex" style={{ justifyContent: 'space-between' }}>
                     <span style={{ color: 'var(--text-3)' }}>{label as string}</span>
@@ -75,14 +77,14 @@ export default function DPP() {
               </div>
             </div>
             <div className="card" style={{ padding: 20, background: 'var(--bg-2)' }}>
-              <div className="label" style={{ marginBottom: 12 }}>THÔNG TIN BLOCKCHAIN</div>
+              <div className="label" style={{ marginBottom: 12 }}>{t('dpp.passport.blockchainInfo')}</div>
               <div className="flex-col gap-12" style={{ fontSize: '.78rem' }}>
                 <div className="flex" style={{ justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-3)' }}>DPP Hash</span>
                   <span className="mono" style={{ color: 'var(--c4-300)' }}>{productPassport.dppHash}</span>
                 </div>
                 <div className="flex" style={{ justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-3)' }}>Ngày Mint</span>
+                  <span style={{ color: 'var(--text-3)' }}>{t('dpp.passport.mintDate')}</span>
                   <span className="mono">{productPassport.mintDate}</span>
                 </div>
                 <div className="flex" style={{ justifyContent: 'space-between' }}>
@@ -106,7 +108,7 @@ export default function DPP() {
         <div style={{ marginBottom: 40 }}>
           <div className="section-header" style={{ marginBottom: 32 }}>
             <div className="section-badge">📦 SUPPLY CHAIN</div>
-            <h2 className="display-md">Hành Trình Sản Phẩm</h2>
+            <h2 className="display-md">{t('dpp.supply.title')}</h2>
           </div>
 
           <div style={{ position: 'relative', paddingLeft: 40 }}>
@@ -136,8 +138,8 @@ export default function DPP() {
                   <div className="flex gap-12">
                     <span style={{ fontSize: '1.3rem' }}>{step.icon}</span>
                     <div>
-                      <div className="label" style={{ marginBottom: 2, color: step.color }}>BƯỚC {step.step}</div>
-                      <div style={{ fontWeight: 700, fontSize: '.88rem' }}>{step.title}</div>
+                      <div className="label" style={{ marginBottom: 2, color: step.color }}>{t('dpp.supply.step')} {step.step}</div>
+                      <div style={{ fontWeight: 700, fontSize: '.88rem' }}>{t(step.titleKey)}</div>
                       <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{step.location}</div>
                     </div>
                   </div>
@@ -150,7 +152,7 @@ export default function DPP() {
                 {selectedStep === step.step && (
                   <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
                     <p style={{ fontSize: '.78rem', color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 10 }}>
-                      {step.description}
+                      {t(step.descKey)}
                     </p>
                     <span className="badge badge-c5">TX: {step.txHash}</span>
                   </div>
@@ -165,13 +167,12 @@ export default function DPP() {
           <div className="section-badge" style={{ background: 'rgba(168,85,247,.1)', color: 'var(--c7-300)', borderColor: 'rgba(168,85,247,.2)' }}>
             🔐 ZERO-KNOWLEDGE PROOF
           </div>
-          <h3 className="display-md" style={{ marginBottom: 12 }}>Xác Minh Không Tiết Lộ</h3>
+          <h3 className="display-md" style={{ marginBottom: 12 }}>{t('dpp.zkp.title')}</h3>
           <p style={{ fontSize: '.82rem', color: 'var(--text-3)', maxWidth: 500, margin: '0 auto 20px' }}>
-            ZKP cho phép xác minh nguồn gốc sản phẩm mà không cần tiết lộ thông tin nhạy cảm
-            của nhà cung cấp hay quy trình sản xuất.
+            {t('dpp.zkp.desc')}
           </p>
           <button className="btn btn-primary" onClick={() => setShowZKP(!showZKP)}>
-            {showZKP ? 'Ẩn chi tiết ZKP' : 'Xác minh ZKP'}
+            {showZKP ? t('dpp.zkp.hideBtn') : t('dpp.zkp.verifyBtn')}
           </button>
 
           {showZKP && (
@@ -179,11 +180,11 @@ export default function DPP() {
               <div className="label" style={{ marginBottom: 12 }}>ZKP VERIFICATION RESULT</div>
               <div className="flex-col gap-8">
                 {[
-                  'Nguồn gốc hợp lệ',
-                  'Chứng nhận Organic',
-                  'Chuỗi cung ứng liên tục',
-                  'Không biến đổi gen (Non-GMO)',
-                  'Nhiệt độ bảo quản đạt chuẩn',
+                  t('dpp.zkp.claim1'),
+                  t('dpp.zkp.claim2'),
+                  t('dpp.zkp.claim3'),
+                  t('dpp.zkp.claim4'),
+                  t('dpp.zkp.claim5'),
                 ].map((claim, i) => (
                   <div key={i} className="flex" style={{ justifyContent: 'space-between', padding: '8px 12px', borderRadius: 8, background: 'var(--bg-1)' }}>
                     <span style={{ fontSize: '.78rem' }}>{claim}</span>

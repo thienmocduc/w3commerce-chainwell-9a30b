@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 interface Product {
   id: string;
@@ -50,6 +51,7 @@ const products: Product[] = [
 ];
 
 export default function Marketplace() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -84,10 +86,10 @@ export default function Marketplace() {
             MARKETPLACE
           </div>
           <h1 className="display-lg gradient-text" style={{ marginBottom: 8 }}>
-            Sản phẩm DPP-verified
+            {t('marketplace.title')}
           </h1>
           <p style={{ color: 'var(--text-3)', fontSize: '.88rem', maxWidth: 480, margin: '0 auto' }}>
-            Mọi sản phẩm đều được xác minh nguồn gốc trên blockchain, đảm bảo chất lượng và minh bạch
+            {t('marketplace.desc')}
           </p>
         </div>
 
@@ -96,7 +98,7 @@ export default function Marketplace() {
           <input
             className="input-field"
             type="text"
-            placeholder="Tìm kiếm sản phẩm..."
+            placeholder={t('marketplace.search')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{
@@ -121,7 +123,7 @@ export default function Marketplace() {
               onClick={() => { setActiveCategory(cat.key); setVisibleCount(8); }}
               style={{ padding: '8px 18px', borderRadius: 20, fontSize: '.78rem' }}
             >
-              {cat.label}
+              {cat.key === 'all' ? t('marketplace.cat.all') : cat.key === 'food' ? t('marketplace.cat.food') : cat.key === 'tech' ? t('marketplace.cat.tech') : cat.key === 'fashion' ? t('marketplace.cat.fashion') : cat.key === 'health' ? t('marketplace.cat.health') : cat.label}
             </button>
           ))}
         </div>
@@ -133,7 +135,7 @@ export default function Marketplace() {
           background: 'var(--bg-2)', flexWrap: 'wrap', gap: 12,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: '.78rem', color: 'var(--text-3)', fontWeight: 600 }}>Sắp xếp:</span>
+            <span style={{ fontSize: '.78rem', color: 'var(--text-3)', fontWeight: 600 }}>{t('marketplace.sort.label')}</span>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
@@ -145,7 +147,7 @@ export default function Marketplace() {
               }}
             >
               {sortOptions.map(opt => (
-                <option key={opt.key} value={opt.key}>{opt.label}</option>
+                <option key={opt.key} value={opt.key}>{opt.key === 'newest' ? t('marketplace.sort.newest') : opt.key === 'bestseller' ? t('marketplace.sort.bestseller') : opt.key === 'price-asc' ? t('marketplace.sort.priceAsc') : t('marketplace.sort.priceDesc')}</option>
               ))}
             </select>
           </div>
@@ -167,11 +169,11 @@ export default function Marketplace() {
                 boxShadow: '0 1px 3px rgba(0,0,0,.2)',
               }} />
             </div>
-            <span style={{ fontWeight: 600 }}>Chỉ DPP Verified</span>
+            <span style={{ fontWeight: 600 }}>{t('marketplace.dppOnly')}</span>
           </label>
 
           <span style={{ fontSize: '.75rem', color: 'var(--text-4)' }}>
-            {filtered.length} sản phẩm
+            {filtered.length} {t('marketplace.productCount')}
           </span>
         </div>
 
@@ -179,8 +181,8 @@ export default function Marketplace() {
         {filtered.length === 0 ? (
           <div className="card" style={{ padding: 48, textAlign: 'center' }}>
             <div style={{ fontSize: '3rem', marginBottom: 12 }}>🔍</div>
-            <h3 style={{ marginBottom: 8, color: 'var(--text-2)' }}>Không tìm thấy sản phẩm</h3>
-            <p style={{ color: 'var(--text-3)', fontSize: '.85rem' }}>Thử thay đổi bộ lọc hoặc từ khoá tìm kiếm</p>
+            <h3 style={{ marginBottom: 8, color: 'var(--text-2)' }}>{t('marketplace.noProducts')}</h3>
+            <p style={{ color: 'var(--text-3)', fontSize: '.85rem' }}>{t('marketplace.noProducts.hint')}</p>
           </div>
         ) : (
           <div className="grid-4" style={{ gap: 20 }}>
@@ -248,7 +250,7 @@ export default function Marketplace() {
                           onClick={e => { e.stopPropagation(); }}
                           style={{ padding: '10px 20px', fontSize: '.82rem' }}
                         >
-                          🛒 Thêm vào giỏ
+                          🛒 {t('marketplace.addToCart')}
                         </button>
                       </div>
                     )}
@@ -289,7 +291,7 @@ export default function Marketplace() {
                         {'★'.repeat(Math.floor(p.rating))} <span style={{ color: 'var(--text-3)' }}>{p.rating}</span>
                       </span>
                       <span style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>
-                        Đã bán{p.sold.toLocaleString('vi-VN')}
+                        {t('marketplace.sold')} {p.sold.toLocaleString('vi-VN')}
                       </span>
                     </div>
 
@@ -320,7 +322,7 @@ export default function Marketplace() {
               onClick={() => setVisibleCount(prev => prev + 4)}
               style={{ padding: '12px 32px' }}
             >
-              Xem thêm sản phẩm ({filtered.length - visibleCount} còn lại)
+              {t('marketplace.loadMore')} ({filtered.length - visibleCount} {t('marketplace.remaining')})
             </button>
           </div>
         )}

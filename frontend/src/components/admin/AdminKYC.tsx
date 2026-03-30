@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { btnPrimSm, btnDangerSm, btnSuccessSm, btnSm, thStyle, tdStyle, searchInputStyle, statusBadge, statusLabel } from './shared/constants';
+import { useI18n } from '@hooks/useI18n';
+import { btnPrimSm, btnDangerSm, btnSuccessSm, btnSm, thStyle, tdStyle, searchInputStyle, statusBadge, statusLabelKeys } from './shared/constants';
 import AdminDetailPanel from './shared/AdminDetailPanel';
 
 interface KYCRecord {
@@ -22,6 +23,10 @@ interface Props {
 }
 
 export default function AdminKYC({ showToast }: Props) {
+  const { t } = useI18n();
+  const statusLabel: Record<string, string> = Object.fromEntries(
+    Object.entries(statusLabelKeys).map(([k, v]) => [k, t(v)])
+  );
   const [kycRecords, setKycRecords] = useState(initialKycData);
   const [selectedKyc, setSelectedKyc] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -41,11 +46,11 @@ export default function AdminKYC({ showToast }: Props) {
 
   const handleApprove = (id: string) => {
     setKycRecords(prev => prev.map(r => r.id === id ? { ...r, status: 'approved', aiNotes: r.aiNotes + ' | Admin approved' } : r));
-    showToast(`✅ Đã duyệt KYC ${id}`);
+    showToast(`${t('admin.kyc.approvedKyc')} ${id}`);
   };
   const handleReject = (id: string, reason?: string) => {
-    setKycRecords(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected', aiNotes: r.aiNotes + ` | Admin rejected: ${reason || 'Thông tin không khớp'}` } : r));
-    showToast(`❌ Đã từ chối KYC ${id}`);
+    setKycRecords(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected', aiNotes: r.aiNotes + ` | Admin rejected: ${reason || t('admin.kyc.infoMismatch')}` } : r));
+    showToast(`${t('admin.kyc.rejectedKyc')} ${id}`);
   };
   const handleAutoProcess = () => {
     let approved = 0, rejected = 0;
@@ -55,7 +60,7 @@ export default function AdminKYC({ showToast }: Props) {
       if (r.aiMatchScore < 50) { rejected++; return { ...r, status: 'rejected', aiNotes: r.aiNotes + ' | Auto-rejected by AI' }; }
       return r;
     }));
-    showToast(`🤖 AI đã xử lý: ${approved} approved, ${rejected} rejected, ${stats.pending - approved - rejected} cần review thủ công`);
+    showToast(`${t('admin.kyc.aiProcessed')}: ${approved} approved, ${rejected} rejected, ${stats.pending - approved - rejected} ${t('admin.kyc.needManualReview')}`);
   };
 
   const selected = kycRecords.find(r => r.id === selectedKyc);
@@ -63,7 +68,7 @@ export default function AdminKYC({ showToast }: Props) {
   return (
     <>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>KYC / Xác Minh Tài Khoản</h2>
+        <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('admin.kyc.title')}</h2>
         <button style={{ ...btnPrimSm, background: 'linear-gradient(135deg, var(--c6-500), var(--c7-500))', padding: '8px 16px', fontSize: '.78rem' }} onClick={handleAutoProcess}>
           🤖 AI Auto-Process ({stats.pending} pending)
         </button>
@@ -72,10 +77,10 @@ export default function AdminKYC({ showToast }: Props) {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
         {[
-          { label: 'Chờ xác minh', value: stats.pending, color: 'var(--gold-400)' },
-          { label: 'Đã duyệt', value: stats.approved, color: 'var(--c4-500)' },
-          { label: 'Từ chối', value: stats.rejected, color: '#ef4444' },
-          { label: 'Tổng', value: kycRecords.length, color: 'var(--c6-500)' },
+          { label: t('admin.kyc.pendingVerification'), value: stats.pending, color: 'var(--gold-400)' },
+          { label: statusLabel['approved'], value: stats.approved, color: 'var(--c4-500)' },
+          { label: statusLabel['rejected'], value: stats.rejected, color: '#ef4444' },
+          { label: t('admin.kyc.total'), value: kycRecords.length, color: 'var(--c6-500)' },
         ].map((s, i) => (
           <div key={i} className="kpi-card" style={{ padding: 16 }}>
             <div style={{ fontSize: '.68rem', color: 'var(--text-3)', textTransform: 'uppercase' }}>{s.label}</div>
@@ -86,12 +91,12 @@ export default function AdminKYC({ showToast }: Props) {
 
       {/* Filter bar */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <input placeholder="Tìm theo tên, ID..." value={search} onChange={e => setSearch(e.target.value)} style={searchInputStyle} />
+        <input placeholder={t('admin.search.nameId')} value={search} onChange={e => setSearch(e.target.value)} style={searchInputStyle} />
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ ...searchInputStyle, flex: 'none', width: 150 }}>
-          <option value="all">Tất cả</option>
-          <option value="pending">Chờ duyệt</option>
-          <option value="approved">Đã duyệt</option>
-          <option value="rejected">Từ chối</option>
+          <option value="all">{t('admin.filter.all')}</option>
+          <option value="pending">{statusLabel['pending']}</option>
+          <option value="approved">{statusLabel['approved']}</option>
+          <option value="rejected">{statusLabel['rejected']}</option>
         </select>
       </div>
 
@@ -101,7 +106,7 @@ export default function AdminKYC({ showToast }: Props) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['ID', 'Họ tên', 'CCCD', 'Ngày nộp', 'AI Score', 'Trạng thái', 'Thao tác'].map(h => <th key={h} style={thStyle}>{h}</th>)}
+                {[t('admin.th.id'), t('admin.th.fullName'), t('admin.th.cccd'), t('admin.th.submitDate'), t('admin.th.aiScore'), t('admin.th.status'), t('admin.th.operation')].map(h => <th key={h} style={thStyle}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -127,11 +132,11 @@ export default function AdminKYC({ showToast }: Props) {
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {r.status === 'pending' && (
                         <>
-                          <button style={btnSuccessSm} onClick={() => handleApprove(r.id)}>Duyệt</button>
-                          <button style={btnDangerSm} onClick={() => handleReject(r.id)}>Từ chối</button>
+                          <button style={btnSuccessSm} onClick={() => handleApprove(r.id)}>{t('admin.btn.approve')}</button>
+                          <button style={btnDangerSm} onClick={() => handleReject(r.id)}>{t('admin.btn.reject')}</button>
                         </>
                       )}
-                      <button style={btnSm} onClick={() => setSelectedKyc(r.id)}>Xem</button>
+                      <button style={btnSm} onClick={() => setSelectedKyc(r.id)}>{t('admin.btn.view')}</button>
                     </div>
                   </td>
                 </tr>
@@ -145,17 +150,17 @@ export default function AdminKYC({ showToast }: Props) {
       {selected && (
         <AdminDetailPanel
           title={`KYC — ${selected.name}`}
-          subtitle={`ID: ${selected.id} · Ngày nộp: ${selected.submittedDate}`}
+          subtitle={`ID: ${selected.id} · ${t('admin.th.submitDate')}: ${selected.submittedDate}`}
           badge={{ label: statusLabel[selected.status] || selected.status, className: statusBadge[selected.status] || 'badge-c6' }}
           onClose={() => setSelectedKyc(null)}
           actions={selected.status === 'pending' ? (
             <>
-              <button style={{ ...btnSuccessSm, padding: '8px 20px', fontSize: '.82rem' }} onClick={() => { handleApprove(selected.id); setSelectedKyc(null); }}>✅ Duyệt</button>
-              <button style={{ ...btnDangerSm, padding: '8px 20px', fontSize: '.82rem' }} onClick={() => { handleReject(selected.id); setSelectedKyc(null); }}>❌ Từ chối</button>
+              <button style={{ ...btnSuccessSm, padding: '8px 20px', fontSize: '.82rem' }} onClick={() => { handleApprove(selected.id); setSelectedKyc(null); }}>✅ {t('admin.btn.approve')}</button>
+              <button style={{ ...btnDangerSm, padding: '8px 20px', fontSize: '.82rem' }} onClick={() => { handleReject(selected.id); setSelectedKyc(null); }}>❌ {t('admin.btn.reject')}</button>
             </>
           ) : undefined}
           tabs={[
-            { key: 'verify', label: 'Xác minh', icon: '🪪', content: (
+            { key: 'verify', label: t('admin.kyc.verification'), icon: '🪪', content: (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* AI Match Score */}
                 <div style={{ padding: 20, borderRadius: 12, background: selected.aiMatchScore >= 90 ? 'rgba(34,197,94,.08)' : selected.aiMatchScore >= 70 ? 'rgba(245,158,11,.08)' : 'rgba(239,68,68,.08)', border: `1px solid ${selected.aiMatchScore >= 90 ? 'rgba(34,197,94,.2)' : selected.aiMatchScore >= 70 ? 'rgba(245,158,11,.2)' : 'rgba(239,68,68,.2)'}` }}>
@@ -169,33 +174,33 @@ export default function AdminKYC({ showToast }: Props) {
                   <div style={{ fontSize: '.78rem', marginTop: 8, color: 'var(--text-2)' }}>{selected.aiNotes}</div>
                   {selected.aiMatchScore >= 90 && selected.status === 'pending' && (
                     <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 8, background: 'rgba(34,197,94,.1)', fontSize: '.75rem', color: '#22c55e', fontWeight: 600 }}>
-                      💡 Khuyến nghị: Tự động duyệt — AI match score cao
+                      {t('admin.kyc.recommend.autoApprove')}
                     </div>
                   )}
                   {selected.aiMatchScore < 70 && selected.status === 'pending' && (
                     <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 8, background: 'rgba(239,68,68,.1)', fontSize: '.75rem', color: '#ef4444', fontWeight: 600 }}>
-                      ⚠️ Cảnh báo: Score thấp — cần kiểm tra kỹ thông tin
+                      {t('admin.kyc.warn.lowScore')}
                     </div>
                   )}
                 </div>
 
                 {/* Info Comparison Table */}
                 <div>
-                  <h4 style={{ fontSize: '.88rem', fontWeight: 700, marginBottom: 12 }}>So sánh thông tin</h4>
+                  <h4 style={{ fontSize: '.88rem', fontWeight: 700, marginBottom: 12 }}>{t('admin.kyc.compareInfo')}</h4>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                     <thead>
                       <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                        <th style={{ ...thStyle, width: '25%' }}>Trường</th>
-                        <th style={thStyle}>Khai báo</th>
-                        <th style={thStyle}>Trên CCCD (OCR)</th>
-                        <th style={{ ...thStyle, width: '15%' }}>Kết quả</th>
+                        <th style={{ ...thStyle, width: '25%' }}>{t('admin.kyc.field')}</th>
+                        <th style={thStyle}>{t('admin.kyc.declared')}</th>
+                        <th style={thStyle}>{t('admin.kyc.onCccd')}</th>
+                        <th style={{ ...thStyle, width: '15%' }}>{t('admin.kyc.result')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[
-                        { field: 'Họ tên', submitted: selected.submittedName, ocr: selected.name, match: selected.submittedName === selected.name },
-                        { field: 'Ngày sinh', submitted: selected.submittedDob, ocr: selected.dob, match: selected.submittedDob === selected.dob },
-                        { field: 'Số CCCD', submitted: selected.submittedCccd.slice(0, 3) + '***' + selected.submittedCccd.slice(-4), ocr: selected.cccd, match: true },
+                        { field: t('admin.th.fullName'), submitted: selected.submittedName, ocr: selected.name, match: selected.submittedName === selected.name },
+                        { field: t('admin.kyc.dobField'), submitted: selected.submittedDob, ocr: selected.dob, match: selected.submittedDob === selected.dob },
+                        { field: t('admin.kyc.cccdNumber'), submitted: selected.submittedCccd.slice(0, 3) + '***' + selected.submittedCccd.slice(-4), ocr: selected.cccd, match: true },
                       ].map((row, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                           <td style={{ ...tdStyle, fontWeight: 600 }}>{row.field}</td>
@@ -203,7 +208,7 @@ export default function AdminKYC({ showToast }: Props) {
                           <td style={tdStyle}>{row.ocr}</td>
                           <td style={tdStyle}>
                             <span style={{ color: row.match ? '#22c55e' : '#ef4444', fontWeight: 700 }}>
-                              {row.match ? '✅ Khớp' : '❌ Sai'}
+                              {row.match ? `✅ ${t('admin.kyc.match')}` : `❌ ${t('admin.kyc.mismatch')}`}
                             </span>
                           </td>
                         </tr>
@@ -214,27 +219,27 @@ export default function AdminKYC({ showToast }: Props) {
 
                 {/* Document Preview */}
                 <div>
-                  <h4 style={{ fontSize: '.88rem', fontWeight: 700, marginBottom: 12 }}>Tài liệu đã nộp</h4>
+                  <h4 style={{ fontSize: '.88rem', fontWeight: 700, marginBottom: 12 }}>{t('admin.kyc.submittedDocs')}</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
                     {[
-                      { label: 'CCCD Mặt trước', icon: '📄' },
-                      { label: 'CCCD Mặt sau', icon: '📄' },
-                      { label: 'Ảnh Selfie + CCCD', icon: '🤳' },
+                      { label: t('admin.kyc.cccdFront'), icon: '📄' },
+                      { label: t('admin.kyc.cccdBack'), icon: '📄' },
+                      { label: t('admin.kyc.selfieCccd'), icon: '🤳' },
                     ].map((doc, i) => (
                       <div key={i} style={{ padding: 24, textAlign: 'center', borderRadius: 12, background: 'var(--bg-2)', border: '2px dashed var(--border)' }}>
                         <div style={{ fontSize: '2rem', marginBottom: 8 }}>{doc.icon}</div>
                         <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{doc.label}</div>
-                        <div style={{ fontSize: '.6rem', color: 'var(--text-4)', marginTop: 4 }}>Đã upload ✅</div>
+                        <div style={{ fontSize: '.6rem', color: 'var(--text-4)', marginTop: 4 }}>{t('admin.kyc.uploaded')} ✅</div>
                       </div>
                     ))}
                   </div>
                 </div>
               </div>
             )},
-            { key: 'history', label: 'Lịch sử', icon: '📜', content: (
+            { key: 'history', label: t('admin.kyc.history'), icon: '📜', content: (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div style={{ padding: '12px 16px', borderRadius: 8, borderLeft: '3px solid var(--c6-500)', background: 'var(--bg-2)', fontSize: '.78rem' }}>
-                  <div style={{ fontWeight: 700 }}>Nộp hồ sơ KYC</div>
+                  <div style={{ fontWeight: 700 }}>{t('admin.kyc.submitKyc')}</div>
                   <div style={{ color: 'var(--text-3)', marginTop: 2 }}>{selected.submittedDate} · Upload CCCD + Selfie</div>
                 </div>
                 <div style={{ padding: '12px 16px', borderRadius: 8, borderLeft: '3px solid #f59e0b', background: 'var(--bg-2)', fontSize: '.78rem' }}>
@@ -243,7 +248,7 @@ export default function AdminKYC({ showToast }: Props) {
                 </div>
                 {selected.status !== 'pending' && (
                   <div style={{ padding: '12px 16px', borderRadius: 8, borderLeft: `3px solid ${selected.status === 'approved' ? '#22c55e' : '#ef4444'}`, background: 'var(--bg-2)', fontSize: '.78rem' }}>
-                    <div style={{ fontWeight: 700 }}>{selected.status === 'approved' ? 'Đã duyệt' : 'Đã từ chối'}</div>
+                    <div style={{ fontWeight: 700 }}>{selected.status === 'approved' ? statusLabel['approved'] : statusLabel['rejected']}</div>
                     <div style={{ color: 'var(--text-3)', marginTop: 2 }}>{selected.aiNotes.split('|').pop()?.trim()}</div>
                   </div>
                 )}

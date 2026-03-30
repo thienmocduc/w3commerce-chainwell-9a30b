@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
+import { useI18n } from '@hooks/useI18n';
 
 /* ── Animated counter hook (IntersectionObserver) ── */
 function useCounter(target: number, duration = 2000) {
@@ -59,6 +60,7 @@ function StatCounter({
 }
 
 export default function Home() {
+  const { t } = useI18n();
   return (
     <>
       {/* ═══════════════════════════════════════════
@@ -80,10 +82,10 @@ export default function Home() {
           </div>
 
           <h1 className="display-xl" style={{ marginBottom: 20, lineHeight: 1.15 }}>
-            <span className="gradient-text">Thương mại cộng đồng</span>
+            <span className="gradient-text">{t('home.hero.title')}</span>
             <br />
             <span style={{ fontSize: '0.55em', fontWeight: 600, color: 'var(--text-2)', lineHeight: 1.5 }}>
-              Nơi mỗi giao dịch đều minh bạch, mỗi đóng góp đều được ghi nhận
+              {t('home.hero.subtitle')}
             </span>
           </h1>
 
@@ -96,10 +98,9 @@ export default function Home() {
               margin: '0 auto 36px',
             }}
           >
-            Nền tảng kết nối <strong style={{ color: 'var(--text-1)' }}>Người mua</strong> ·{' '}
+            {t('home.hero.desc.prefix')} <strong style={{ color: 'var(--text-1)' }}>{t('home.hero.desc.buyer')}</strong> ·{' '}
             <strong style={{ color: 'var(--text-1)' }}>KOC</strong> ·{' '}
-            <strong style={{ color: 'var(--text-1)' }}>Vendor</strong> trên blockchain.
-            Hoa hồng on-chain 100% minh bạch. 333 AI Agents phục vụ 24/7.
+            <strong style={{ color: 'var(--text-1)' }}>Vendor</strong> {t('home.hero.desc.suffix')}
           </p>
 
           <div
@@ -112,10 +113,10 @@ export default function Home() {
             }}
           >
             <Link to="/marketplace" className="btn btn-primary btn-lg">
-              Khám phá ngay →
+              {t('home.hero.cta.explore')} →
             </Link>
             <Link to="/about" className="btn btn-ghost btn-lg" style={{ border: '1px solid var(--border)' }}>
-              Xem câu chuyện
+              {t('home.hero.cta.story')}
             </Link>
           </div>
 
@@ -138,10 +139,10 @@ export default function Home() {
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <div className="section-badge">
-              <span className="dot-pulse dot-green" /> Triết lý nền tảng
+              <span className="dot-pulse dot-green" /> {t('home.philosophy.badge')}
             </div>
             <h2 className="display-lg" style={{ marginBottom: 12 }}>
-              Triết lý <span className="gradient-text">Thiện Lành</span>
+              {t('home.philosophy.title.prefix')} <span className="gradient-text">{t('home.philosophy.title.highlight')}</span>
             </h2>
             <p
               style={{
@@ -152,8 +153,7 @@ export default function Home() {
                 lineHeight: 1.7,
               }}
             >
-              Thương mại cộng đồng trí tuệ thiện lành — nơi công nghệ phục vụ con người,
-              không phải ngược lại.
+              {t('home.philosophy.desc')}
             </p>
           </div>
 
@@ -185,7 +185,7 @@ export default function Home() {
                   color: 'var(--text-1)',
                 }}
               >
-                Minh bạch tuyệt đối
+                {t('home.philosophy.transparency.title')}
               </h3>
               <p
                 style={{
@@ -195,8 +195,7 @@ export default function Home() {
                   marginBottom: 16,
                 }}
               >
-                Mọi giao dịch được ghi nhận on-chain, không thể giả mạo hay can thiệp.
-                Ai cũng có thể kiểm chứng bất kỳ lúc nào.
+                {t('home.philosophy.transparency.desc')}
               </p>
               <div
                 style={{
@@ -236,7 +235,7 @@ export default function Home() {
                   color: 'var(--text-1)',
                 }}
               >
-                Công bằng cho tất cả
+                {t('home.philosophy.fairness.title')}
               </h3>
               <p
                 style={{
@@ -246,8 +245,7 @@ export default function Home() {
                   marginBottom: 16,
                 }}
               >
-                Smart Contract phân phối hoa hồng tự động, không trung gian,
-                không thiên vị. Mọi người đều nhận đúng giá trị đóng góp.
+                {t('home.philosophy.fairness.desc')}
               </p>
               <div
                 style={{
@@ -287,7 +285,7 @@ export default function Home() {
                   color: 'var(--text-1)',
                 }}
               >
-                Trí tuệ phục vụ con người
+                {t('home.philosophy.intelligence.title')}
               </h3>
               <p
                 style={{
@@ -297,8 +295,7 @@ export default function Home() {
                   marginBottom: 16,
                 }}
               >
-                333 AI Agents hỗ trợ mọi vai trò 24/7 — phân tích, tư vấn, vận hành.
-                Công nghệ phục vụ, không thay thế con người.
+                {t('home.philosophy.intelligence.desc')}
               </p>
               <div
                 style={{
@@ -323,11 +320,11 @@ export default function Home() {
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <div className="section-badge">
-              <span className="dot-pulse dot-blue" /> Hệ sinh thái
+              <span className="dot-pulse dot-blue" /> {t('home.ecosystem.badge')}
             </div>
             <h2 className="display-lg" style={{ marginBottom: 12 }}>
-              Ba vai trò · Một hệ sinh thái{' '}
-              <span className="gradient-text">thiện lành</span>
+              {t('home.ecosystem.title.prefix')}{' '}
+              <span className="gradient-text">{t('home.ecosystem.title.highlight')}</span>
             </h2>
             <p
               style={{
@@ -338,7 +335,7 @@ export default function Home() {
                 lineHeight: 1.7,
               }}
             >
-              Mỗi vai trò tạo giá trị cho nhau — tất cả minh bạch, xác thực on-chain.
+              {t('home.ecosystem.desc')}
             </p>
           </div>
 
@@ -354,7 +351,7 @@ export default function Home() {
                   color: 'var(--text-1)',
                 }}
               >
-                Người mua
+                {t('home.ecosystem.buyer.title')}
               </h3>
               <p
                 style={{
@@ -364,8 +361,7 @@ export default function Home() {
                   marginBottom: 20,
                 }}
               >
-                Mua hàng chính hãng với DPP xác thực on-chain. Tham gia Group Buy giá tốt,
-                follow KOC yêu thích để nhận ưu đãi độc quyền.
+                {t('home.ecosystem.buyer.desc')}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
                 <span className="badge badge-c4">DPP Verify</span>
@@ -402,7 +398,7 @@ export default function Home() {
                 className="badge badge-gold"
                 style={{ position: 'absolute', top: 16, right: 16, fontSize: '.65rem' }}
               >
-                Vai trò cốt lõi
+                {t('home.ecosystem.koc.badge')}
               </div>
               <div className="role-icon">⭐</div>
               <h3
@@ -423,8 +419,7 @@ export default function Home() {
                   marginBottom: 20,
                 }}
               >
-                Bán hàng qua livestream, review, social content. Hoa hồng T1 40%, T2 13% —
-                tất cả on-chain minh bạch, nhận ngay khi giao hàng.
+                {t('home.ecosystem.koc.desc')}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
                 <span className="badge badge-c6">T1 40%</span>
@@ -467,8 +462,7 @@ export default function Home() {
                   marginBottom: 20,
                 }}
               >
-                Đăng sản phẩm, mint DPP NFT xác thực nguồn gốc. Mạng lưới KOC bán hàng —
-                333 AI Agents hỗ trợ vận hành 24/7.
+                {t('home.ecosystem.vendor.desc')}
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
                 <span className="badge badge-c7">DPP Mint</span>
@@ -505,8 +499,8 @@ export default function Home() {
               <span className="dot-pulse dot-violet" /> On-chain Commission
             </div>
             <h2 className="display-lg" style={{ marginBottom: 12 }}>
-              Hoa hồng minh bạch —{' '}
-              <span className="gradient-text">từ đơn hàng đến ví KOC</span>
+              {t('home.commission.title.prefix')}{' '}
+              <span className="gradient-text">{t('home.commission.title.highlight')}</span>
             </h2>
             <p
               style={{
@@ -516,7 +510,7 @@ export default function Home() {
                 margin: '0 auto',
               }}
             >
-              Mọi khoản hoa hồng được Smart Contract xử lý tự động, minh bạch tuyệt đối.
+              {t('home.commission.desc')}
             </p>
           </div>
 
@@ -568,10 +562,10 @@ export default function Home() {
                     marginBottom: 2,
                   }}
                 >
-                  Người mua đặt hàng
+                  {t('home.commission.step1')}
                 </span>
                 <span className="mono" style={{ color: 'var(--text-3)', fontSize: '.68rem' }}>
-                  Bước 1
+                  {t('home.commission.step1.label')}
                 </span>
               </div>
 
@@ -633,10 +627,10 @@ export default function Home() {
                     marginBottom: 2,
                   }}
                 >
-                  Đơn hàng xác nhận
+                  {t('home.commission.step2')}
                 </span>
                 <span className="mono" style={{ color: 'var(--text-3)', fontSize: '.68rem' }}>
-                  Bước 2
+                  {t('home.commission.step2.label')}
                 </span>
               </div>
 
@@ -699,7 +693,7 @@ export default function Home() {
                     marginBottom: 2,
                   }}
                 >
-                  Smart Contract xử lý
+                  {t('home.commission.step3')}
                 </span>
                 <span className="mono" style={{ color: 'var(--c6-300)', fontSize: '.68rem' }}>
                   Polygon
@@ -764,7 +758,7 @@ export default function Home() {
                     marginBottom: 2,
                   }}
                 >
-                  KOC nhận hoa hồng
+                  {t('home.commission.step4')}
                 </span>
                 <span className="mono" style={{ color: 'var(--text-3)', fontSize: '.68rem' }}>
                   T1 40% · T2 13%
@@ -829,7 +823,7 @@ export default function Home() {
                     marginBottom: 2,
                   }}
                 >
-                  Bằng chứng on-chain
+                  {t('home.commission.step5')}
                 </span>
                 <span className="mono" style={{ color: 'var(--text-3)', fontSize: '.68rem' }}>
                   Immutable
@@ -917,7 +911,7 @@ export default function Home() {
               <span className="dot-pulse dot-indigo" /> Social Proof
             </div>
             <h2 className="display-lg">
-              Con số <span className="gradient-text">ấn tượng</span>
+              {t('home.stats.title.prefix')} <span className="gradient-text">{t('home.stats.title.highlight')}</span>
             </h2>
           </div>
 
@@ -931,12 +925,12 @@ export default function Home() {
             }}
           >
             {[
-              { value: 142, suffix: '₫', label: 'GMV (tỷ ₫)' },
+              { value: 142, suffix: '₫', label: t('home.stats.gmv') },
               { value: 12847, suffix: '', label: 'Active KOCs' },
               { value: 890, suffix: 'K', label: 'DPP Minted' },
               { value: 333, suffix: '', label: 'AI Agents' },
               { value: 2400, suffix: '', label: 'Live Sessions' },
-              { value: 38, suffix: '₫', label: 'Hoa hồng đã trả (tỷ ₫)' },
+              { value: 38, suffix: '₫', label: t('home.stats.commissionPaid') },
             ].map((stat, i) => (
               <MetricCounter
                 key={i}
@@ -958,10 +952,10 @@ export default function Home() {
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <div className="section-badge">
-              <span className="dot-pulse dot-indigo" /> Công nghệ
+              <span className="dot-pulse dot-indigo" /> {t('home.tech.badge')}
             </div>
             <h2 className="display-lg">
-              Công nghệ <span className="gradient-text">đáng tin</span>
+              {t('home.tech.title.prefix')} <span className="gradient-text">{t('home.tech.title.highlight')}</span>
             </h2>
           </div>
 
@@ -1040,7 +1034,7 @@ export default function Home() {
                   100% On-chain
                 </div>
                 <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>
-                  Dữ liệu lưu trữ trên blockchain
+                  {t('home.tech.onchain.desc')}
                 </div>
               </div>
             </div>
@@ -1067,7 +1061,7 @@ export default function Home() {
                   Smart Contract Audited
                 </div>
                 <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>
-                  Audit bởi đội ngũ bảo mật chuyên nghiệp
+                  {t('home.tech.audit.desc')}
                 </div>
               </div>
             </div>
@@ -1094,7 +1088,7 @@ export default function Home() {
                   333 AI Agents 24/7
                 </div>
                 <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>
-                  Vận hành tự động không ngừng nghỉ
+                  {t('home.tech.ai.desc')}
                 </div>
               </div>
             </div>
@@ -1137,8 +1131,8 @@ export default function Home() {
           style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}
         >
           <h2 className="display-lg" style={{ marginBottom: 16 }}>
-            Tham gia cộng đồng thương mại{' '}
-            <span className="gradient-text">thiện lành</span>
+            {t('home.cta.title.prefix')}{' '}
+            <span className="gradient-text">{t('home.cta.title.highlight')}</span>
           </h2>
           <p
             style={{
@@ -1149,8 +1143,7 @@ export default function Home() {
               lineHeight: 1.7,
             }}
           >
-            Chọn vai trò phù hợp và bắt đầu hành trình cùng hệ sinh thái thương mại
-            on-chain thiện lành đầu tiên tại Việt Nam.
+            {t('home.cta.desc')}
           </p>
 
           <div
@@ -1162,15 +1155,15 @@ export default function Home() {
             }}
           >
             <Link to="/login" className="btn btn-primary btn-lg">
-              Đăng nhập
+              {t('home.cta.login')}
             </Link>
             <Link to="/register" className="btn btn-secondary btn-lg">
-              Đăng ký miễn phí
+              {t('home.cta.register')}
             </Link>
           </div>
 
           <p style={{ marginTop: 24, fontSize: '.78rem', color: 'var(--text-3)' }}>
-            Miễn phí · Không cần thẻ tín dụng · Kết nối ví trong 30 giây
+            {t('home.cta.footnote')}
           </p>
         </div>
       </section>

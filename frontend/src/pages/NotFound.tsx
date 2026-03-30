@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 export default function NotFound() {
+  const { t } = useI18n();
   return (
     <div style={{
       minHeight: '100vh',
@@ -25,26 +27,26 @@ export default function NotFound() {
           404
         </div>
 
-        <h1 className="display-md" style={{ marginBottom: 8 }}>Trang Không Tồn Tại</h1>
+        <h1 className="display-md" style={{ marginBottom: 8 }}>{t('notFound.title')}</h1>
         <p style={{ color: 'var(--text-3)', fontSize: '.92rem', maxWidth: 420, margin: '0 auto 32px', lineHeight: 1.6 }}>
-          Xin lỗi, trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
+          {t('notFound.desc')}
         </p>
 
         <div className="flex gap-12" style={{ justifyContent: 'center', marginBottom: 40 }}>
           <Link to="/" className="btn btn-primary btn-lg" style={{ textDecoration: 'none' }}>
-            Về trang chủ
+            {t('notFound.goHome')}
           </Link>
           <Link to="/hot" className="btn btn-secondary btn-lg" style={{ textDecoration: 'none' }}>
-            Xem sản phẩm
+            {t('notFound.viewProducts')}
           </Link>
         </div>
 
         {/* Quick Links */}
         <div className="card-glass" style={{ padding: 24, maxWidth: 400, margin: '0 auto' }}>
-          <div className="label" style={{ marginBottom: 12 }}>LIÊN KẾT NHANH</div>
+          <div className="label" style={{ marginBottom: 12 }}>{t('notFound.quickLinks')}</div>
           <div className="flex-col gap-8">
             {[
-              { to: '/hot', label: 'Sản phẩm Hot', icon: '🔥' },
+              { to: '/hot', label: t('notFound.hotProducts'), icon: '🔥' },
               { to: '/dashboard', label: 'Dashboard', icon: '📊' },
               { to: '/academy', label: 'KOC Academy', icon: '🎓' },
               { to: '/agents', label: '333 AI Agents', icon: '🤖' },

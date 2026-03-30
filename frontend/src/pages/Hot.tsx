@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '@hooks/useI18n';
 
 const trendingProducts = [
   { id: 1, name: 'Trà Ô Long Đài Loan Premium', price: '389.000₫', oldPrice: '520.000₫', discount: '-25%', emoji: '🍵', dpp: true, sold: 1247, koc: 'MH', commission: '18%' },
@@ -18,9 +19,17 @@ const flashDeals = [
   { id: 104, name: 'Trà Matcha Nhật Bản 100g', price: '259.000₫', oldPrice: '520.000₫', discount: '-50%', emoji: '🍃', timeLeft: '00:45:33', stock: 5 },
 ];
 
-const categories = ['Tất cả', 'Sức khỏe', 'Làm đẹp', 'Thực phẩm', 'Đồ uống', 'Organic'];
+const categoryKeys = [
+  { key: 'Tất cả', i18n: 'hot.cat.all' },
+  { key: 'Sức khỏe', i18n: 'hot.cat.health' },
+  { key: 'Làm đẹp', i18n: 'hot.cat.beauty' },
+  { key: 'Thực phẩm', i18n: 'hot.cat.food' },
+  { key: 'Đồ uống', i18n: 'hot.cat.drink' },
+  { key: 'Organic', i18n: 'hot.cat.organic' },
+];
 
 export default function Hot() {
+  const { t } = useI18n();
   const [activeCategory, setActiveCategory] = useState('Tất cả');
   const [activeTab, setActiveTab] = useState<'trending' | 'bestseller' | 'flash'>('trending');
 
@@ -38,10 +47,10 @@ export default function Hot() {
             🔥 HOT DEALS
           </div>
           <h1 className="display-lg gradient-text" style={{ marginBottom: 12 }}>
-            Sản Phẩm Hot Nhất
+            {t('hot.title')}
           </h1>
           <p style={{ color: 'var(--text-3)', maxWidth: 520, margin: '0 auto', fontSize: '.88rem' }}>
-            Khám phá những sản phẩm trending, bestseller và flash deal hấp dẫn nhất từ cộng đồng KOC
+            {t('hot.desc')}
           </p>
         </div>
       </div>
@@ -63,13 +72,13 @@ export default function Hot() {
         {/* Category Filter */}
         {activeTab !== 'flash' && (
           <div className="flex gap-8" style={{ marginBottom: 28, flexWrap: 'wrap' }}>
-            {categories.map(cat => (
+            {categoryKeys.map(cat => (
               <button
-                key={cat}
-                className={`btn btn-sm ${activeCategory === cat ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => setActiveCategory(cat)}
+                key={cat.key}
+                className={`btn btn-sm ${activeCategory === cat.key ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => setActiveCategory(cat.key)}
               >
-                {cat}
+                {t(cat.i18n)}
               </button>
             ))}
           </div>
@@ -88,7 +97,7 @@ export default function Hot() {
                 <div className="prod-body">
                   <div className="prod-name">{p.name}</div>
                   <div className="flex gap-8" style={{ marginBottom: 6 }}>
-                    <span className="badge badge-c6">Hoa hồng {p.commission}</span>
+                    <span className="badge badge-c6">{t('hot.commission')} {p.commission}</span>
                   </div>
                   <div className="prod-meta">
                     <div>
@@ -100,7 +109,7 @@ export default function Hot() {
                     </div>
                   </div>
                   <div style={{ fontSize: '.65rem', color: 'var(--text-3)', marginTop: 8 }}>
-                    Đã bán {p.sold.toLocaleString()}
+                    {t('hot.sold')} {p.sold.toLocaleString()}
                   </div>
                   <div className="progress-track" style={{ marginTop: 6 }}>
                     <div className="progress-fill" style={{ width: `${Math.min((p.sold / 2500) * 100, 100)}%` }} />
@@ -116,7 +125,7 @@ export default function Hot() {
           <>
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <div className="badge badge-gold" style={{ fontSize: '.72rem', padding: '.35rem .9rem' }}>
-                ⚡ Flash Deal kết thúc sau vài giờ nữa
+                ⚡ {t('hot.flash.ending')}
               </div>
             </div>
             <div className="grid-4" style={{ gap: 20 }}>
@@ -143,12 +152,12 @@ export default function Hot() {
                     <div className="card" style={{ padding: '8px 12px', textAlign: 'center', marginBottom: 10, background: 'var(--bg-2)' }}>
                       <span className="mono" style={{ fontSize: '.85rem', fontWeight: 700, color: '#ef4444' }}>⏰ {deal.timeLeft}</span>
                     </div>
-                    <div style={{ fontSize: '.65rem', color: 'var(--text-3)', marginBottom: 6 }}>Còn lại: {deal.stock} sản phẩm</div>
+                    <div style={{ fontSize: '.65rem', color: 'var(--text-3)', marginBottom: 6 }}>{t('hot.flash.remaining')} {deal.stock} {t('hot.flash.items')}</div>
                     <div className="progress-track">
                       <div className="progress-fill" style={{ width: `${100 - (deal.stock / 50) * 100}%`, background: 'linear-gradient(90deg, #ef4444, #f97316)' }} />
                     </div>
                     <button className="btn btn-primary" style={{ width: '100%', marginTop: 12 }}>
-                      Mua Ngay
+                      {t('hot.flash.buyNow')}
                     </button>
                   </div>
                 </div>
@@ -161,15 +170,15 @@ export default function Hot() {
         <div style={{ marginTop: 64 }}>
           <div className="section-header">
             <div className="section-badge">👑 TOP KOC</div>
-            <h2 className="display-md">Bảng Xếp Hạng KOC Tuần Này</h2>
+            <h2 className="display-md">{t('hot.kocRanking.title')}</h2>
           </div>
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
             <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', fontWeight: 700, fontSize: '.7rem', color: 'var(--text-3)', letterSpacing: '.06em', textTransform: 'uppercase' }}>
-              <span style={{ flex: '0 0 60px' }}>Hạng</span>
+              <span style={{ flex: '0 0 60px' }}>{t('hot.kocRanking.rank')}</span>
               <span style={{ flex: 1 }}>KOC</span>
-              <span style={{ flex: '0 0 120px', textAlign: 'right' }}>Doanh số</span>
-              <span style={{ flex: '0 0 100px', textAlign: 'right' }}>Hoa hồng</span>
-              <span style={{ flex: '0 0 80px', textAlign: 'right' }}>Cấp</span>
+              <span style={{ flex: '0 0 120px', textAlign: 'right' }}>{t('hot.kocRanking.sales')}</span>
+              <span style={{ flex: '0 0 100px', textAlign: 'right' }}>{t('hot.kocRanking.commission')}</span>
+              <span style={{ flex: '0 0 80px', textAlign: 'right' }}>{t('hot.kocRanking.level')}</span>
             </div>
             {[
               { rank: 1, name: 'Minh Hương', sales: '45.2M₫', commission: '8.1M₫', level: 'Diamond', badge: '🥇' },

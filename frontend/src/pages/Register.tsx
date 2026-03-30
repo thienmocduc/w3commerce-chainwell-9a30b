@@ -1,29 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import { useI18n } from '@hooks/useI18n';
 
 type RoleOption = 'buyer' | 'koc' | 'vendor';
 type Step = 1 | 2 | 3;
 
-const roleCards: { key: RoleOption; icon: string; label: string; desc: string; color: string; gradient: string }[] = [
+const roleCards: { key: RoleOption; icon: string; labelKey: string; descKey: string; color: string; gradient: string }[] = [
   {
-    key: 'buyer', icon: '🛒', label: 'Người mua',
-    desc: 'Mua sắm sản phẩm chính hãng, nhận cashback và XP mỗi đơn hàng',
+    key: 'buyer', icon: '🛒', labelKey: 'register.roleBuyer',
+    descKey: 'register.roleBuyerDesc',
     color: 'var(--c4-500, #22c55e)', gradient: 'linear-gradient(135deg, rgba(34,197,94,.12), rgba(6,182,212,.08))',
   },
   {
-    key: 'koc', icon: '🌟', label: 'KOC / KOL',
-    desc: 'Sáng tạo nội dung, review sản phẩm, kiếm hoa hồng từ mạng lưới',
+    key: 'koc', icon: '🌟', labelKey: 'register.roleKOC',
+    descKey: 'register.roleKOCDesc',
     color: 'var(--c6-500, #06b6d4)', gradient: 'linear-gradient(135deg, rgba(6,182,212,.12), rgba(99,102,241,.08))',
   },
   {
-    key: 'vendor', icon: '🏪', label: 'Nhà cung cấp',
-    desc: 'Bán sản phẩm, tạo DPP blockchain, kết nối KOC network',
+    key: 'vendor', icon: '🏪', labelKey: 'register.roleVendor',
+    descKey: 'register.roleVendorDesc',
     color: 'var(--c7-500, #6366f1)', gradient: 'linear-gradient(135deg, rgba(99,102,241,.12), rgba(168,85,247,.08))',
   },
 ];
 
-const stepLabels = ['Chọn vai trò', 'Thông tin', 'Hoàn tất'];
+const stepLabelKeys = ['register.stepRole', 'register.stepInfo', 'register.stepDone'];
 
 /* ── CSS inject (media query đảm bảo hoạt động trên mobile thật) ── */
 const REGISTER_CSS = `
@@ -48,6 +49,7 @@ const REGISTER_CSS = `
 `;
 
 export default function Register() {
+  const { t } = useI18n();
   const { registerAsync } = useAuth();
   const navigate = useNavigate();
 
@@ -107,11 +109,11 @@ export default function Register() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+      setError(t('register.errorPasswordMatch'));
       return;
     }
     if (password.length < 6) {
-      setError('Mật khẩu phải có ít nhất 6 ký tự');
+      setError(t('register.errorPasswordLength'));
       return;
     }
 
@@ -135,7 +137,7 @@ export default function Register() {
         setStep(3);
       }
     } else {
-      setError(result.error || 'Đăng ký thất bại. Vui lòng thử lại.');
+      setError(result.error || t('register.errorDefault'));
     }
   };
 
@@ -177,11 +179,11 @@ export default function Register() {
           <h1 style={{ fontFamily: "'Noto Sans', sans-serif", fontWeight: 800, fontSize: '2.6rem', background: 'linear-gradient(90deg, #22c55e, #06b6d4, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: 16 }}>WellKOC</h1>
 
           <p style={{ color: 'rgba(255,255,255,.7)', fontSize: '1.15rem', lineHeight: 1.7, maxWidth: 360, margin: '0 auto' }}>
-            Tham gia cộng đồng Web3 Social Commerce<br />với hơn 10,000+ thành viên
+            {t('register.brandDesc').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
           </p>
 
           <div style={{ display: 'flex', gap: 24, justifyContent: 'center', marginTop: 40, padding: '20px 0', borderTop: '1px solid rgba(255,255,255,.08)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-            {[{ value: '10K+', label: 'Thành viên' }, { value: '500+', label: 'KOC/KOL' }, { value: '1K+', label: 'Sản phẩm' }].map(s => (
+            {[{ value: '10K+', label: t('register.statMembers') }, { value: '500+', label: 'KOC/KOL' }, { value: '1K+', label: t('register.statProducts') }].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#fff' }}>{s.value}</div>
                 <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,.45)', marginTop: 2 }}>{s.label}</div>
@@ -190,7 +192,7 @@ export default function Register() {
           </div>
 
           <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 28, flexWrap: 'wrap' }}>
-            {['Miễn phí', 'XP từ ngày 1', 'KOC Network', 'DPP Blockchain'].map(f => (
+            {[t('register.tagFree'), t('register.tagXP'), 'KOC Network', 'DPP Blockchain'].map(f => (
               <span key={f} style={{ padding: '7px 16px', borderRadius: 20, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.1)', color: 'rgba(255,255,255,.5)', fontSize: '.75rem', backdropFilter: 'blur(10px)' }}>{f}</span>
             ))}
           </div>
@@ -212,19 +214,19 @@ export default function Register() {
                 <path d="M23 11V27M23 19L31 11M23 19L31 27" stroke="url(#wkGradRM)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
               <div style={{ fontFamily: "'Noto Sans', sans-serif", fontWeight: 800, fontSize: '1.3rem', background: 'linear-gradient(90deg, #22c55e, #06b6d4, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginTop: 6 }}>WellKOC</div>
-              <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.72rem', marginTop: 4 }}>Tham gia cộng đồng Web3 Social Commerce</p>
+              <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.72rem', marginTop: 4 }}>{t('register.mobileDesc')}</p>
             </div>
           </div>
 
           <div className="reg-content">
             {/* Back to home */}
             <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', textDecoration: 'none', fontSize: '.78rem', marginBottom: 16, transition: 'color .2s' }}>
-              ← Về trang chủ
+              {t('register.backHome')}
             </Link>
 
             {/* Progress Indicator */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 20 }}>
-              {stepLabels.map((label, i) => {
+              {stepLabelKeys.map((labelKey, i) => {
                 const stepNum = (i + 1) as Step;
                 const isActive = step === stepNum;
                 const isDone = step > stepNum;
@@ -242,7 +244,7 @@ export default function Register() {
                       }}>
                         {isDone ? '✓' : stepNum}
                       </div>
-                      <span style={{ fontSize: '.63rem', fontWeight: 600, color: isActive ? 'var(--text-1)' : 'var(--text-4)', whiteSpace: 'nowrap' }}>{label}</span>
+                      <span style={{ fontSize: '.63rem', fontWeight: 600, color: isActive ? 'var(--text-1)' : 'var(--text-4)', whiteSpace: 'nowrap' }}>{t(labelKey)}</span>
                     </div>
                     {i < 2 && (
                       <div style={{ flex: 1, height: 2, margin: '0 12px', marginBottom: 20, background: isDone ? 'var(--c4-500, #22c55e)' : 'var(--border)', borderRadius: 1, transition: 'background .3s' }} />
@@ -255,8 +257,8 @@ export default function Register() {
             {/* Step 1: Choose Role */}
             {step === 1 && (
               <div>
-                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 4, color: 'var(--text-1)' }}>Bạn là ai?</h2>
-                <p style={{ color: 'var(--text-3)', fontSize: '.8rem', marginBottom: 16 }}>Chọn vai trò phù hợp với bạn để bắt đầu</p>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 4, color: 'var(--text-1)' }}>{t('register.whoAreYou')}</h2>
+                <p style={{ color: 'var(--text-3)', fontSize: '.8rem', marginBottom: 16 }}>{t('register.chooseRole')}</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {roleCards.map(role => (
@@ -278,8 +280,8 @@ export default function Register() {
                         fontSize: '1.1rem', flexShrink: 0,
                       }}>{role.icon}</div>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 700, fontSize: '.85rem', color: selectedRole === role.key ? role.color : 'var(--text-1)', fontFamily: 'var(--ff-body, system-ui)', marginBottom: 1 }}>{role.label}</div>
-                        <div style={{ fontSize: '.7rem', color: 'var(--text-3)', lineHeight: 1.35 }}>{role.desc}</div>
+                        <div style={{ fontWeight: 700, fontSize: '.85rem', color: selectedRole === role.key ? role.color : 'var(--text-1)', fontFamily: 'var(--ff-body, system-ui)', marginBottom: 1 }}>{t(role.labelKey)}</div>
+                        <div style={{ fontSize: '.7rem', color: 'var(--text-3)', lineHeight: 1.35 }}>{t(role.descKey)}</div>
                       </div>
                       <div style={{
                         width: 20, height: 20, borderRadius: '50%',
@@ -301,13 +303,13 @@ export default function Register() {
                   onClick={() => selectedRole && setStep(2)}
                   style={{ width: '100%', marginTop: 18, padding: '12px 24px', opacity: selectedRole ? 1 : 0.5, fontSize: '.88rem' }}
                 >
-                  Tiếp tục
+                  {t('register.continue')}
                 </button>
 
                 {/* VNeID Quick Register */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '16px 0 0' }}>
                   <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-                  <span style={{ fontSize: '.68rem', color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '.08em' }}>hoặc</span>
+                  <span style={{ fontSize: '.68rem', color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '.08em' }}>{t('register.or')}</span>
                   <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
                 </div>
                 <button
@@ -318,7 +320,7 @@ export default function Register() {
                     })
                       .then(r => r.json())
                       .then(data => { if (data.auth_url) window.location.href = data.auth_url; })
-                      .catch(() => setError('Không thể kết nối VNeID'));
+                      .catch(() => setError(t('register.errorVneid')));
                   }}
                   style={{
                     width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -330,12 +332,12 @@ export default function Register() {
                   onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                 >
                   <span style={{ fontSize: '.9rem' }}>🇻🇳</span>
-                  Đăng ký nhanh qua VNeID
+                  {t('register.vneidQuick')}
                 </button>
 
                 <p style={{ textAlign: 'center', marginTop: 14, fontSize: '.82rem', color: 'var(--text-3)' }}>
-                  Đã có tài khoản?{' '}
-                  <Link to="/login" style={{ color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontWeight: 700 }}>Đăng nhập</Link>
+                  {t('register.hasAccount')}{' '}
+                  <Link to="/login" style={{ color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontWeight: 700 }}>{t('register.loginLink')}</Link>
                 </p>
               </div>
             )}
@@ -343,12 +345,12 @@ export default function Register() {
             {/* Step 2: Fill Form */}
             {step === 2 && (
               <div>
-                <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c6-300, #06b6d4)', fontSize: '.82rem', fontWeight: 600, fontFamily: 'var(--ff-body, system-ui)', marginBottom: 12, padding: 0 }}>← Quay lại</button>
+                <button onClick={() => setStep(1)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--c6-300, #06b6d4)', fontSize: '.82rem', fontWeight: 600, fontFamily: 'var(--ff-body, system-ui)', marginBottom: 12, padding: 0 }}>{t('register.goBack')}</button>
 
-                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 6, color: 'var(--text-1)' }}>Thông tin tài khoản</h2>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 6, color: 'var(--text-1)' }}>{t('register.accountInfo')}</h2>
                 <p style={{ color: 'var(--text-3)', fontSize: '.82rem', marginBottom: 20 }}>
-                  Điền đầy đủ thông tin để tạo tài khoản
-                  {selectedRole === 'koc' ? ' KOC/KOL' : selectedRole === 'vendor' ? ' Nhà cung cấp' : ' Người mua'}
+                  {t('register.fillInfo')}
+                  {selectedRole === 'koc' ? ' KOC/KOL' : selectedRole === 'vendor' ? t('register.vendorRole') : t('register.buyerRole')}
                 </p>
 
                 {error && (
@@ -357,29 +359,29 @@ export default function Register() {
 
                 <form onSubmit={handleStep2Submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div>
-                    <label style={labelStyle}>Họ và tên *</label>
+                    <label style={labelStyle}>{t('register.fullName')}</label>
                     <input type="text" placeholder="Nguyen Van A" value={name} onChange={e => setName(e.target.value)} required style={inputStyle} />
                   </div>
                   <div>
-                    <label style={labelStyle}>Email *</label>
+                    <label style={labelStyle}>{t('register.email')}</label>
                     <input type="email" placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)} required style={inputStyle} />
                   </div>
                   <div>
-                    <label style={labelStyle}>Số điện thoại *</label>
+                    <label style={labelStyle}>{t('register.phone')}</label>
                     <input type="tel" placeholder="0912 345 678" value={phone} onChange={e => setPhone(e.target.value)} required style={inputStyle} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <div>
-                      <label style={labelStyle}>Mật khẩu *</label>
+                      <label style={labelStyle}>{t('register.password')}</label>
                       <div style={{ position: 'relative' }}>
-                        <input type={showPw ? 'text' : 'password'} placeholder="Tối thiểu 6 ký tự" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} style={{ ...inputStyle, paddingRight: 40 }} />
+                        <input type={showPw ? 'text' : 'password'} placeholder={t('register.passwordPlaceholder')} value={password} onChange={e => setPassword(e.target.value)} required minLength={6} style={{ ...inputStyle, paddingRight: 40 }} />
                         <button type="button" onClick={() => setShowPw(!showPw)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: '.9rem' }} tabIndex={-1}>{showPw ? '🙈' : '👁️'}</button>
                       </div>
                     </div>
                     <div>
-                      <label style={labelStyle}>Xác nhận mật khẩu *</label>
+                      <label style={labelStyle}>{t('register.confirmPassword')}</label>
                       <div style={{ position: 'relative' }}>
-                        <input type={showCPw ? 'text' : 'password'} placeholder="Nhập lại mật khẩu" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ ...inputStyle, paddingRight: 40 }} />
+                        <input type={showCPw ? 'text' : 'password'} placeholder={t('register.confirmPasswordPlaceholder')} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required style={{ ...inputStyle, paddingRight: 40 }} />
                         <button type="button" onClick={() => setShowCPw(!showCPw)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)', fontSize: '.9rem' }} tabIndex={-1}>{showCPw ? '🙈' : '👁️'}</button>
                       </div>
                     </div>
@@ -388,11 +390,11 @@ export default function Register() {
                   {selectedRole === 'koc' && (
                     <>
                       <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
-                      <div className="section-badge" style={{ fontSize: '.65rem' }}>THÔNG TIN KOC</div>
+                      <div className="section-badge" style={{ fontSize: '.65rem' }}>{t('register.kocInfo')}</div>
                       <div>
-                        <label style={labelStyle}>Kênh social chính *</label>
+                        <label style={labelStyle}>{t('register.socialChannel')}</label>
                         <select value={socialChannel} onChange={e => setSocialChannel(e.target.value)} required style={{ ...inputStyle, cursor: 'pointer' }}>
-                          <option value="">Chọn kênh</option>
+                          <option value="">{t('register.selectChannel')}</option>
                           <option value="tiktok">TikTok</option>
                           <option value="youtube">YouTube</option>
                           <option value="instagram">Instagram</option>
@@ -400,11 +402,11 @@ export default function Register() {
                         </select>
                       </div>
                       <div>
-                        <label style={labelStyle}>Số followers</label>
+                        <label style={labelStyle}>{t('register.followers')}</label>
                         <input type="text" placeholder="VD: 10,000" value={followers} onChange={e => setFollowers(e.target.value)} style={inputStyle} />
                       </div>
                       <div>
-                        <label style={labelStyle}>Mã giới thiệu (không bắt buộc)</label>
+                        <label style={labelStyle}>{t('register.referralCode')}</label>
                         <input type="text" placeholder="WK-XXXXX" value={referralCode} onChange={e => setReferralCode(e.target.value)} style={inputStyle} />
                       </div>
                     </>
@@ -413,24 +415,24 @@ export default function Register() {
                   {selectedRole === 'vendor' && (
                     <>
                       <div style={{ height: 1, background: 'var(--border)', margin: '4px 0' }} />
-                      <div className="section-badge" style={{ fontSize: '.65rem' }}>THÔNG TIN DOANH NGHIỆP</div>
+                      <div className="section-badge" style={{ fontSize: '.65rem' }}>{t('register.vendorInfo')}</div>
                       <div>
-                        <label style={labelStyle}>Tên cửa hàng *</label>
-                        <input type="text" placeholder="Tên thương hiệu / cửa hàng" value={shopName} onChange={e => setShopName(e.target.value)} required style={inputStyle} />
+                        <label style={labelStyle}>{t('register.shopName')}</label>
+                        <input type="text" placeholder={t('register.shopNamePlaceholder')} value={shopName} onChange={e => setShopName(e.target.value)} required style={inputStyle} />
                       </div>
                       <div>
-                        <label style={labelStyle}>Mã số thuế</label>
-                        <input type="text" placeholder="Mã số thuế doanh nghiệp" value={taxCode} onChange={e => setTaxCode(e.target.value)} style={inputStyle} />
+                        <label style={labelStyle}>{t('register.taxCode')}</label>
+                        <input type="text" placeholder={t('register.taxCodePlaceholder')} value={taxCode} onChange={e => setTaxCode(e.target.value)} style={inputStyle} />
                       </div>
                       <div>
-                        <label style={labelStyle}>Địa chỉ kho hàng *</label>
-                        <input type="text" placeholder="Địa chỉ kho hàng chính" value={warehouse} onChange={e => setWarehouse(e.target.value)} required style={inputStyle} />
+                        <label style={labelStyle}>{t('register.warehouse')}</label>
+                        <input type="text" placeholder={t('register.warehousePlaceholder')} value={warehouse} onChange={e => setWarehouse(e.target.value)} required style={inputStyle} />
                       </div>
                     </>
                   )}
 
                   <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: 8, padding: '14px 24px', opacity: loading ? 0.7 : 1 }}>
-                    {loading ? 'Đang tạo tài khoản...' : 'Đăng ký'}
+                    {loading ? t('register.creating') : t('register.registerBtn')}
                   </button>
                 </form>
               </div>
@@ -441,13 +443,13 @@ export default function Register() {
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ width: 100, height: 100, borderRadius: '50%', margin: '0 auto 24px', background: 'linear-gradient(135deg, rgba(34,197,94,.15), rgba(6,182,212,.1))', border: '3px solid var(--c4-500, #22c55e)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem' }}>🎉</div>
 
-                <h2 className="display-lg gradient-text" style={{ marginBottom: 8 }}>Chào mừng bạn đến WellKOC!</h2>
+                <h2 className="display-lg gradient-text" style={{ marginBottom: 8 }}>{t('register.successTitle')}</h2>
                 <p style={{ color: 'var(--text-3)', fontSize: '.92rem', marginBottom: 8, lineHeight: 1.6 }}>
-                  Tài khoản của bạn đã được tạo thành công.<br />Bắt đầu hành trình Web3 Commerce ngay bây giờ!
+                  {t('register.successDesc').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}
                 </p>
 
                 <div className="card" style={{ padding: 20, margin: '24px 0', background: 'var(--bg-2)' }}>
-                  <div style={{ fontSize: '.75rem', fontWeight: 700, color: 'var(--text-3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '.05em' }}>Quà tặng chào mừng</div>
+                  <div style={{ fontSize: '.75rem', fontWeight: 700, color: 'var(--text-3)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '.05em' }}>{t('register.welcomeGifts')}</div>
                   <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>🎮</div>
@@ -458,19 +460,19 @@ export default function Register() {
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>🎟️</div>
                       <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--c4-500, #22c55e)' }}>50K</div>
-                      <div style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>Voucher mua sắm</div>
+                      <div style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>{t('register.shoppingVoucher')}</div>
                     </div>
                     <div style={{ width: 1, background: 'var(--border)' }} />
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '1.5rem', marginBottom: 4 }}>⭐</div>
                       <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--c7-500, #6366f1)' }}>Level 1</div>
-                      <div style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>Thành viên mới</div>
+                      <div style={{ fontSize: '.68rem', color: 'var(--text-4)' }}>{t('register.newMember')}</div>
                     </div>
                   </div>
                 </div>
 
-                <button className="btn btn-primary btn-lg" onClick={goToDashboard} style={{ width: '100%', padding: '14px 24px' }}>Bắt đầu khám phá</button>
-                <Link to="/marketplace" style={{ display: 'block', marginTop: 12, color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontSize: '.85rem', fontWeight: 600 }}>Xem Marketplace</Link>
+                <button className="btn btn-primary btn-lg" onClick={goToDashboard} style={{ width: '100%', padding: '14px 24px' }}>{t('register.startExplore')}</button>
+                <Link to="/marketplace" style={{ display: 'block', marginTop: 12, color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontSize: '.85rem', fontWeight: 600 }}>{t('register.viewMarketplace')}</Link>
               </div>
             )}
           </div>

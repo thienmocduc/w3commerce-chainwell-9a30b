@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 interface CartItem {
   id: number;
@@ -21,6 +22,7 @@ const initialCart: CartItem[] = [
 ];
 
 export default function Cart() {
+  const { t } = useI18n();
   const [items, setItems] = useState<CartItem[]>(initialCart);
   const [coupon, setCoupon] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
@@ -69,14 +71,14 @@ export default function Cart() {
       }}>
         <div className="card" style={{ padding: 60, textAlign: 'center', maxWidth: 440 }}>
           <div style={{ fontSize: '4rem', marginBottom: 16, opacity: 0.6 }}>🛒</div>
-          <h2 className="display-md" style={{ marginBottom: 8 }}>Giỏ hàng trống</h2>
+          <h2 className="display-md" style={{ marginBottom: 8 }}>{t('cart.empty.title')}</h2>
           <p style={{ color: 'var(--text-3)', fontSize: '.88rem', marginBottom: 24, lineHeight: 1.6 }}>
-            Bạn chưa có sản phẩm nào trong giỏ hàng.
+            {t('cart.empty.desc')}
             <br />
-            Khám phá Marketplace để tìm sản phẩm yêu thích!
+            {t('cart.empty.explore')}
           </p>
           <Link to="/marketplace" className="btn btn-primary btn-lg" style={{ textDecoration: 'none', padding: '12px 32px' }}>
-            Khám phá Marketplace
+            {t('cart.empty.cta')}
 </Link>
         </div>
       </div>
@@ -87,10 +89,10 @@ export default function Cart() {
     <div style={{ paddingTop: 'var(--topbar-height, 64px)', minHeight: '100vh', background: 'var(--bg-0)' }}>
       <div className="container" style={{ paddingTop: 32, paddingBottom: 80 }}>
         {/* Header */}
-        <div className="section-badge">🛒 GIỎ HÀNG</div>
-        <h1 className="display-md" style={{ marginBottom: 4 }}>Giỏ Hàng Của Bạn</h1>
+        <div className="section-badge">🛒 {t('cart.badge')}</div>
+        <h1 className="display-md" style={{ marginBottom: 4 }}>{t('cart.title')}</h1>
         <p style={{ color: 'var(--text-3)', fontSize: '.85rem', marginBottom: 28 }}>
-          {totalItems} sản phẩm trong giỏ hàng
+          {totalItems} {t('cart.itemCount')}
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 28 }}>
@@ -103,7 +105,7 @@ export default function Cart() {
                 border: '1px solid rgba(34,197,94,.2)',
               }}>
                 <div style={{ fontSize: '.78rem', color: 'var(--c4-500, #22c55e)', fontWeight: 600 }}>
-                  🚚 Thêm {formatVND(500000 - subtotal)} để được miễn phí vận chuyển
+                  🚚 {t('cart.freeShipping.prefix')} {formatVND(500000 - subtotal)} {t('cart.freeShipping')}
                 </div>
                 <div className="progress-track" style={{ marginTop: 6, height: 4 }}>
                   <div className="progress-bar" style={{
@@ -144,7 +146,7 @@ export default function Cart() {
                     </div>
                     <h3 style={{ fontWeight: 700, fontSize: '.88rem', marginBottom: 4 }}>{item.name}</h3>
                     <div style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>
-                      Đơn giá: {formatVND(item.price)}
+                      {t('cart.unitPrice')} {formatVND(item.price)}
                     </div>
 
                     {/* Quantity + Subtotal row */}
@@ -205,7 +207,7 @@ export default function Cart() {
                       fontFamily: 'var(--ff-body, system-ui)',
                       opacity: 0.6, transition: 'opacity .2s',
                     }}
-                    title="Xoá sản phẩm"
+                    title={t('cart.removeItem')}
                   >
                     ✕
                   </button>
@@ -219,7 +221,7 @@ export default function Cart() {
               color: 'var(--c6-300, #06b6d4)', textDecoration: 'none',
               fontSize: '.82rem', fontWeight: 600, marginTop: 4,
             }}>
-              ← Tiếp tục mua sắm
+              ← {t('cart.continueShopping')}
             </Link>
           </div>
 
@@ -230,27 +232,27 @@ export default function Cart() {
                 fontSize: '.72rem', fontWeight: 700, color: 'var(--text-3)',
                 textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 20,
               }}>
-                TÓM TẮT ĐƠN HÀNG
+                {t('cart.summary')}
               </div>
 
               {/* Line items */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem' }}>
-                  <span style={{ color: 'var(--text-3)' }}>Tạm tính ({totalItems} sản phẩm)</span>
+                  <span style={{ color: 'var(--text-3)' }}>{t('cart.subtotal')} ({totalItems} {t('marketplace.productCount')})</span>
                   <span style={{ fontWeight: 600 }}>{formatVND(subtotal)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem' }}>
-                  <span style={{ color: 'var(--text-3)' }}>Phí vận chuyển</span>
+                  <span style={{ color: 'var(--text-3)' }}>{t('cart.shipping')}</span>
                   <span style={{
                     fontWeight: 600,
                     color: shipping === 0 ? 'var(--c4-500, #22c55e)' : 'var(--text-1)',
                   }}>
-                    {shipping === 0 ? 'Miễn phí' : formatVND(shipping)}
+                    {shipping === 0 ? t('cart.shipping.free') : formatVND(shipping)}
                   </span>
                 </div>
                 {couponApplied && couponDiscount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.82rem' }}>
-                    <span style={{ color: 'var(--c4-500, #22c55e)' }}>Mã giảm giá</span>
+                    <span style={{ color: 'var(--c4-500, #22c55e)' }}>{t('cart.coupon')}</span>
                     <span style={{ fontWeight: 600, color: 'var(--c4-500, #22c55e)' }}>
                       -{formatVND(couponDiscount)}
                     </span>
@@ -265,7 +267,7 @@ export default function Cart() {
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Mã giảm giá"
+                  placeholder={t('cart.coupon')}
                   value={coupon}
                   onChange={e => setCoupon(e.target.value)}
                   style={{
@@ -278,7 +280,7 @@ export default function Cart() {
                   onClick={applyCoupon}
                   style={{ padding: '8px 14px', fontSize: '.78rem', whiteSpace: 'nowrap' }}
                 >
-                  Áp dụng
+                  {t('cart.coupon.apply')}
                 </button>
               </div>
               {couponApplied && (
@@ -286,7 +288,7 @@ export default function Cart() {
                   fontSize: '.72rem', color: 'var(--c4-500, #22c55e)',
                   marginBottom: 12, marginTop: -8,
                 }}>
-                  ✓ Đã áp dụng mã giảm giá thành công
+                  ✓ {t('cart.coupon.applied')}
                 </div>
               )}
 
@@ -295,7 +297,7 @@ export default function Cart() {
 
               {/* Total */}
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
-                <span style={{ fontWeight: 700, fontSize: '.95rem' }}>Tổng cộng</span>
+                <span style={{ fontWeight: 700, fontSize: '.95rem' }}>{t('cart.total')}</span>
                 <span style={{
                   fontFamily: 'var(--ff-display, system-ui)', fontWeight: 800,
                   fontSize: '1.3rem', color: 'var(--c6-300, #06b6d4)',
@@ -313,14 +315,14 @@ export default function Cart() {
                   marginBottom: 8,
                 }}>
                   <span style={{ fontSize: '.78rem', color: 'var(--text-3)', fontWeight: 600 }}>
-                    🎮 XP nhận được
+                    🎮 {t('cart.xpEarned')}
                   </span>
                   <span className="badge badge-gold" style={{ fontSize: '.72rem' }}>
                     +{totalXP} XP
                   </span>
                 </div>
                 <div style={{ fontSize: '.68rem', color: 'var(--text-4)', marginBottom: 8 }}>
-                  +{totalXP} XP ({totalItems} sản phẩm x 10 XP)
+                  +{totalXP} XP ({totalItems} {t('marketplace.productCount')} x 10 XP)
                 </div>
 
                 {/* Level Progress Bar */}
@@ -340,7 +342,7 @@ export default function Cart() {
                 </div>
                 {xpAfter >= xpForNextLevel && (
                   <div style={{ fontSize: '.65rem', color: 'var(--c4-500, #22c55e)', marginTop: 4, fontWeight: 600 }}>
-                    🎉 Đủ XP để lên Level 3!
+                    🎉 {t('cart.xpLevelUp')}
                   </div>
                 )}
               </div>
@@ -355,7 +357,7 @@ export default function Cart() {
                   padding: '14px 24px', fontSize: '.92rem',
                 }}
               >
-                Thanh toán
+                {t('cart.checkout')}
               </Link>
 
               {/* Trust badges */}
@@ -364,7 +366,7 @@ export default function Cart() {
                 flexWrap: 'wrap',
               }}>
                 <span className="badge badge-c4" style={{ fontSize: '.6rem' }}>DPP Verified</span>
-                <span className="badge badge-c5" style={{ fontSize: '.6rem' }}>Bảo mật SSL</span>
+                <span className="badge badge-c5" style={{ fontSize: '.6rem' }}>{t('cart.sslSecure')}</span>
                 <span className="badge badge-c7" style={{ fontSize: '.6rem' }}>Web3 Ready</span>
               </div>
             </div>

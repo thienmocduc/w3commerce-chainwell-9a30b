@@ -1,17 +1,18 @@
 import { useState } from 'react';
+import { useI18n } from '@hooks/useI18n';
 
 interface Lesson {
-  title: string;
-  duration: string;
-  type: string;
-  description: string;
-  topics: string[];
+  titleKey: string;
+  durationMin: number;
+  typeKey: string;
+  descriptionKey: string;
+  topicKeys: string[];
 }
 
 interface DayData {
   day: number;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
   icon: string;
   color: string;
   lessons: Lesson[];
@@ -19,59 +20,59 @@ interface DayData {
 
 const curriculum: DayData[] = [
   {
-    day: 1, title: 'Nhập Môn Web3 Commerce', subtitle: 'Nền tảng kiến thức blockchain & social commerce', icon: '🌱', color: 'var(--c4-500)',
+    day: 1, titleKey: 'academy.day1.title', subtitleKey: 'academy.day1.subtitle', icon: '🌱', color: 'var(--c4-500)',
     lessons: [
-      { title: 'Web3 là gì? Tại sao quan trọng?', duration: '20 phút', type: 'Video', description: 'Tổng quan về Web3, blockchain, và cách nó thay đổi thương mại điện tử truyền thống.', topics: ['Blockchain cơ bản', 'Smart Contract', 'DeFi & NFT', 'So sánh Web2 vs Web3'] },
-      { title: 'Giới thiệu WellKOC Platform', duration: '15 phút', type: 'Video', description: 'Hướng dẫn tổng quan về nền tảng WellKOC và cách tham gia.', topics: ['Tạo tài khoản', 'Kết nối ví', 'Giao diện platform', 'Vai trò trong hệ sinh thái'] },
-      { title: 'Quiz Ngày 1', duration: '10 phút', type: 'Quiz', description: 'Kiểm tra kiến thức cơ bản về Web3 và WellKOC.', topics: ['10 câu hỏi trắc nghiệm', '+50 XP khi hoàn thành'] },
+      { titleKey: 'academy.d1.l1.title', durationMin: 20, typeKey: 'academy.type.video', descriptionKey: 'academy.d1.l1.desc', topicKeys: ['academy.d1.l1.t1', 'academy.d1.l1.t2', 'academy.d1.l1.t3', 'academy.d1.l1.t4'] },
+      { titleKey: 'academy.d1.l2.title', durationMin: 15, typeKey: 'academy.type.video', descriptionKey: 'academy.d1.l2.desc', topicKeys: ['academy.d1.l2.t1', 'academy.d1.l2.t2', 'academy.d1.l2.t3', 'academy.d1.l2.t4'] },
+      { titleKey: 'academy.d1.l3.title', durationMin: 10, typeKey: 'academy.type.quiz', descriptionKey: 'academy.d1.l3.desc', topicKeys: ['academy.d1.l3.t1', 'academy.d1.l3.t2'] },
     ]
   },
   {
-    day: 2, title: 'Digital Product Passport (DPP)', subtitle: 'Hiểu về chứng nhận sản phẩm blockchain', icon: '📜', color: 'var(--c5-500)',
+    day: 2, titleKey: 'academy.day2.title', subtitleKey: 'academy.day2.subtitle', icon: '📜', color: 'var(--c5-500)',
     lessons: [
-      { title: 'DPP là gì và tại sao cần thiết?', duration: '25 phút', type: 'Video', description: 'Tìm hiểu về Digital Product Passport và cách nó đảm bảo nguồn gốc sản phẩm.', topics: ['EU DPP Regulation', 'Supply chain transparency', 'QR Code verification', 'On-chain vs Off-chain'] },
-      { title: 'Thực hành: Đọc DPP sản phẩm', duration: '20 phút', type: 'Lab', description: 'Hướng dẫn cách đọc và xác minh DPP của một sản phẩm thực tế.', topics: ['Scan QR code', 'Xác minh on-chain', 'Đọc supply chain', 'ZKP verification'] },
-      { title: 'Quiz Ngày 2', duration: '10 phút', type: 'Quiz', description: 'Kiểm tra kiến thức về DPP.', topics: ['8 câu hỏi', '+75 XP khi hoàn thành'] },
+      { titleKey: 'academy.d2.l1.title', durationMin: 25, typeKey: 'academy.type.video', descriptionKey: 'academy.d2.l1.desc', topicKeys: ['academy.d2.l1.t1', 'academy.d2.l1.t2', 'academy.d2.l1.t3', 'academy.d2.l1.t4'] },
+      { titleKey: 'academy.d2.l2.title', durationMin: 20, typeKey: 'academy.type.lab', descriptionKey: 'academy.d2.l2.desc', topicKeys: ['academy.d2.l2.t1', 'academy.d2.l2.t2', 'academy.d2.l2.t3', 'academy.d2.l2.t4'] },
+      { titleKey: 'academy.d2.l3.title', durationMin: 10, typeKey: 'academy.type.quiz', descriptionKey: 'academy.d2.l3.desc', topicKeys: ['academy.d2.l3.t1', 'academy.d2.l3.t2'] },
     ]
   },
   {
-    day: 3, title: 'KOC Marketing Fundamentals', subtitle: 'Kỹ năng tạo nội dung và tiếp thị', icon: '📢', color: 'var(--c6-500)',
+    day: 3, titleKey: 'academy.day3.title', subtitleKey: 'academy.day3.subtitle', icon: '📢', color: 'var(--c6-500)',
     lessons: [
-      { title: 'Content Marketing cho KOC', duration: '30 phút', type: 'Video', description: 'Chiến lược tạo nội dung hấp dẫn để quảng bá sản phẩm hiệu quả.', topics: ['Storytelling', 'Visual content', 'Video review', 'SEO cơ bản'] },
-      { title: 'Xây dựng thương hiệu cá nhân', duration: '25 phút', type: 'Video', description: 'Cách xây dựng và phát triển personal brand trên social media.', topics: ['Niche selection', 'Target audience', 'Brand voice', 'Consistency'] },
-      { title: 'Bài tập: Tạo content đầu tiên', duration: '45 phút', type: 'Lab', description: 'Thực hành tạo bài review sản phẩm đầu tiên.', topics: ['Template review', 'Chụp ảnh sản phẩm', 'Viết caption', '+100 XP'] },
+      { titleKey: 'academy.d3.l1.title', durationMin: 30, typeKey: 'academy.type.video', descriptionKey: 'academy.d3.l1.desc', topicKeys: ['Storytelling', 'Visual content', 'Video review', 'academy.d3.l1.t4'] },
+      { titleKey: 'academy.d3.l2.title', durationMin: 25, typeKey: 'academy.type.video', descriptionKey: 'academy.d3.l2.desc', topicKeys: ['Niche selection', 'Target audience', 'Brand voice', 'Consistency'] },
+      { titleKey: 'academy.d3.l3.title', durationMin: 45, typeKey: 'academy.type.lab', descriptionKey: 'academy.d3.l3.desc', topicKeys: ['Template review', 'academy.d3.l3.t2', 'academy.d3.l3.t3', '+100 XP'] },
     ]
   },
   {
-    day: 4, title: 'Hệ Thống Hoa Hồng', subtitle: 'Cách tính và tối ưu thu nhập', icon: '💰', color: 'var(--c7-500)',
+    day: 4, titleKey: 'academy.day4.title', subtitleKey: 'academy.day4.subtitle', icon: '💰', color: 'var(--c7-500)',
     lessons: [
-      { title: 'Cấu trúc hoa hồng WellKOC', duration: '20 phút', type: 'Video', description: 'Chi tiết về các mức hoa hồng, tier system, và cách tối ưu thu nhập.', topics: ['Commission tiers', 'Referral bonus', 'Performance bonus', 'Smart contract payout'] },
-      { title: 'Chiến lược tối ưu thu nhập', duration: '25 phút', type: 'Video', description: 'Các chiến lược để tăng tỷ lệ chuyển đổi và thu nhập.', topics: ['Product selection', 'Audience targeting', 'Timing strategy', 'Cross-sell & Up-sell'] },
-      { title: 'Quiz & Case Study', duration: '15 phút', type: 'Quiz', description: 'Phân tích case study thực tế từ top KOC.', topics: ['Case study analysis', '+100 XP khi hoàn thành'] },
+      { titleKey: 'academy.d4.l1.title', durationMin: 20, typeKey: 'academy.type.video', descriptionKey: 'academy.d4.l1.desc', topicKeys: ['Commission tiers', 'Referral bonus', 'Performance bonus', 'Smart contract payout'] },
+      { titleKey: 'academy.d4.l2.title', durationMin: 25, typeKey: 'academy.type.video', descriptionKey: 'academy.d4.l2.desc', topicKeys: ['Product selection', 'Audience targeting', 'Timing strategy', 'Cross-sell & Up-sell'] },
+      { titleKey: 'academy.d4.l3.title', durationMin: 15, typeKey: 'academy.type.quiz', descriptionKey: 'academy.d4.l3.desc', topicKeys: ['Case study analysis', '+100 XP'] },
     ]
   },
   {
-    day: 5, title: 'AI Agents & Automation', subtitle: 'Sử dụng 333 AI agents hỗ trợ', icon: '🤖', color: 'var(--c6-300)',
+    day: 5, titleKey: 'academy.day5.title', subtitleKey: 'academy.day5.subtitle', icon: '🤖', color: 'var(--c6-300)',
     lessons: [
-      { title: 'Giới thiệu 333 AI Agents', duration: '30 phút', type: 'Video', description: 'Tổng quan về hệ thống 333 AI agents và cách chúng hỗ trợ KOC.', topics: ['Content AI', 'Analytics AI', 'Customer Service AI', 'Pricing AI'] },
-      { title: 'Thực hành sử dụng AI tools', duration: '40 phút', type: 'Lab', description: 'Hands-on với các AI agent phổ biến nhất.', topics: ['AI Content Generator', 'AI Hashtag Optimizer', 'AI Performance Analyzer', 'AI Customer Bot'] },
-      { title: 'Bài tập: Tạo chiến dịch với AI', duration: '30 phút', type: 'Lab', description: 'Sử dụng AI để lên kế hoạch và tạo nội dung cho chiến dịch.', topics: ['Campaign planning', 'AI-assisted content', '+150 XP'] },
+      { titleKey: 'academy.d5.l1.title', durationMin: 30, typeKey: 'academy.type.video', descriptionKey: 'academy.d5.l1.desc', topicKeys: ['Content AI', 'Analytics AI', 'Customer Service AI', 'Pricing AI'] },
+      { titleKey: 'academy.d5.l2.title', durationMin: 40, typeKey: 'academy.type.lab', descriptionKey: 'academy.d5.l2.desc', topicKeys: ['AI Content Generator', 'AI Hashtag Optimizer', 'AI Performance Analyzer', 'AI Customer Bot'] },
+      { titleKey: 'academy.d5.l3.title', durationMin: 30, typeKey: 'academy.type.lab', descriptionKey: 'academy.d5.l3.desc', topicKeys: ['Campaign planning', 'AI-assisted content', '+150 XP'] },
     ]
   },
   {
-    day: 6, title: 'Gamification & Reputation', subtitle: 'XP, NFT và hệ thống danh tiếng', icon: '🎮', color: 'var(--rose-400)',
+    day: 6, titleKey: 'academy.day6.title', subtitleKey: 'academy.day6.subtitle', icon: '🎮', color: 'var(--rose-400)',
     lessons: [
-      { title: 'Hệ thống XP & Level', duration: '20 phút', type: 'Video', description: 'Cách hoạt động của hệ thống XP, level, và benefits tại mỗi cấp.', topics: ['XP sources', 'Level benefits', 'Daily missions', 'Achievements'] },
-      { title: 'Reputation NFT', duration: '25 phút', type: 'Video', description: 'NFT danh tiếng - cách nhận, ý nghĩa, và lợi ích.', topics: ['Soulbound NFT', 'Reputation score', 'Trust ranking', 'NFT marketplace'] },
-      { title: 'Chiến lược leo rank', duration: '15 phút', type: 'Video', description: 'Chiến lược để leo rank nhanh và hiệu quả.', topics: ['Daily optimization', 'Mission stacking', 'Community engagement', '+100 XP'] },
+      { titleKey: 'academy.d6.l1.title', durationMin: 20, typeKey: 'academy.type.video', descriptionKey: 'academy.d6.l1.desc', topicKeys: ['XP sources', 'Level benefits', 'Daily missions', 'Achievements'] },
+      { titleKey: 'academy.d6.l2.title', durationMin: 25, typeKey: 'academy.type.video', descriptionKey: 'academy.d6.l2.desc', topicKeys: ['Soulbound NFT', 'Reputation score', 'Trust ranking', 'NFT marketplace'] },
+      { titleKey: 'academy.d6.l3.title', durationMin: 15, typeKey: 'academy.type.video', descriptionKey: 'academy.d6.l3.desc', topicKeys: ['Daily optimization', 'Mission stacking', 'Community engagement', '+100 XP'] },
     ]
   },
   {
-    day: 7, title: 'Tốt Nghiệp & Khởi Động', subtitle: 'Tổng kết và bắt đầu hành trình KOC', icon: '🎓', color: 'var(--gold-400)',
+    day: 7, titleKey: 'academy.day7.title', subtitleKey: 'academy.day7.subtitle', icon: '🎓', color: 'var(--gold-400)',
     lessons: [
-      { title: 'Tổng kết 7 ngày', duration: '20 phút', type: 'Video', description: 'Review toàn bộ kiến thức đã học và lộ trình phát triển tiếp theo.', topics: ['Key takeaways', 'Roadmap ahead', 'Community support', 'Resources'] },
-      { title: 'Bài thi tốt nghiệp', duration: '30 phút', type: 'Exam', description: 'Bài thi cuối khóa để nhận chứng chỉ KOC Academy.', topics: ['30 câu hỏi', 'Yêu cầu 70% đúng', 'Nhận NFT Certificate', '+500 XP'] },
-      { title: 'Nhận chứng chỉ & NFT', duration: '10 phút', type: 'Ceremony', description: 'Nhận chứng chỉ hoàn thành và Reputation NFT đầu tiên.', topics: ['NFT Certificate mint', 'KOC Badge', 'Welcome bonus', 'Community invite'] },
+      { titleKey: 'academy.d7.l1.title', durationMin: 20, typeKey: 'academy.type.video', descriptionKey: 'academy.d7.l1.desc', topicKeys: ['Key takeaways', 'Roadmap ahead', 'Community support', 'Resources'] },
+      { titleKey: 'academy.d7.l2.title', durationMin: 30, typeKey: 'academy.type.exam', descriptionKey: 'academy.d7.l2.desc', topicKeys: ['academy.d7.l2.t1', 'academy.d7.l2.t2', 'academy.d7.l2.t3', '+500 XP'] },
+      { titleKey: 'academy.d7.l3.title', durationMin: 10, typeKey: 'academy.type.ceremony', descriptionKey: 'academy.d7.l3.desc', topicKeys: ['NFT Certificate mint', 'KOC Badge', 'Welcome bonus', 'Community invite'] },
     ]
   },
 ];
@@ -84,9 +85,18 @@ const typeIcons: Record<string, string> = {
   Ceremony: '🎉',
 };
 
+const typeIconMap: Record<string, string> = {
+  'academy.type.video': '🎬',
+  'academy.type.lab': '🔬',
+  'academy.type.quiz': '📋',
+  'academy.type.exam': '📝',
+  'academy.type.ceremony': '🎉',
+};
+
 export default function Academy() {
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
   const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
+  const { t } = useI18n();
 
   return (
     <div style={{ paddingTop: 'var(--topbar-height)', minHeight: '100vh', background: 'var(--bg-0)' }}>
@@ -96,26 +106,25 @@ export default function Academy() {
         background: 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(99,102,241,.12) 0%, transparent 60%)'
       }}>
         <div className="container" style={{ textAlign: 'center' }}>
-          <div className="section-badge">🎓 KOC ACADEMY</div>
+          <div className="section-badge">🎓 {t('academy.badge')}</div>
           <h1 className="display-lg gradient-text" style={{ marginBottom: 12 }}>
-            Khóa Học 7 Ngày
+            {t('academy.title')}
           </h1>
           <p style={{ color: 'var(--text-3)', maxWidth: 580, margin: '0 auto', fontSize: '.88rem' }}>
-            Từ zero đến KOC chuyên nghiệp. Học blockchain, marketing, AI tools
-            và bắt đầu kiếm thu nhập từ social commerce.
+            {t('academy.subtitle')}
           </p>
           <div className="flex gap-16" style={{ justifyContent: 'center', marginTop: 24 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--c6-300)' }}>7</div>
-              <div className="label">Ngày học</div>
+              <div className="label">{t('academy.daysLabel')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--c5-500)' }}>21</div>
-              <div className="label">Bài học</div>
+              <div className="label">{t('academy.lessonsLabel')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--c4-500)' }}>1,075</div>
-              <div className="label">XP tổng</div>
+              <div className="label">{t('academy.totalXP')}</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1.4rem', color: 'var(--c7-500)' }}>1</div>
@@ -130,13 +139,13 @@ export default function Academy() {
         {/* Progress */}
         <div className="card" style={{ padding: '16px 24px', marginBottom: 32 }}>
           <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontWeight: 700, fontSize: '.82rem' }}>Tiến độ khóa học</span>
-            <span className="badge badge-c6">Ngày 1/7</span>
+            <span style={{ fontWeight: 700, fontSize: '.82rem' }}>{t('academy.progress')}</span>
+            <span className="badge badge-c6">{t('academy.dayLabel')} 1/7</span>
           </div>
           <div className="progress-track">
             <div className="progress-fill" style={{ width: '14%' }} />
           </div>
-          <div style={{ fontSize: '.65rem', color: 'var(--text-3)', marginTop: 6 }}>3/21 bài học hoàn thành</div>
+          <div style={{ fontSize: '.65rem', color: 'var(--text-3)', marginTop: 6 }}>3/21 {t('academy.lessonsCompleted')}</div>
         </div>
 
         {/* Day Cards */}
@@ -162,12 +171,12 @@ export default function Academy() {
                   {day.icon}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div className="label" style={{ marginBottom: 4, color: day.color }}>NGÀY {day.day}</div>
-                  <div style={{ fontWeight: 700, fontSize: '.92rem' }}>{day.title}</div>
-                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{day.subtitle}</div>
+                  <div className="label" style={{ marginBottom: 4, color: day.color }}>{t('academy.dayLabel')} {day.day}</div>
+                  <div style={{ fontWeight: 700, fontSize: '.92rem' }}>{t(day.titleKey)}</div>
+                  <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t(day.subtitleKey)}</div>
                 </div>
                 <div className="flex gap-8">
-                  <span className="badge badge-c5">{day.lessons.length} bài</span>
+                  <span className="badge badge-c5">{day.lessons.length} {t('academy.lessonsCount')}</span>
                   <span style={{ fontSize: '1.1rem', transform: expandedDay === day.day ? 'rotate(180deg)' : 'rotate(0)', transition: 'var(--t-base)' }}>▾</span>
                 </div>
               </div>
@@ -191,12 +200,12 @@ export default function Academy() {
                         >
                           <div className="flex" style={{ justifyContent: 'space-between' }}>
                             <div className="flex gap-12">
-                              <span>{typeIcons[lesson.type] || '📄'}</span>
+                              <span>{typeIconMap[lesson.typeKey] || '📄'}</span>
                               <div>
-                                <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{lesson.title}</div>
+                                <div style={{ fontWeight: 600, fontSize: '.82rem' }}>{t(lesson.titleKey)}</div>
                                 <div className="flex gap-8" style={{ marginTop: 4 }}>
-                                  <span className="badge badge-c5">{lesson.type}</span>
-                                  <span style={{ fontSize: '.65rem', color: 'var(--text-3)' }}>⏱ {lesson.duration}</span>
+                                  <span className="badge badge-c5">{t(lesson.typeKey)}</span>
+                                  <span style={{ fontSize: '.65rem', color: 'var(--text-3)' }}>⏱ {lesson.durationMin} {t('academy.minutes')}</span>
                                 </div>
                               </div>
                             </div>
@@ -206,15 +215,15 @@ export default function Academy() {
                           {isExpanded && (
                             <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--border)' }}>
                               <p style={{ fontSize: '.78rem', color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
-                                {lesson.description}
+                                {t(lesson.descriptionKey)}
                               </p>
                               <div className="flex gap-8" style={{ flexWrap: 'wrap' }}>
-                                {lesson.topics.map((topic, ti) => (
-                                  <span key={ti} className="badge badge-c6">{topic}</span>
+                                {lesson.topicKeys.map((topic, ti) => (
+                                  <span key={ti} className="badge badge-c6">{t(topic)}</span>
                                 ))}
                               </div>
                               <button className="btn btn-primary btn-sm" style={{ marginTop: 14 }}>
-                                Bắt đầu học
+                                {t('academy.startLesson')}
                               </button>
                             </div>
                           )}

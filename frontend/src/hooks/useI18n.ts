@@ -1,4 +1,9 @@
 import { useState, useCallback } from 'react';
+import { commerceTranslations } from '../i18n/commerce';
+import { userTranslations } from '../i18n/user';
+import { adminTranslations } from '../i18n/admin';
+import { kocTranslations } from '../i18n/koc';
+import { vendorTranslations } from '../i18n/vendor';
 
 export type Locale = 'vi' | 'en' | 'zh' | 'th' | 'hi';
 
@@ -80,6 +85,21 @@ const translations: TranslationMap = {
 
   // Misc
   'ticker.welcome': { vi: 'Chào mừng đến WellKOC', en: 'Welcome to WellKOC', zh: '欢迎来到WellKOC', th: 'ยินดีต้อนรับสู่ WellKOC', hi: 'WellKOC में आपका स्वागत है' },
+
+  // Merge commerce page translations
+  ...commerceTranslations,
+
+  // Merge user/auth page translations
+  ...userTranslations as TranslationMap,
+
+  // Merge admin page translations
+  ...adminTranslations,
+
+  // Merge KOC & social page translations
+  ...kocTranslations,
+
+  // Merge vendor, DPP & pricing page translations
+  ...vendorTranslations,
 };
 
 const STORAGE_KEY = 'wellkoc-locale';

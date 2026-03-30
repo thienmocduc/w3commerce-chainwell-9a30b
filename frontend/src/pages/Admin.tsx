@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@hooks/useTheme';
+import { useI18n } from '@hooks/useI18n';
 import AdminOverview from '@components/admin/AdminOverview';
 import AdminKYC from '@components/admin/AdminKYC';
 
@@ -17,79 +18,79 @@ function isAdminLoggedIn(): boolean {
   }
 }
 
-type SidebarSection = { title: string; color: string; groupIcon: string; items: { key: string; icon: string; label: string; badge?: string }[] };
+type SidebarSection = { titleKey: string; color: string; groupIcon: string; items: { key: string; icon: string; labelKey: string; badge?: string }[] };
 
 const sidebarSections: SidebarSection[] = [
-  { title: 'TỔNG QUAN', color: '#22c55e', groupIcon: '📊', items: [
-    { key: 'overview', icon: '📊', label: 'Dashboard' },
-    { key: 'analytics', icon: '📈', label: 'Analytics & BI' },
-    { key: 'reports', icon: '📋', label: 'Báo cáo' },
+  { titleKey: 'admin.sidebar.overview', color: '#22c55e', groupIcon: '📊', items: [
+    { key: 'overview', icon: '📊', labelKey: 'admin.nav.dashboard' },
+    { key: 'analytics', icon: '📈', labelKey: 'admin.nav.analytics' },
+    { key: 'reports', icon: '📋', labelKey: 'admin.nav.reports' },
   ]},
-  { title: 'CRM & NGƯỜI DÙNG', color: '#6366f1', groupIcon: '👥', items: [
-    { key: 'users', icon: '👥', label: 'Người dùng', badge: '12,847' },
-    { key: 'kyc', icon: '🪪', label: 'KYC / Xác minh', badge: '23' },
-    { key: 'membership', icon: '💎', label: 'Membership' },
-    { key: 'notifications', icon: '🔔', label: 'Thông báo CRM' },
-    { key: 'referralTree', icon: '🌳', label: 'Cây cộng đồng' },
+  { titleKey: 'admin.sidebar.crm', color: '#6366f1', groupIcon: '👥', items: [
+    { key: 'users', icon: '👥', labelKey: 'admin.nav.users', badge: '12,847' },
+    { key: 'kyc', icon: '🪪', labelKey: 'admin.nav.kyc', badge: '23' },
+    { key: 'membership', icon: '💎', labelKey: 'admin.nav.membership' },
+    { key: 'notifications', icon: '🔔', labelKey: 'admin.nav.notifications' },
+    { key: 'referralTree', icon: '🌳', labelKey: 'admin.nav.referralTree' },
   ]},
-  { title: 'THƯƠNG MẠI', color: '#06b6d4', groupIcon: '🛒', items: [
-    { key: 'products', icon: '📦', label: 'Sản phẩm', badge: '2,341' },
-    { key: 'orders', icon: '🛒', label: 'Đơn hàng', badge: '8,934' },
-    { key: 'returns', icon: '↩️', label: 'Đổi trả / Hoàn tiền', badge: '12' },
-    { key: 'payments', icon: '💳', label: 'Thanh toán' },
-    { key: 'shipping', icon: '🚚', label: 'Vận chuyển' },
-    { key: 'promotions', icon: '🎁', label: 'Khuyến mại / Voucher' },
-    { key: 'groupbuy', icon: '👥', label: 'Mua nhóm' },
+  { titleKey: 'admin.sidebar.commerce', color: '#06b6d4', groupIcon: '🛒', items: [
+    { key: 'products', icon: '📦', labelKey: 'admin.nav.products', badge: '2,341' },
+    { key: 'orders', icon: '🛒', labelKey: 'admin.nav.orders', badge: '8,934' },
+    { key: 'returns', icon: '↩️', labelKey: 'admin.nav.returns', badge: '12' },
+    { key: 'payments', icon: '💳', labelKey: 'admin.nav.payments' },
+    { key: 'shipping', icon: '🚚', labelKey: 'admin.nav.shipping' },
+    { key: 'promotions', icon: '🎁', labelKey: 'admin.nav.promotions' },
+    { key: 'groupbuy', icon: '👥', labelKey: 'admin.nav.groupbuy' },
   ]},
-  { title: 'KOC & VENDOR', color: '#f59e0b', groupIcon: '⭐', items: [
-    { key: 'koc', icon: '⭐', label: 'KOC Management', badge: '1,245' },
-    { key: 'vendor', icon: '🏪', label: 'Vendor Management' },
-    { key: 'approvals', icon: '✅', label: 'Phê duyệt', badge: '5' },
-    { key: 'commission', icon: '💰', label: 'Hoa hồng' },
-    { key: 'affiliate', icon: '🔗', label: 'Affiliate Links' },
+  { titleKey: 'admin.sidebar.kocVendor', color: '#f59e0b', groupIcon: '⭐', items: [
+    { key: 'koc', icon: '⭐', labelKey: 'admin.nav.koc', badge: '1,245' },
+    { key: 'vendor', icon: '🏪', labelKey: 'admin.nav.vendor' },
+    { key: 'approvals', icon: '✅', labelKey: 'admin.nav.approvals', badge: '5' },
+    { key: 'commission', icon: '💰', labelKey: 'admin.nav.commission' },
+    { key: 'affiliate', icon: '🔗', labelKey: 'admin.nav.affiliate' },
   ]},
-  { title: 'CONTENT & SOCIAL', color: '#ec4899', groupIcon: '📝', items: [
-    { key: 'content', icon: '📝', label: 'Content Moderation' },
-    { key: 'reviews', icon: '⭐', label: 'Reviews / Đánh giá' },
-    { key: 'live', icon: '🔴', label: 'Live Commerce' },
-    { key: 'feed', icon: '📡', label: 'Social Feed' },
-    { key: 'academy', icon: '🎓', label: 'KOC Academy' },
+  { titleKey: 'admin.sidebar.content', color: '#ec4899', groupIcon: '📝', items: [
+    { key: 'content', icon: '📝', labelKey: 'admin.nav.contentMod' },
+    { key: 'reviews', icon: '⭐', labelKey: 'admin.nav.reviews' },
+    { key: 'live', icon: '🔴', labelKey: 'admin.nav.live' },
+    { key: 'feed', icon: '📡', labelKey: 'admin.nav.feed' },
+    { key: 'academy', icon: '🎓', labelKey: 'admin.nav.academy' },
   ]},
-  { title: 'WEB3 & BLOCKCHAIN', color: '#a855f7', groupIcon: '⛓️', items: [
-    { key: 'blockchain', icon: '⛓️', label: 'Blockchain Monitor' },
-    { key: 'dpp', icon: '🛡️', label: 'DPP NFT', badge: '3,456' },
-    { key: 'walletMgmt', icon: '🏦', label: 'Ví / Wallet' },
-    { key: 'token', icon: '🪙', label: 'WK Token' },
-    { key: 'reputation', icon: '🏅', label: 'Reputation NFT' },
+  { titleKey: 'admin.sidebar.web3', color: '#a855f7', groupIcon: '⛓️', items: [
+    { key: 'blockchain', icon: '⛓️', labelKey: 'admin.nav.blockchain' },
+    { key: 'dpp', icon: '🛡️', labelKey: 'admin.nav.dpp', badge: '3,456' },
+    { key: 'walletMgmt', icon: '🏦', labelKey: 'admin.nav.wallet' },
+    { key: 'token', icon: '🪙', labelKey: 'admin.nav.token' },
+    { key: 'reputation', icon: '🏅', labelKey: 'admin.nav.reputation' },
   ]},
-  { title: 'AI & AUTOMATION', color: '#14b8a6', groupIcon: '🤖', items: [
-    { key: 'aiAgents', icon: '🤖', label: '333 AI Agents' },
-    { key: 'aiCaption', icon: '✍️', label: 'AI Caption / Hashtag' },
-    { key: 'aiScheduler', icon: '📅', label: 'Content Calendar' },
-    { key: 'fraud', icon: '🚨', label: 'Fraud Detection' },
+  { titleKey: 'admin.sidebar.ai', color: '#14b8a6', groupIcon: '🤖', items: [
+    { key: 'aiAgents', icon: '🤖', labelKey: 'admin.nav.aiAgents' },
+    { key: 'aiCaption', icon: '✍️', labelKey: 'admin.nav.aiCaption' },
+    { key: 'aiScheduler', icon: '📅', labelKey: 'admin.nav.aiScheduler' },
+    { key: 'fraud', icon: '🚨', labelKey: 'admin.nav.fraud' },
   ]},
-  { title: 'GAMIFICATION', color: '#f97316', groupIcon: '🎮', items: [
-    { key: 'gamification', icon: '🎮', label: 'XP & Missions' },
-    { key: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
-    { key: 'achievements', icon: '🎖️', label: 'Achievements' },
+  { titleKey: 'admin.sidebar.gamification', color: '#f97316', groupIcon: '🎮', items: [
+    { key: 'gamification', icon: '🎮', labelKey: 'admin.nav.gamification' },
+    { key: 'leaderboard', icon: '🏆', labelKey: 'admin.nav.leaderboard' },
+    { key: 'achievements', icon: '🎖️', labelKey: 'admin.nav.achievements' },
   ]},
-  { title: 'HỆ THỐNG', color: '#64748b', groupIcon: '🔧', items: [
-    { key: 'system', icon: '🔧', label: 'Hệ thống & Health' },
-    { key: 'logs', icon: '📜', label: 'Audit Logs' },
-    { key: 'settings', icon: '⚙️', label: 'Cài đặt' },
+  { titleKey: 'admin.sidebar.system', color: '#64748b', groupIcon: '🔧', items: [
+    { key: 'system', icon: '🔧', labelKey: 'admin.nav.systemHealth' },
+    { key: 'logs', icon: '📜', labelKey: 'admin.nav.auditLogs' },
+    { key: 'settings', icon: '⚙️', labelKey: 'admin.nav.settings' },
   ]},
 ];
 
 // Flatten for backward compat
 const sidebarTabs = sidebarSections.flatMap(s => s.items);
 
-const overviewKPIs = [
-  { label: 'Tổng người dùng', value: '12,847', delta: '+342 tuần này', color: 'var(--c4-500)' },
-  { label: 'Tổng doanh thu', value: '1.28B₫', delta: '+18.5% MoM', color: 'var(--c5-500)' },
-  { label: 'KOC hoạt động', value: '1,245', delta: '+89 mới', color: 'var(--c6-500)' },
-  { label: 'Đơn hàng tháng', value: '8,934', delta: '+12.3%', color: 'var(--c7-500)' },
-  { label: 'Hoa hồng đã trả', value: '156M₫', delta: 'Tháng 3/2026', color: 'var(--gold-400)' },
-  { label: 'DPP đã mint', value: '3,456', delta: '98.2% verified', color: 'var(--c4-300)' },
+const overviewKPIsDef = [
+  { labelKey: 'admin.kpi.totalUsers', value: '12,847', delta: '+342 tuần này', deltaKey: 'admin.kpi.thisWeek', color: 'var(--c4-500)' },
+  { labelKey: 'admin.kpi.totalRevenue', value: '1.28B₫', delta: '+18.5% MoM', color: 'var(--c5-500)' },
+  { labelKey: 'admin.kpi.activeKoc', value: '1,245', delta: '+89 mới', deltaKey: 'admin.kpi.new', color: 'var(--c6-500)' },
+  { labelKey: 'admin.kpi.monthlyOrders', value: '8,934', delta: '+12.3%', color: 'var(--c7-500)' },
+  { labelKey: 'admin.kpi.commissionPaid', value: '156M₫', delta: 'Tháng 3/2026', color: 'var(--gold-400)' },
+  { labelKey: 'admin.kpi.dppMinted', value: '3,456', delta: '98.2% verified', color: 'var(--c4-300)' },
 ];
 
 const usersData = [
@@ -171,17 +172,17 @@ const allTransactions = [
   { id: 'TXN-007', type: 'payment', user: 'Hoàng Văn E', method: 'Crypto (USDC)', amount: '890.000₫', orderId: 'ORD-005', status: 'success', date: '2026-03-23', txHash: '0x3f8d...c92a' },
 ];
 
-const paymentKPIs = [
-  { label: 'Tổng giao dịch tháng', value: '8,934', color: 'var(--c4-500)' },
-  { label: 'Doanh thu tháng', value: '1.28B₫', color: 'var(--c5-500)' },
+const paymentKPIsDef = [
+  { labelKey: 'admin.payment.totalMonthlyTx', value: '8,934', color: 'var(--c4-500)' },
+  { labelKey: 'admin.payment.monthlyRevenue', value: '1.28B₫', color: 'var(--c5-500)' },
   { label: 'Refunds', value: '23 (12.5M₫)', color: 'var(--gold-400)' },
   { label: 'Payouts (KOC)', value: '156M₫', color: 'var(--c6-500)' },
 ];
 
-const txnTypeConfig: Record<string, { label: string; badge: string }> = {
-  payment: { label: 'Thanh toán', badge: 'badge-c4' },
-  refund: { label: 'Hoàn tiền', badge: 'badge-gold' },
-  payout: { label: 'Chi trả KOC', badge: 'badge-c5' },
+const txnTypeConfigKeys: Record<string, { labelKey: string; badge: string }> = {
+  payment: { labelKey: 'admin.payment.type.payment', badge: 'badge-c4' },
+  refund: { labelKey: 'admin.payment.type.refund', badge: 'badge-gold' },
+  payout: { labelKey: 'admin.payment.type.payout', badge: 'badge-c5' },
 };
 
 /* -- Blockchain Monitor data -- */
@@ -192,9 +193,9 @@ const smartContractStats = [
   { label: 'Treasury Contract', address: '0xTrsy...3456', txCount: 189, gasUsed: '5.4 MATIC', status: 'active' },
 ];
 
-const blockchainKPIs = [
-  { label: 'Tổng TX on-chain', value: '9,015', color: 'var(--c4-500)' },
-  { label: 'Gas fees tháng', value: '86.5 MATIC', color: 'var(--c7-500)' },
+const blockchainKPIsDef = [
+  { labelKey: 'admin.blockchain.totalTx', value: '9,015', color: 'var(--c4-500)' },
+  { labelKey: 'admin.blockchain.gasMonth', value: '86.5 MATIC', color: 'var(--c7-500)' },
   { label: 'DPP minted', value: '3,456', color: 'var(--c6-500)' },
   { label: 'Commission payouts', value: '4,523', color: 'var(--c5-500)' },
 ];
@@ -215,10 +216,10 @@ const platformWallets = [
   { name: 'Hot Wallet', address: '0xHot...WLLT', balance: '$12,300', tokens: 'Multi-token', chain: 'Polygon', role: 'Ví giao dịch hàng ngày' },
 ];
 
-const walletKPIs = [
-  { label: 'Tổng tài sản nền tảng', value: '$310,000', color: 'var(--c4-500)' },
+const walletKPIsDef = [
+  { labelKey: 'admin.wallet.totalAssets', value: '$310,000', color: 'var(--c4-500)' },
   { label: 'Treasury Balance', value: '$245,000', color: 'var(--c5-500)' },
-  { label: 'Phí thu tháng này', value: '$12,400', color: 'var(--c6-500)' },
+  { labelKey: 'admin.wallet.feeThisMonthKpi', value: '$12,400', color: 'var(--c6-500)' },
   { label: 'Pending payouts', value: '$8,200', color: 'var(--gold-400)' },
 ];
 
@@ -254,12 +255,12 @@ const statusBadge: Record<string, string> = {
   success: 'badge-c4', completed: 'badge-c4', confirmed: 'badge-c6', packing: 'badge-c7',
   sent: 'badge-c4', scheduled: 'badge-c6',
 };
-const statusLabel: Record<string, string> = {
-  active: 'Hoạt động', suspended: 'Tạm khóa', approved: 'Đã duyệt', pending: 'Chờ duyệt',
-  rejected: 'Từ chối', review: 'Đang xét', delivered: 'Đã giao', shipping: 'Đang giao',
-  processing: 'Đang xử lý', cancelled: 'Đã hủy', paid: 'Đã trả', online: 'Online', degraded: 'Chậm',
-  success: 'Thành công', completed: 'Hoàn thành', confirmed: 'Đã xác nhận', packing: 'Đang đóng gói',
-  sent: 'Đã gửi', scheduled: 'Lên lịch',
+const statusLabelKeys: Record<string, string> = {
+  active: 'status.active', suspended: 'status.suspended', approved: 'status.approved', pending: 'status.pending',
+  rejected: 'status.rejected', review: 'status.review', delivered: 'status.delivered', shipping: 'status.shipping',
+  processing: 'status.processing', cancelled: 'status.cancelled', paid: 'status.paid', online: 'status.online', degraded: 'status.degraded',
+  success: 'status.success', completed: 'status.completed', confirmed: 'status.confirmed', packing: 'status.packing',
+  sent: 'status.sent', scheduled: 'status.scheduled',
 };
 
 /* -- Action button style helpers -- */
@@ -274,10 +275,11 @@ const thStyle: React.CSSProperties = { padding: '10px 14px', textAlign: 'left' a
 const tdStyle: React.CSSProperties = { padding: '12px 14px' };
 
 export default function Admin() {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState('overview');
   const [openAdminGroups, setOpenAdminGroups] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
-    sidebarSections.forEach((s, i) => { init[s.title] = i === 0; }); // Only first group open
+    sidebarSections.forEach((s, i) => { init[s.titleKey] = i === 0; }); // Only first group open
     return init;
   });
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({ root: true, 'minh-huong': true, 'ngoc-anh': true, 'nguyen-a': true, 'thao-linh': true });
@@ -300,6 +302,29 @@ export default function Admin() {
   const [detailRow, setDetailRow] = useState<{ tab: string; row: string[]; headers: string[]; title: string; ri: number } | null>(null);
   const [editingField, setEditingField] = useState<Record<string, string>>({});
   const { isDark, toggleTheme } = useTheme();
+
+  // Resolved translations
+  const statusLabel: Record<string, string> = Object.fromEntries(
+    Object.entries(statusLabelKeys).map(([k, v]) => [k, t(v)])
+  );
+  const overviewKPIs = overviewKPIsDef.map(kpi => ({
+    label: t(kpi.labelKey),
+    value: kpi.value,
+    delta: kpi.delta,
+    color: kpi.color,
+  }));
+  const txnTypeConfig: Record<string, { label: string; badge: string }> = Object.fromEntries(
+    Object.entries(txnTypeConfigKeys).map(([k, v]) => [k, { label: t(v.labelKey), badge: v.badge }])
+  );
+  const resolveKpis = (defs: any[]) => defs.map((kpi: any) => ({
+    label: kpi.labelKey ? t(kpi.labelKey) : kpi.label,
+    value: kpi.value,
+    color: kpi.color,
+    ...(kpi.delta ? { delta: kpi.delta } : {}),
+  }));
+  const paymentKPIs = resolveKpis(paymentKPIsDef);
+  const blockchainKPIs = resolveKpis(blockchainKPIsDef);
+  const walletKPIs = resolveKpis(walletKPIsDef);
 
   const toggleAdminGroup = (title: string) => setOpenAdminGroups(prev => ({ ...prev, [title]: !prev[title] }));
   const handleAdminNavClick = (groupTitle: string, itemKey: string) => {
@@ -337,9 +362,9 @@ export default function Admin() {
       <div style={{ minHeight: '100vh', background: '#0b0f1a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ padding: 32, textAlign: 'center', maxWidth: 400, background: 'rgba(15,23,42,.8)', borderRadius: 16, border: '1px solid rgba(255,255,255,.08)' }}>
           <div style={{ fontSize: '2rem', marginBottom: 12 }}>🔒</div>
-          <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700 }}>Truy cập bị từ chối</h2>
-          <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.85rem', marginTop: 8 }}>Bạn cần đăng nhập với tài khoản Admin.</p>
-          <button onClick={() => navigate('/admin/login')} style={{ marginTop: 16, padding: '12px 28px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #ef4444, #f97316)', color: '#fff', fontWeight: 700, fontSize: '.88rem' }}>Đăng nhập Admin</button>
+          <h2 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 700 }}>{t('admin.title.accessDenied')}</h2>
+          <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.85rem', marginTop: 8 }}>{t('admin.title.loginRequired')}</p>
+          <button onClick={() => navigate('/admin/login')} style={{ marginTop: 16, padding: '12px 28px', borderRadius: 10, border: 'none', cursor: 'pointer', background: 'linear-gradient(135deg, #ef4444, #f97316)', color: '#fff', fontWeight: 700, fontSize: '.88rem' }}>{t('admin.title.loginAdmin')}</button>
         </div>
       </div>
     );
@@ -360,30 +385,30 @@ export default function Admin() {
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Quản Lý Người Dùng</h2>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('admin.title.users')}</h2>
               <div className="flex gap-8" style={{ alignItems: 'center' }}>
-                <span className="badge badge-c5" style={{ fontSize: '.75rem', padding: '4px 12px' }}>Tổng: {usersData.length} người dùng</span>
-                <button style={btnPrimSm} onClick={() => showToast('Thêm user mới')}>+ Thêm user</button>
+                <span className="badge badge-c5" style={{ fontSize: '.75rem', padding: '4px 12px' }}>{t('admin.misc.total')} {usersData.length} {t('admin.misc.users')}</span>
+                <button style={btnPrimSm} onClick={() => showToast(t('admin.toast.addUser'))}>{t('admin.btn.addUser')}</button>
               </div>
             </div>
             {/* Search & Filter bar */}
             <div className="flex gap-8" style={{ marginBottom: 14, flexWrap: 'wrap' }}>
-              <input type="text" placeholder="Tìm theo tên, email, ID..." value={userSearch} onChange={e => setUserSearch(e.target.value)} style={searchInputStyle} />
+              <input type="text" placeholder={t('admin.search.nameEmailId')} value={userSearch} onChange={e => setUserSearch(e.target.value)} style={searchInputStyle} />
               <select value={userRoleFilter} onChange={e => setUserRoleFilter(e.target.value)} style={filterSelectStyle}>
-                <option value="all">Tất cả vai trò</option>
+                <option value="all">{t('admin.filter.allRoles')}</option>
                 <option value="user">Buyer</option>
                 <option value="koc">KOC</option>
                 <option value="vendor">Vendor</option>
                 <option value="admin">Admin</option>
               </select>
-              <span style={{ fontSize: '.75rem', color: 'var(--text-3)', alignSelf: 'center' }}>Hiển thị {filteredUsers.length}/{adminUsers.length}</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text-3)', alignSelf: 'center' }}>{t('admin.filter.showing')} {filteredUsers.length}/{adminUsers.length}</span>
             </div>
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['ID', 'Tên', 'Email', 'Vai trò', 'Trạng thái', 'Ngày tham gia', 'Đơn hàng', 'Referrals', 'Hành động'].map(h => (
+                      {[t('admin.th.id'), t('admin.th.name'), t('admin.th.email'), t('admin.th.role'), t('admin.th.status'), t('admin.th.joinDate'), t('admin.th.orders'), t('admin.th.referrals'), t('admin.th.actions')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -401,11 +426,11 @@ export default function Admin() {
                         <td style={tdStyle}>{u.referrals > 0 ? <span className="badge badge-c4">{u.referrals}</span> : <span style={{ color: 'var(--text-4)' }}>0</span>}</td>
                         <td style={tdStyle}>
                           <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-                            <button style={btnSm} onClick={() => showToast(`Đang chỉnh sửa user ${u.name}`)}>Chỉnh sửa</button>
-                            <button style={u.status === 'suspended' ? btnSuccessSm : btnWarnSm} onClick={() => (() => { setAdminUsers(prev => prev.map(x => x.id === u.id ? { ...x, status: x.status === 'suspended' ? 'active' : 'suspended' } : x)); showToast(`${u.status === 'suspended' ? 'Đã mở khóa' : 'Đã tạm khóa'} user ${u.name}`); })()}>
-                              {u.status === 'suspended' ? 'Mở khóa' : 'Tạm khóa'}
+                            <button style={btnSm} onClick={() => showToast(`${t('admin.toast.editUser')} ${u.name}`)}>{t('admin.btn.edit')}</button>
+                            <button style={u.status === 'suspended' ? btnSuccessSm : btnWarnSm} onClick={() => (() => { setAdminUsers(prev => prev.map(x => x.id === u.id ? { ...x, status: x.status === 'suspended' ? 'active' : 'suspended' } : x)); showToast(`${u.status === 'suspended' ? t('admin.toast.unlocked') : t('admin.toast.suspended')} user ${u.name}`); })()}>
+                              {u.status === 'suspended' ? t('admin.btn.unlock') : t('admin.btn.suspend')}
                             </button>
-                            <button style={btnSm} onClick={() => showToast(`Đang xem tree user ${u.name}`)}>Xem tree</button>
+                            <button style={btnSm} onClick={() => showToast(`${t('admin.toast.viewTree')} ${u.name}`)}>{t('admin.btn.viewTree')}</button>
                           </div>
                         </td>
                       </tr>
@@ -428,25 +453,25 @@ export default function Admin() {
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Quản Lý Sản Phẩm</h2>
-              <button style={btnPrimSm} onClick={() => showToast('Thêm sản phẩm mới')}>+ Thêm SP</button>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('admin.title.products')}</h2>
+              <button style={btnPrimSm} onClick={() => showToast(t('admin.toast.addProduct'))}>{t('admin.btn.addProduct')}</button>
             </div>
             <div className="flex gap-8" style={{ marginBottom: 14, flexWrap: 'wrap' }}>
-              <input type="text" placeholder="Tìm sản phẩm, vendor, ID..." value={productSearch} onChange={e => setProductSearch(e.target.value)} style={searchInputStyle} />
+              <input type="text" placeholder={t('admin.search.productVendorId')} value={productSearch} onChange={e => setProductSearch(e.target.value)} style={searchInputStyle} />
               <select value={productStatusFilter} onChange={e => setProductStatusFilter(e.target.value)} style={filterSelectStyle}>
-                <option value="all">Tất cả trạng thái</option>
-                <option value="approved">Đã duyệt</option>
-                <option value="pending">Chờ duyệt</option>
-                <option value="rejected">Từ chối</option>
+                <option value="all">{t('admin.filter.allStatuses')}</option>
+                <option value="approved">{statusLabel['approved']}</option>
+                <option value="pending">{statusLabel['pending']}</option>
+                <option value="rejected">{statusLabel['rejected']}</option>
               </select>
-              <span style={{ fontSize: '.75rem', color: 'var(--text-3)', alignSelf: 'center' }}>Hiển thị {filteredProducts.length}/{adminProducts.length}</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text-3)', alignSelf: 'center' }}>{t('admin.filter.showing')} {filteredProducts.length}/{adminProducts.length}</span>
             </div>
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['ID', 'Sản phẩm', 'Vendor', 'Giá', 'DPP', 'Đã bán', 'Trạng thái', 'Hành động'].map(h => (
+                      {[t('admin.th.id'), t('admin.th.product'), t('admin.th.vendor'), t('admin.th.price'), 'DPP', t('admin.th.sold'), t('admin.th.status'), t('admin.th.actions')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -461,21 +486,21 @@ export default function Admin() {
                         <td style={tdStyle}>
                           {p.dpp
                             ? <span className="badge badge-c4">DPP ✓</span>
-                            : <button style={{ ...btnSm, color: 'var(--c6-500)', borderColor: 'var(--c6-500)' }} onClick={() => showToast(`Đang mint DPP cho ${p.name}`)}>Mint DPP</button>
+                            : <button style={{ ...btnSm, color: 'var(--c6-500)', borderColor: 'var(--c6-500)' }} onClick={() => showToast(`${t('admin.toast.mintDpp')} ${p.name}`)}>{t('admin.btn.mintDpp')}</button>
                           }
                         </td>
                         <td style={tdStyle}>{p.sales.toLocaleString()}</td>
                         <td style={tdStyle}><span className={`badge ${statusBadge[p.status]}`}>{statusLabel[p.status]}</span></td>
                         <td style={tdStyle}>
                           <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-                            <button style={btnSm} onClick={() => showToast(`Đang sửa sản phẩm ${p.name}`)}>Sửa</button>
+                            <button style={btnSm} onClick={() => showToast(`${t('admin.toast.editProduct')} ${p.name}`)}>{t('admin.btn.editProduct')}</button>
                             {p.status === 'pending' && (
                               <>
-                                <button style={btnSuccessSm} onClick={() => (() => { setAdminProducts(prev => prev.map(x => x.id === p.id ? { ...x, status: 'active' } : x)); showToast(`Đã duyệt sản phẩm ${p.name}`); })()}>Duyệt</button>
-                                <button style={btnWarnSm} onClick={() => (() => { setAdminProducts(prev => prev.map(x => x.id === p.id ? { ...x, status: 'rejected' } : x)); showToast(`Đã từ chối sản phẩm ${p.name}`); })()}>Từ chối</button>
+                                <button style={btnSuccessSm} onClick={() => (() => { setAdminProducts(prev => prev.map(x => x.id === p.id ? { ...x, status: 'active' } : x)); showToast(`${t('admin.toast.approvedProduct')} ${p.name}`); })()}>{t('admin.btn.approve')}</button>
+                                <button style={btnWarnSm} onClick={() => (() => { setAdminProducts(prev => prev.map(x => x.id === p.id ? { ...x, status: 'rejected' } : x)); showToast(`${t('admin.toast.rejectedProduct')} ${p.name}`); })()}>{t('admin.btn.reject')}</button>
                               </>
                             )}
-                            <button style={btnDangerSm} onClick={() => (() => { setAdminProducts(prev => prev.filter(x => x.id !== p.id)); showToast(`Đã xoá sản phẩm ${p.name}`); })()}>Xóa</button>
+                            <button style={btnDangerSm} onClick={() => (() => { setAdminProducts(prev => prev.filter(x => x.id !== p.id)); showToast(`${t('admin.toast.deletedProduct')} ${p.name}`); })()}>{t('admin.btn.delete')}</button>
                           </div>
                         </td>
                       </tr>
@@ -497,15 +522,15 @@ export default function Admin() {
           return matchStatus && matchDateFrom && matchDateTo;
         });
         const orderStats = [
-          { label: 'Tổng đơn', value: String(adminOrders.length), color: 'var(--c4-500)' },
-          { label: 'Chờ xử lý', value: String(adminOrders.filter(o => o.status === 'pending').length), color: 'var(--gold-400)' },
-          { label: 'Đang giao', value: String(adminOrders.filter(o => o.status === 'shipping').length), color: 'var(--c6-500)' },
-          { label: 'Đã giao', value: String(adminOrders.filter(o => o.status === 'delivered').length), color: 'var(--c5-500)' },
-          { label: 'Đã hủy', value: String(adminOrders.filter(o => o.status === 'cancelled').length), color: '#ef4444' },
+          { label: t('admin.stat.totalOrders'), value: String(adminOrders.length), color: 'var(--c4-500)' },
+          { label: t('admin.stat.pendingProcess'), value: String(adminOrders.filter(o => o.status === 'pending').length), color: 'var(--gold-400)' },
+          { label: t('admin.stat.delivering'), value: String(adminOrders.filter(o => o.status === 'shipping').length), color: 'var(--c6-500)' },
+          { label: statusLabel['delivered'], value: String(adminOrders.filter(o => o.status === 'delivered').length), color: 'var(--c5-500)' },
+          { label: statusLabel['cancelled'], value: String(adminOrders.filter(o => o.status === 'cancelled').length), color: '#ef4444' },
         ];
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Quản Lý Đơn Hàng</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('admin.title.orders')}</h2>
             {/* Order stats cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 20 }}>
               {orderStats.map((s, i) => (
@@ -518,22 +543,22 @@ export default function Admin() {
             {/* Filters */}
             <div className="flex gap-8" style={{ marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
               <select value={orderStatusFilter} onChange={e => setOrderStatusFilter(e.target.value)} style={filterSelectStyle}>
-                <option value="all">Tất cả trạng thái</option>
+                <option value="all">{t('admin.filter.allStatuses')}</option>
                 {orderStatusFlow.map(s => <option key={s} value={s}>{statusLabel[s] || s}</option>)}
-                <option value="cancelled">Đã hủy</option>
+                <option value="cancelled">{statusLabel['cancelled']}</option>
               </select>
-              <span style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>Từ:</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>{t('admin.filter.from')}</span>
               <input type="date" value={orderDateFrom} onChange={e => setOrderDateFrom(e.target.value)} style={{ ...searchInputStyle, minWidth: 140 }} />
-              <span style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>Đến:</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>{t('admin.filter.to')}</span>
               <input type="date" value={orderDateTo} onChange={e => setOrderDateTo(e.target.value)} style={{ ...searchInputStyle, minWidth: 140 }} />
-              <span style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>Hiển thị {filteredOrders.length}/{adminOrders.length}</span>
+              <span style={{ fontSize: '.75rem', color: 'var(--text-3)' }}>{t('admin.filter.showing')} {filteredOrders.length}/{adminOrders.length}</span>
             </div>
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['Mã đơn', 'Khách hàng', 'Sản phẩm', 'Giá trị', 'Thanh toán', 'Trạng thái', 'Ngày', 'Hành động'].map(h => (
+                      {[t('admin.th.orderId'), t('admin.th.customer'), t('admin.th.product'), t('admin.th.value'), t('admin.th.payment'), t('admin.th.status'), t('admin.th.date'), t('admin.th.actions')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -550,7 +575,7 @@ export default function Admin() {
                           {o.status !== 'cancelled' ? (
                             <select
                               value={o.status}
-                              onChange={e => (() => { setAdminOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: e.target.value } : x)); showToast(`Đã đổi trạng thái đơn ${o.id} thành ${e.target.value}`); })()}
+                              onChange={e => (() => { setAdminOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: e.target.value } : x)); showToast(`${t('admin.toast.orderStatusChanged')} ${o.id} ${t('admin.toast.statusChangedTo')} ${e.target.value}`); })()}
                               style={{ ...filterSelectStyle, padding: '4px 8px', fontSize: '.72rem', minWidth: 120 }}
                             >
                               {orderStatusFlow.map(s => (
@@ -564,9 +589,9 @@ export default function Admin() {
                         <td style={{ ...tdStyle, color: 'var(--text-3)' }}>{o.date}</td>
                         <td style={tdStyle}>
                           <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
-                            <button style={btnSm} onClick={() => showToast(`Đang xem chi tiết đơn ${o.id}`)}>Xem chi tiết</button>
+                            <button style={btnSm} onClick={() => showToast(`${t('admin.toast.viewOrderDetail')} ${o.id}`)}>{t('admin.btn.viewDetail')}</button>
                             {o.status !== 'cancelled' && (
-                              <button style={btnWarnSm} onClick={() => showToast(`Đã hoàn tiền đơn ${o.id}`)}>Hoàn tiền</button>
+                              <button style={btnWarnSm} onClick={() => showToast(`${t('admin.toast.refundedOrder')} ${o.id}`)}>{t('admin.btn.refund')}</button>
                             )}
                           </div>
                         </td>
@@ -583,19 +608,19 @@ export default function Admin() {
       /* ====== UPGRADED: COMMISSION ====== */
       case 'commission': {
         const commissionStats = [
-          { label: 'Tổng pending', value: commissionData.filter(c => c.status === 'pending').reduce((s, c) => s + parseFloat(c.amount), 0).toFixed(1) + 'M₫', color: 'var(--gold-400)' },
-          { label: 'Tổng đã trả', value: commissionData.filter(c => c.status === 'paid').reduce((s, c) => s + parseFloat(c.amount), 0).toFixed(1) + 'M₫', color: 'var(--c4-500)' },
-          { label: 'Tổng tháng này', value: commissionData.reduce((s, c) => s + parseFloat(c.amount), 0).toFixed(1) + 'M₫', color: 'var(--c6-500)' },
-          { label: 'Gas cost ước tính', value: '0.15 MATIC', color: 'var(--c7-500)' },
+          { label: t('admin.stat.totalPending'), value: commissionData.filter(c => c.status === 'pending').reduce((s, c) => s + parseFloat(c.amount), 0).toFixed(1) + 'M₫', color: 'var(--gold-400)' },
+          { label: t('admin.stat.totalPaid'), value: commissionData.filter(c => c.status === 'paid').reduce((s, c) => s + parseFloat(c.amount), 0).toFixed(1) + 'M₫', color: 'var(--c4-500)' },
+          { label: t('admin.stat.totalThisMonth'), value: commissionData.reduce((s, c) => s + parseFloat(c.amount), 0).toFixed(1) + 'M₫', color: 'var(--c6-500)' },
+          { label: t('admin.stat.gasCostEstimate'), value: '0.15 MATIC', color: 'var(--c7-500)' },
         ];
         const pendingCount = commissionData.filter(c => c.status === 'pending').length;
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Quản Lý Hoa Hồng</h2>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('admin.title.commission')}</h2>
               {pendingCount > 0 && (
-                <button style={btnPrimSm} onClick={() => showToast(`Đang thanh toán ${pendingCount} commissions...`)}>
-                  Thanh toán hàng loạt ({pendingCount})
+                <button style={btnPrimSm} onClick={() => showToast(`${t('admin.toast.payingCommissions')} ${pendingCount} ${t('admin.toast.commissions')}`)}>
+                  {t('admin.btn.batchPay')} ({pendingCount})
                 </button>
               )}
             </div>
@@ -613,7 +638,7 @@ export default function Admin() {
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['KOC', 'Số tiền', 'Đơn hàng', 'Trạng thái', 'TX Hash', 'Ngày', 'Hành động'].map(h => (
+                      {['KOC', t('admin.th.amount'), t('admin.th.orders'), t('admin.th.status'), t('admin.th.txHash'), t('admin.th.date'), t('admin.th.actions')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -634,13 +659,13 @@ export default function Admin() {
                         <td style={tdStyle}>
                           <div className="flex gap-4">
                             {c.status === 'pending' && (
-                              <button style={btnPrimSm} onClick={() => showToast(`Đã thanh toán commission cho ${c.koc}`)}>Thanh toán</button>
+                              <button style={btnPrimSm} onClick={() => showToast(`${t('admin.toast.paidCommission')} ${c.koc}`)}>{t('admin.btn.pay')}</button>
                             )}
                             {c.status === 'paid' && c.txHash !== '—' && (
-                              <a href={`https://polygonscan.com/tx/${c.txHash}`} target="_blank" rel="noreferrer" style={{ ...btnSm, textDecoration: 'none', color: 'var(--c6-300)', borderColor: 'var(--c6-300)' }}>Xem TX</a>
+                              <a href={`https://polygonscan.com/tx/${c.txHash}`} target="_blank" rel="noreferrer" style={{ ...btnSm, textDecoration: 'none', color: 'var(--c6-300)', borderColor: 'var(--c6-300)' }}>{t('admin.btn.viewTx')}</a>
                             )}
                             {c.status === 'processing' && (
-                              <span style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Đang xử lý...</span>
+                              <span style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t('admin.toast.processing')}</span>
                             )}
                           </div>
                         </td>
@@ -670,13 +695,13 @@ export default function Admin() {
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Quản Lý KOC</h2>
-              <button style={btnPrimSm} onClick={() => showToast('Mời KOC mới')}>+ Mời KOC</button>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('admin.title.koc')}</h2>
+              <button style={btnPrimSm} onClick={() => showToast(t('admin.toast.inviteKoc'))}>{t('admin.btn.inviteKoc')}</button>
             </div>
             <div className="flex gap-8" style={{ marginBottom: 14, flexWrap: 'wrap' }}>
-              <input type="text" placeholder="Tìm KOC..." value={kocSearch} onChange={e => setKocSearch(e.target.value)} style={searchInputStyle} />
+              <input type="text" placeholder={t('admin.search.koc')} value={kocSearch} onChange={e => setKocSearch(e.target.value)} style={searchInputStyle} />
               <select value={kocStatusFilter} onChange={e => setKocStatusFilter(e.target.value)} style={filterSelectStyle}>
-                <option value="all">Tất cả</option>
+                <option value="all">{t('admin.filter.all')}</option>
                 <option value="active">Active</option>
                 <option value="suspended">Suspended</option>
                 <option value="review">Review</option>
@@ -684,7 +709,7 @@ export default function Admin() {
             </div>
             {/* Tier distribution mini chart */}
             <div className="card" style={{ padding: '14px 20px', marginBottom: 16 }}>
-              <div className="label" style={{ marginBottom: 10 }}>PHÂN BỐ TIER KOC</div>
+              <div className="label" style={{ marginBottom: 10 }}>{t('admin.stat.kocTierDist')}</div>
               <div className="flex gap-16" style={{ alignItems: 'flex-end' }}>
                 {Object.entries(tierCounts).map(([tier, count]) => (
                   <div key={tier} style={{ textAlign: 'center', flex: 1 }}>
@@ -716,13 +741,13 @@ export default function Admin() {
                     </div>
                     <div style={{ textAlign: 'right' }}>
                       <div style={{ fontFamily: 'var(--ff-display)', fontWeight: 700, color: 'var(--c4-500)' }}>{k.sales}</div>
-                      <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>Hoa hồng: {k.commission}</div>
+                      <div style={{ fontSize: '.72rem', color: 'var(--text-3)' }}>{t('admin.misc.commissionLabel')} {k.commission}</div>
                       <div style={{ fontSize: '.72rem', color: 'var(--c6-500)', marginTop: 4 }}>🔗 {k.affiliateLinks} affiliate links</div>
                       {/* Action buttons */}
                       <div className="flex gap-4" style={{ marginTop: 10, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         <select
                           defaultValue={k.tier}
-                          onChange={e => (() => { setAdminKocs(prev => prev.map(x => x.id === k.id ? { ...x, tier: e.target.value } : x)); showToast(`Đã nâng cấp tier KOC ${k.name} thành ${e.target.value}`); })()}
+                          onChange={e => (() => { setAdminKocs(prev => prev.map(x => x.id === k.id ? { ...x, tier: e.target.value } : x)); showToast(`${t('admin.toast.tierUpgraded')} ${k.name} ${t('admin.toast.toTier')} ${e.target.value}`); })()}
                           style={{ ...filterSelectStyle, padding: '4px 8px', fontSize: '.68rem' }}
                         >
                           <option value="Bronze">Bronze</option>
@@ -730,10 +755,10 @@ export default function Admin() {
                           <option value="Gold">Gold</option>
                           <option value="Diamond">Diamond</option>
                         </select>
-                        <button style={k.status === 'suspended' ? btnSuccessSm : btnWarnSm} onClick={() => (() => { setAdminKocs(prev => prev.map(x => x.id === k.id ? { ...x, status: x.status === 'suspended' ? 'active' : 'suspended' } : x)); showToast(`${k.status === 'suspended' ? 'Đã mở khóa' : 'Đã tạm khóa'} KOC ${k.name}`); })()}>
-                          {k.status === 'suspended' ? 'Mở khóa' : 'Tạm khóa'}
+                        <button style={k.status === 'suspended' ? btnSuccessSm : btnWarnSm} onClick={() => (() => { setAdminKocs(prev => prev.map(x => x.id === k.id ? { ...x, status: x.status === 'suspended' ? 'active' : 'suspended' } : x)); showToast(`${k.status === 'suspended' ? t('admin.toast.unlocked') : t('admin.toast.suspended')} KOC ${k.name}`); })()}>
+                          {k.status === 'suspended' ? t('admin.btn.unlock') : t('admin.btn.suspend')}
                         </button>
-                        <button style={btnSm} onClick={() => showToast(`Đang xem chi tiết KOC ${k.name}`)}>Xem chi tiết</button>
+                        <button style={btnSm} onClick={() => showToast(`${t('admin.toast.viewKocDetail')} ${k.name}`)}>{t('admin.btn.viewDetail')}</button>
                       </div>
                     </div>
                   </div>
@@ -760,8 +785,8 @@ export default function Admin() {
         return (
           <>
             <div className="flex" style={{ justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 8 }}>
-              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>Quản Lý Vendor</h2>
-              <button style={btnPrimSm} onClick={() => showToast('Thêm vendor mới')}>+ Thêm Vendor</button>
+              <h2 style={{ fontWeight: 700, fontSize: '1.1rem' }}>{t('admin.title.vendor')}</h2>
+              <button style={btnPrimSm} onClick={() => showToast(t('admin.toast.addVendor'))}>{t('admin.btn.addVendor')}</button>
             </div>
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
@@ -774,9 +799,9 @@ export default function Admin() {
             </div>
             {/* Search & Filter */}
             <div className="flex gap-8" style={{ marginBottom: 14, flexWrap: 'wrap' }}>
-              <input type="text" placeholder="Tìm vendor, owner, ID..." value={vendorSearch} onChange={e => setVendorSearch(e.target.value)} style={searchInputStyle} />
+              <input type="text" placeholder={t('admin.search.vendor')} value={vendorSearch} onChange={e => setVendorSearch(e.target.value)} style={searchInputStyle} />
               <select value={vendorStatusFilter} onChange={e => setVendorStatusFilter(e.target.value)} style={filterSelectStyle}>
-                <option value="all">Tất cả</option>
+                <option value="all">{t('admin.filter.all')}</option>
                 <option value="active">Active</option>
                 <option value="pending">Pending</option>
                 <option value="suspended">Suspended</option>
@@ -787,7 +812,7 @@ export default function Admin() {
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['ID', 'Tên shop', 'Owner', 'Mã số thuế', 'Sản phẩm', 'Doanh thu', 'Trạng thái', 'Hành động'].map(h => (
+                      {[t('admin.th.id'), t('admin.th.shopName'), 'Owner', t('admin.th.taxCode'), t('admin.th.product'), t('admin.th.revenue'), t('admin.th.status'), t('admin.th.actions')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -806,17 +831,17 @@ export default function Admin() {
                           <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
                             {v.status === 'pending' && (
                               <>
-                                <button style={btnSuccessSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'active' } : x)); showToast(`Đã duyệt vendor ${v.shopName}`); })()}>Duyệt</button>
-                                <button style={btnWarnSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'rejected' } : x)); showToast(`Đã từ chối vendor ${v.shopName}`); })()}>Từ chối</button>
+                                <button style={btnSuccessSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'active' } : x)); showToast(`${t('admin.toast.approvedVendor')} ${v.shopName}`); })()}>{t('admin.btn.approve')}</button>
+                                <button style={btnWarnSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'rejected' } : x)); showToast(`${t('admin.toast.rejectedVendor')} ${v.shopName}`); })()}>{t('admin.btn.reject')}</button>
                               </>
                             )}
                             {v.status === 'active' && (
-                              <button style={btnWarnSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'suspended' } : x)); showToast(`Đã tạm khóa vendor ${v.shopName}`); })()}>Tạm khóa</button>
+                              <button style={btnWarnSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'suspended' } : x)); showToast(`${t('admin.toast.suspendedVendor')} ${v.shopName}`); })()}>{t('admin.btn.suspend')}</button>
                             )}
                             {v.status === 'suspended' && (
-                              <button style={btnSuccessSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'active' } : x)); showToast(`Đã mở khóa vendor ${v.shopName}`); })()}>Mở khóa</button>
+                              <button style={btnSuccessSm} onClick={() => (() => { setAdminVendors(prev => prev.map(x => x.id === v.id ? { ...x, status: 'active' } : x)); showToast(`${t('admin.toast.unlockedVendor')} ${v.shopName}`); })()}>{t('admin.btn.unlock')}</button>
                             )}
-                            <button style={btnSm} onClick={() => showToast(`Đang xem chi tiết vendor ${v.shopName}`)}>Xem chi tiết</button>
+                            <button style={btnSm} onClick={() => showToast(`${t('admin.toast.viewVendorDetail')} ${v.shopName}`)}>{t('admin.btn.viewDetail')}</button>
                           </div>
                         </td>
                       </tr>
@@ -832,10 +857,10 @@ export default function Admin() {
       /* ====== NEW: NOTIFICATIONS ====== */
       case 'notifications': {
         const ntfStats = [
-          { label: 'Đã gửi hôm nay', value: '1,234', color: 'var(--c4-500)' },
-          { label: 'Tỉ lệ đọc', value: '72%', color: 'var(--c6-500)' },
-          { label: 'Đang chờ', value: '3', color: 'var(--gold-400)' },
-          { label: 'Đã lên lịch', value: '5', color: 'var(--c5-500)' },
+          { label: t('admin.ntf.sentToday'), value: '1,234', color: 'var(--c4-500)' },
+          { label: t('admin.ntf.readRate'), value: '72%', color: 'var(--c6-500)' },
+          { label: t('admin.ntf.waiting'), value: '3', color: 'var(--gold-400)' },
+          { label: t('admin.ntf.alreadyScheduled'), value: '5', color: 'var(--c5-500)' },
         ];
 
         const toggleChannel = (ch: string) => {
@@ -844,7 +869,7 @@ export default function Admin() {
 
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Quản Lý Thông Báo</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('admin.title.notifications')}</h2>
             {/* Stats */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
               {ntfStats.map((s, i) => (
@@ -856,28 +881,28 @@ export default function Admin() {
             </div>
             {/* Compose form */}
             <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-              <div className="label" style={{ marginBottom: 14 }}>SOẠN THÔNG BÁO MỚI</div>
+              <div className="label" style={{ marginBottom: 14 }}>{t('admin.ntf.compose')}</div>
               <div className="flex-col gap-12">
                 <div>
-                  <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Tiêu đề</label>
-                  <input type="text" placeholder="Nhập tiêu đề thông báo..." value={ntfTitle} onChange={e => setNtfTitle(e.target.value)} style={{ ...searchInputStyle, width: '100%' }} />
+                  <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('admin.ntf.titleLabel')}</label>
+                  <input type="text" placeholder={t('admin.ntf.titlePlaceholder')} value={ntfTitle} onChange={e => setNtfTitle(e.target.value)} style={{ ...searchInputStyle, width: '100%' }} />
                 </div>
                 <div>
-                  <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Nội dung</label>
-                  <textarea placeholder="Nhập nội dung thông báo..." value={ntfMessage} onChange={e => setNtfMessage(e.target.value)} rows={3} style={{ ...searchInputStyle, width: '100%', resize: 'vertical', fontFamily: 'inherit' }} />
+                  <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('admin.ntf.content')}</label>
+                  <textarea placeholder={t('admin.ntf.contentPlaceholder')} value={ntfMessage} onChange={e => setNtfMessage(e.target.value)} rows={3} style={{ ...searchInputStyle, width: '100%', resize: 'vertical', fontFamily: 'inherit' }} />
                 </div>
                 <div className="flex gap-16" style={{ flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   <div>
-                    <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Đối tượng</label>
+                    <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('admin.ntf.targetLabel')}</label>
                     <select value={ntfTarget} onChange={e => setNtfTarget(e.target.value)} style={filterSelectStyle}>
-                      <option value="All">Tất cả</option>
+                      <option value="All">{t('admin.filter.all')}</option>
                       <option value="Buyer">Buyer</option>
                       <option value="KOC">KOC</option>
                       <option value="Vendor">Vendor</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>Kênh gửi</label>
+                    <label style={{ fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 4 }}>{t('admin.ntf.channelLabel')}</label>
                     <div className="flex gap-8">
                       {['Push', 'Email', 'SMS'].map(ch => (
                         <label key={ch} className="flex gap-4" style={{ cursor: 'pointer', fontSize: '.78rem', alignItems: 'center' }}>
@@ -891,10 +916,10 @@ export default function Admin() {
                     style={btnPrimSm}
                     onClick={() => {
                       const channels = Object.entries(ntfChannels).filter(([, v]) => v).map(([k]) => k).join(', ');
-                      showToast(`Đã gửi thông báo '${ntfTitle}' đến ${ntfTarget}`);
+                      showToast(`${t('admin.toast.sentNotification')} '${ntfTitle}' → ${ntfTarget}`);
                     }}
                   >
-                    Gửi ngay
+                    {t('admin.btn.sendNow')}
                   </button>
                 </div>
               </div>
@@ -902,13 +927,13 @@ export default function Admin() {
             {/* Recent notifications table */}
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>Thông Báo Gần Đây</span>
+                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{t('admin.ntf.recent')}</span>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['ID', 'Tiêu đề', 'Đối tượng', 'Kênh', 'Gửi lúc', 'Tỉ lệ đọc', 'Trạng thái'].map(h => (
+                      {[t('admin.th.id'), t('admin.th.title'), t('admin.th.target'), t('admin.th.channel'), t('admin.th.sentAt'), t('admin.th.readRate'), t('admin.th.status')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -936,7 +961,7 @@ export default function Admin() {
       case 'approvals':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Phê Duyệt</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('admin.title.approvals')}</h2>
             <div className="flex-col gap-12">
               {approvalsData.map(a => (
                 <div key={a.id} className="card" style={{ padding: '18px 24px' }}>
@@ -948,12 +973,12 @@ export default function Admin() {
                         <span className={`badge ${statusBadge[a.status]}`}>{statusLabel[a.status]}</span>
                       </div>
                       <div style={{ fontWeight: 700, fontSize: '.88rem' }}>{a.name}</div>
-                      <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginTop: 2 }}>Bởi: {a.submitter} · {a.date}</div>
+                      <div style={{ fontSize: '.72rem', color: 'var(--text-3)', marginTop: 2 }}>{t('admin.misc.by')} {a.submitter} · {a.date}</div>
                     </div>
                     {a.status === 'pending' && (
                       <div className="flex gap-8">
-                        <button className="btn btn-primary btn-sm" onClick={() => showToast(`Đã duyệt xác minh #${a.id}`)}>Duyệt</button>
-                        <button className="btn btn-secondary btn-sm" onClick={() => showToast(`Đã từ chối xác minh #${a.id}`)}>Từ chối</button>
+                        <button className="btn btn-primary btn-sm" onClick={() => showToast(`${t('admin.toast.approvedVerification')} #${a.id}`)}>{t('admin.btn.approve')}</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => showToast(`${t('admin.toast.rejectedVerification')} #${a.id}`)}>{t('admin.btn.reject')}</button>
                       </div>
                     )}
                   </div>
@@ -966,7 +991,7 @@ export default function Admin() {
       case 'system':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Hệ Thống</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('admin.title.system')}</h2>
             <div className="flex-col gap-8">
               {systemHealth.map((s, i) => (
                 <div key={i} className="card" style={{ padding: '14px 20px' }}>
@@ -998,7 +1023,7 @@ export default function Admin() {
       case 'settings':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>Cài Đặt Hệ Thống</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 16 }}>{t('admin.title.settings')}</h2>
             <div className="flex-col gap-16">
               {[
                 { title: 'Thông tin nền tảng', fields: [{ label: 'Tên nền tảng', value: 'WellKOC' }, { label: 'Phiên bản', value: 'v1.0.0' }, { label: 'Ngôn ngữ', value: 'Tiếng Việt' }] },
@@ -1026,7 +1051,7 @@ export default function Admin() {
       case 'payments':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Payment Management</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('admin.title.payments')}</h2>
 
             <div className="kpi-grid" style={{ marginBottom: 24 }}>
               {paymentKPIs.map((kpi, i) => (
@@ -1040,7 +1065,7 @@ export default function Admin() {
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
                 <div className="flex" style={{ justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 700, fontSize: '.88rem' }}>Tất Cả Giao Dịch</span>
+                  <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{t('admin.payment.allTx')}</span>
                   <div className="flex gap-8">
                     <span className="badge badge-c4">Payments</span>
                     <span className="badge badge-gold">Refunds</span>
@@ -1052,14 +1077,14 @@ export default function Admin() {
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['Mã GD', 'Loại', 'Người dùng', 'Phương thức', 'Số tiền', 'Đơn hàng', 'Trạng thái', 'TX Hash'].map(h => (
+                      {[t('admin.th.txId'), t('admin.th.type'), t('admin.th.user'), t('admin.th.method'), t('admin.th.amount'), t('admin.th.orders'), t('admin.th.status'), t('admin.th.txHash')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {allTransactions.map(tx => {
-                      const tc = txnTypeConfig[tx.type];
+                      const tc = txnTypeConfig[tx.type] || { label: tx.type, badge: 'badge-c6' };
                       return (
                         <tr key={tx.id} style={{ borderBottom: '1px solid var(--border)' }}>
                           <td style={tdStyle} className="mono">{tx.id}</td>
@@ -1088,7 +1113,7 @@ export default function Admin() {
       case 'blockchain':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Blockchain Monitor</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('admin.title.blockchain')}</h2>
 
             <div className="kpi-grid" style={{ marginBottom: 24 }}>
               {blockchainKPIs.map((kpi, i) => (
@@ -1128,13 +1153,13 @@ export default function Admin() {
 
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
               <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>Giao Dịch On-chain Gần Đây</span>
+                <span style={{ fontWeight: 700, fontSize: '.88rem' }}>{t('admin.blockchain.recentTx')}</span>
               </div>
               <div style={{ overflowX: 'auto' }}>
                 <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '.78rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                      {['TX Hash', 'Loại', 'Từ', 'Đến', 'Giá trị', 'Gas', 'Thời gian'].map(h => (
+                      {[t('admin.th.txHash'), t('admin.th.type'), t('admin.th.from'), t('admin.th.to'), t('admin.th.value'), t('admin.th.gas'), t('admin.th.time')].map(h => (
                         <th key={h} style={thStyle}>{h}</th>
                       ))}
                     </tr>
@@ -1175,7 +1200,7 @@ export default function Admin() {
       case 'walletMgmt':
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Wallet Management</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('admin.title.wallet')}</h2>
 
             <div className="kpi-grid" style={{ marginBottom: 24 }}>
               {walletKPIs.map((kpi, i) => (
@@ -1187,7 +1212,7 @@ export default function Admin() {
             </div>
 
             <div className="card" style={{ padding: 20, marginBottom: 24 }}>
-              <div className="label" style={{ marginBottom: 16 }}>VÍ NỀN TẢNG</div>
+              <div className="label" style={{ marginBottom: 16 }}>{t('admin.wallet.platformWallets')}</div>
               <div className="flex-col gap-16">
                 {platformWallets.map((w, i) => (
                   <div key={i} className="onchain-card" style={{ padding: 16 }}>
@@ -1209,7 +1234,7 @@ export default function Admin() {
             </div>
 
             <div className="card" style={{ padding: 20 }}>
-              <div className="label" style={{ marginBottom: 12 }}>PHÍ THU THÁNG NÀY</div>
+              <div className="label" style={{ marginBottom: 12 }}>{t('admin.wallet.feeThisMonth')}</div>
               <div className="flex-col gap-10">
                 {feeCollection.map((f, i) => (
                   <div key={i} className="flex" style={{ justifyContent: 'space-between', padding: '10px 0', borderBottom: i < feeCollection.length - 1 ? '1px solid var(--border)' : 'none' }}>
@@ -1222,7 +1247,7 @@ export default function Admin() {
                 ))}
               </div>
               <div style={{ marginTop: 16, padding: '12px 16px', background: 'var(--bg-2)', borderRadius: 8, textAlign: 'center' }}>
-                <span style={{ fontSize: '.78rem', color: 'var(--text-3)' }}>Tổng phí thu: </span>
+                <span style={{ fontSize: '.78rem', color: 'var(--text-3)' }}>{t('admin.wallet.totalFees')} </span>
                 <span style={{ fontFamily: 'var(--ff-display)', fontWeight: 800, fontSize: '1rem', color: 'var(--c4-500)' }}>$12,400</span>
               </div>
             </div>
@@ -1334,14 +1359,14 @@ export default function Admin() {
 
         return (
           <>
-            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>Cây Cộng Đồng — Referral Network</h2>
+            <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 20 }}>{t('admin.title.referralTree')}</h2>
 
             <div className="card" style={{ padding: '12px 20px', marginBottom: 20 }}>
               <div className="flex gap-12" style={{ alignItems: 'center' }}>
                 <span style={{ fontSize: '1.1rem' }}>🔍</span>
                 <input
                   type="text"
-                  placeholder="Tìm user theo tên, email, mã..."
+                  placeholder={t('admin.search.treeUser')}
                   value={treeSearch}
                   onChange={e => setTreeSearch(e.target.value)}
                   style={{
@@ -1382,8 +1407,8 @@ export default function Admin() {
         return <AdminKYC showToast={showToast} />;
 
       default: {
-        const currentTab = sidebarTabs.find(t => t.key === activeTab);
-        const tabName = currentTab?.label || activeTab;
+        const currentTab = sidebarTabs.find(st => st.key === activeTab);
+        const tabName = currentTab ? t(currentTab.labelKey) : activeTab;
         const tabIcon = currentTab?.icon || '📋';
 
         const crmSections: Record<string, { title: string; stats: { label: string; value: string; delta: string; color: string }[]; tableHeaders: string[]; tableRows: string[][] }> = {
@@ -1795,8 +1820,8 @@ export default function Admin() {
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement('a'); a.href = url; a.download = `wellkoc-${activeTab}-${new Date().toISOString().slice(0,10)}.csv`; a.click();
                   URL.revokeObjectURL(url);
-                  showToast(`Đã tải xuống file CSV cho ${section.title}`);
-                }}>Xuất Excel</button>
+                  showToast(`${t('admin.toast.downloadedCsv')} ${section.title}`);
+                }}>{t('admin.btn.exportExcel')}</button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
                 {section.stats.map((s, i) => (
@@ -1811,12 +1836,12 @@ export default function Admin() {
               <div className="flex gap-8" style={{ marginBottom: 14 }}>
                 <input
                   type="text"
-                  placeholder={`Tìm trong ${section.title}...`}
+                  placeholder={`${t('admin.search.inSection')} ${section.title}...`}
                   value={currentCrmSearch}
                   onChange={e => setCrmSearch(prev => ({ ...prev, [activeTab]: e.target.value }))}
                   style={searchInputStyle}
                 />
-                <span style={{ fontSize: '.75rem', color: 'var(--text-3)', alignSelf: 'center' }}>Hiển thị {filteredRows.length}/{section.tableRows.length}</span>
+                <span style={{ fontSize: '.75rem', color: 'var(--text-3)', alignSelf: 'center' }}>{t('admin.filter.showing')} {filteredRows.length}/{section.tableRows.length}</span>
               </div>
               <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
@@ -1826,7 +1851,7 @@ export default function Admin() {
                         {section.tableHeaders.map(h => (
                           <th key={h} style={thStyle}>{h}</th>
                         ))}
-                        <th style={thStyle}>Thao tác</th>
+                        <th style={thStyle}>{t('admin.th.operation')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1849,11 +1874,11 @@ export default function Admin() {
                               <div className="flex gap-4" style={{ flexWrap: 'wrap' }}>
                                 {isPending && (
                                   <>
-                                    <button style={btnSuccessSm} onClick={() => { overrideRow(activeTab, ri, 'approved'); showToast(`✅ Đã duyệt ${row[0]}`); }}>Duyệt</button>
-                                    <button style={btnDangerSm} onClick={() => { overrideRow(activeTab, ri, 'rejected'); showToast(`❌ Đã từ chối ${row[0]}`); }}>Từ chối</button>
+                                    <button style={btnSuccessSm} onClick={() => { overrideRow(activeTab, ri, 'approved'); showToast(`${t('admin.toast.approvedItem')} ${row[0]}`); }}>{t('admin.btn.approve')}</button>
+                                    <button style={btnDangerSm} onClick={() => { overrideRow(activeTab, ri, 'rejected'); showToast(`${t('admin.toast.rejectedItem')} ${row[0]}`); }}>{t('admin.btn.reject')}</button>
                                   </>
                                 )}
-                                <button style={btnSm} onClick={() => { setDetailRow({ tab: activeTab, row: [...row], headers: section.tableHeaders, title: section.title, ri }); setEditingField({}); }}>Xem</button>
+                                <button style={btnSm} onClick={() => { setDetailRow({ tab: activeTab, row: [...row], headers: section.tableHeaders, title: section.title, ri }); setEditingField({}); }}>{t('admin.btn.view')}</button>
                               </div>
                             </td>
                           </tr>
@@ -1876,7 +1901,7 @@ export default function Admin() {
                     <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', flexShrink: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
-                          <h3 style={{ fontWeight: 700, fontSize: '1rem', margin: 0 }}>Chi tiết: {detailRow.row[0]}</h3>
+                          <h3 style={{ fontWeight: 700, fontSize: '1rem', margin: 0 }}>{t('admin.detail.title')} {detailRow.row[0]}</h3>
                           <div style={{ fontSize: '.75rem', color: 'var(--text-3)', marginTop: 4 }}>{detailRow.title}</div>
                         </div>
                         <button onClick={() => setDetailRow(null)} style={{ background: 'transparent', border: 'none', fontSize: '1.2rem', cursor: 'pointer', color: 'var(--text-3)' }}>✕</button>
@@ -2123,14 +2148,14 @@ export default function Admin() {
                       {/* Action buttons for pending items */}
                       {isPendingDetail && !rowOverrides[`${activeTab}-${detailRow.ri}`] && (
                         <div style={{ display: 'flex', gap: 8, paddingTop: 8, borderTop: '1px solid var(--border)' }}>
-                          <button style={{ ...btnSuccessSm, padding: '10px 20px', fontSize: '.82rem' }} onClick={() => { overrideRow(activeTab, detailRow.ri, 'approved'); showToast(`Approved ${detailRow.row[0]}`); setDetailRow(null); }}>Duyệt</button>
-                          <button style={{ ...btnDangerSm, padding: '10px 20px', fontSize: '.82rem' }} onClick={() => { overrideRow(activeTab, detailRow.ri, 'rejected'); showToast(`Rejected ${detailRow.row[0]}`); setDetailRow(null); }}>Từ chối</button>
+                          <button style={{ ...btnSuccessSm, padding: '10px 20px', fontSize: '.82rem' }} onClick={() => { overrideRow(activeTab, detailRow.ri, 'approved'); showToast(`${t('admin.toast.approvedItem')} ${detailRow.row[0]}`); setDetailRow(null); }}>{t('admin.btn.approve')}</button>
+                          <button style={{ ...btnDangerSm, padding: '10px 20px', fontSize: '.82rem' }} onClick={() => { overrideRow(activeTab, detailRow.ri, 'rejected'); showToast(`${t('admin.toast.rejectedItem')} ${detailRow.row[0]}`); setDetailRow(null); }}>{t('admin.btn.reject')}</button>
                         </div>
                       )}
 
                       {/* Close */}
                       <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 4 }}>
-                        <button style={{ ...btnSm, padding: '10px 20px', fontSize: '.82rem' }} onClick={() => setDetailRow(null)}>Đóng</button>
+                        <button style={{ ...btnSm, padding: '10px 20px', fontSize: '.82rem' }} onClick={() => setDetailRow(null)}>{t('admin.btn.close')}</button>
                       </div>
                     </div>
                   </div>
@@ -2147,7 +2172,7 @@ export default function Admin() {
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <div style={{ fontSize: '3rem', marginBottom: 16 }}>{tabIcon}</div>
             <h2 style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: 8 }}>{tabName}</h2>
-            <p style={{ color: 'var(--text-3)', fontSize: '.85rem' }}>Module đang được phát triển. Sắp ra mắt!</p>
+            <p style={{ color: 'var(--text-3)', fontSize: '.85rem' }}>{t('admin.misc.moduleInDev')}</p>
           </div>
         );
       }
@@ -2176,7 +2201,7 @@ export default function Admin() {
                   {/* Theme toggle */}
                   <button
                     onClick={toggleTheme}
-                    title={isDark ? 'Chế độ sáng' : 'Chế độ tối'}
+                    title={isDark ? t('admin.misc.lightMode') : t('admin.misc.darkMode')}
                     style={{
                       width: 32, height: 32, borderRadius: 8,
                       border: '1px solid var(--border)', background: 'var(--bg-2)',
@@ -2191,13 +2216,13 @@ export default function Admin() {
             {/* Sidebar nav — scrollable */}
             <div className="dash-sidebar-nav">
               {sidebarSections.map(section => {
-                const isOpen = openAdminGroups[section.title];
+                const isOpen = openAdminGroups[section.titleKey];
                 const hasActive = section.items.some(i => i.key === activeTab);
                 return (
-                  <div key={section.title} style={{ marginBottom: 2 }}>
+                  <div key={section.titleKey} style={{ marginBottom: 2 }}>
                     {/* Accordion header */}
                     <div
-                      onClick={() => toggleAdminGroup(section.title)}
+                      onClick={() => toggleAdminGroup(section.titleKey)}
                       style={{
                         padding: '9px 10px 9px 8px', display: 'flex', alignItems: 'center', gap: 8,
                         cursor: 'pointer', borderLeft: `3px solid ${section.color}`, marginLeft: 4,
@@ -2207,7 +2232,7 @@ export default function Admin() {
                       }}
                     >
                       <span style={{ fontSize: '.85rem' }}>{section.groupIcon}</span>
-                      <span style={{ flex: 1, fontSize: '.65rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: section.color }}>{section.title}</span>
+                      <span style={{ flex: 1, fontSize: '.65rem', fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: section.color }}>{t(section.titleKey)}</span>
                       <span style={{ fontSize: '.55rem', color: 'var(--text-4)', transition: 'transform .2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>▼</span>
                     </div>
 
@@ -2220,12 +2245,12 @@ export default function Admin() {
                         <div
                           key={tab.key}
                           className={`dash-nav-item ${activeTab === tab.key ? 'on' : ''}`}
-                          onClick={() => handleAdminNavClick(section.title, tab.key)}
+                          onClick={() => handleAdminNavClick(section.titleKey, tab.key)}
                           style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingLeft: 20 }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span className="dash-nav-icon">{tab.icon}</span>
-                            {tab.label}
+                            {t(tab.labelKey)}
                           </div>
                           {tab.badge && <span style={{ fontSize: '.58rem', padding: '1px 6px', borderRadius: 8, background: 'var(--bg-2)', color: 'var(--text-4)', fontWeight: 600 }}>{tab.badge}</span>}
                         </div>
@@ -2245,7 +2270,7 @@ export default function Admin() {
                 style={{ color: '#ef4444', cursor: 'pointer' }}
               >
                 <span className="dash-nav-icon">🚪</span>
-                <span style={{ flex: 1 }}>Đăng xuất</span>
+                <span style={{ flex: 1 }}>{t('admin.btn.logout')}</span>
               </div>
             </div>
           </div>

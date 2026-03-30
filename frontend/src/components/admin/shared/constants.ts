@@ -27,5 +27,12 @@ export const statusLabel: Record<string, string> = {
   inactive: 'Không hoạt động',
 };
 
+export const statusLabelKeys: Record<string, string> = {
+  active: 'status.active', approved: 'status.approved', success: 'status.success', online: 'status.online', verified: 'status.verified',
+  pending: 'status.pending', processing: 'status.processing', review: 'status.review',
+  suspended: 'status.suspended', rejected: 'status.rejected', flagged: 'status.flagged',
+  inactive: 'status.inactive',
+};
+
 /* ── Format helpers ── */
 export const formatVND = (n: number) => n.toLocaleString('vi-VN') + '₫';

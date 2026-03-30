@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import { useI18n } from '@hooks/useI18n';
 
 function WKLogo({ size = 48 }: { size?: number }) {
   return (
@@ -24,10 +25,10 @@ function WKLogo({ size = 48 }: { size?: number }) {
 
 type RoleTab = 'buyer' | 'koc' | 'vendor';
 
-const roleTabs: { key: RoleTab; label: string; icon: string }[] = [
-  { key: 'buyer', label: 'Người mua', icon: '🛒' },
-  { key: 'koc', label: 'KOC/KOL', icon: '🌟' },
-  { key: 'vendor', label: 'Vendor', icon: '🏪' },
+const roleTabs: { key: RoleTab; labelKey: string; icon: string }[] = [
+  { key: 'buyer', labelKey: 'login.roleBuyer', icon: '🛒' },
+  { key: 'koc', labelKey: 'KOC/KOL', icon: '🌟' },
+  { key: 'vendor', labelKey: 'login.roleVendor', icon: '🏪' },
 ];
 
 /* ── CSS inject (media query đảm bảo hoạt động trên mobile thật) ── */
@@ -53,6 +54,7 @@ const LOGIN_CSS = `
 `;
 
 export default function Login() {
+  const { t } = useI18n();
   const { loginAsync, loginWithGoogle, loginWithFacebook, loginWithWallet, isAuthenticated: isAuthed, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -104,7 +106,7 @@ export default function Login() {
       else if (activeRole === 'koc') navigate('/koc');
       else navigate('/dashboard');
     } else {
-      setError(result.error || 'Đăng nhập thất bại');
+      setError(result.error || t('login.errorDefault'));
     }
   };
 
@@ -112,7 +114,7 @@ export default function Login() {
     setError('');
     const result = await loginWithGoogle();
     if (!result.success) {
-      setError(result.error || 'Đăng nhập Google thất bại');
+      setError(result.error || t('login.errorGoogle'));
     }
   };
 
@@ -120,7 +122,7 @@ export default function Login() {
     setError('');
     const result = await loginWithFacebook();
     if (!result.success) {
-      setError(result.error || 'Đăng nhập Facebook thất bại');
+      setError(result.error || t('login.errorFacebook'));
     }
   };
 
@@ -137,7 +139,7 @@ export default function Login() {
         const data = await res.json();
         window.location.href = data.auth_url;
       } else {
-        setError('Không thể kết nối VNeID. Vui lòng thử lại.');
+        setError(t('login.errorVneid'));
       }
     } catch {
       setError('Không thể kết nối VNeID. Vui lòng thử lại.');
@@ -152,7 +154,7 @@ export default function Login() {
     if (result.success) {
       navigate(redirectTo || '/dashboard');
     } else {
-      setError(result.error || 'Kết nối ví thất bại');
+      setError(result.error || t('login.errorWallet'));
     }
   };
 
@@ -169,10 +171,10 @@ export default function Login() {
 
           <h1 style={{ fontFamily: "'Noto Sans', sans-serif", fontWeight: 800, fontSize: '2.6rem', background: 'linear-gradient(90deg, #22c55e, #06b6d4, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginBottom: 16 }}>WellKOC</h1>
 
-          <p style={{ color: 'rgba(255,255,255,.7)', fontSize: '1.15rem', lineHeight: 1.7, maxWidth: 360, margin: '0 auto' }}>Nền tảng Web3 Social Commerce<br />hàng đầu Việt Nam</p>
+          <p style={{ color: 'rgba(255,255,255,.7)', fontSize: '1.15rem', lineHeight: 1.7, maxWidth: 360, margin: '0 auto' }}>{t('login.brandDesc').split('\n').map((line, i) => <span key={i}>{line}{i === 0 && <br />}</span>)}</p>
 
           <div style={{ display: 'flex', gap: 24, justifyContent: 'center', marginTop: 40, padding: '20px 0', borderTop: '1px solid rgba(255,255,255,.08)', borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-            {[{ value: '10K+', label: 'Thành viên' }, { value: '500+', label: 'KOC/KOL' }, { value: '1K+', label: 'Sản phẩm' }].map(s => (
+            {[{ value: '10K+', label: t('login.statMembers') }, { value: '500+', label: 'KOC/KOL' }, { value: '1K+', label: t('login.statProducts') }].map(s => (
               <div key={s.label} style={{ textAlign: 'center' }}>
                 <div style={{ fontWeight: 800, fontSize: '1.3rem', color: '#fff' }}>{s.value}</div>
                 <div style={{ fontSize: '.7rem', color: 'rgba(255,255,255,.45)', marginTop: 2 }}>{s.label}</div>
@@ -198,23 +200,23 @@ export default function Login() {
             <div style={{ position: 'relative', zIndex: 1 }}>
               <WKLogo size={48} />
               <div style={{ fontFamily: "'Noto Sans', sans-serif", fontWeight: 800, fontSize: '1.3rem', background: 'linear-gradient(90deg, #22c55e, #06b6d4, #6366f1, #a855f7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', marginTop: 6 }}>WellKOC</div>
-              <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.72rem', marginTop: 4 }}>Nền tảng Web3 Social Commerce hàng đầu Việt Nam</p>
+              <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.72rem', marginTop: 4 }}>{t('login.mobileDesc')}</p>
             </div>
           </div>
 
           <div className="login-content">
             {/* Back to home */}
             <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-3)', textDecoration: 'none', fontSize: '.78rem', marginBottom: 16, transition: 'color .2s' }} onMouseEnter={e => e.currentTarget.style.color = 'var(--c6-300)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text-3)'}>
-              ← Về trang chủ
+              {t('login.backHome')}
             </Link>
 
             {/* Header */}
             <div style={{ marginBottom: 16 }}>
               <h2 style={{ fontSize: '1.3rem', fontWeight: 800, marginBottom: 4, color: 'var(--text-1)' }}>
-                {isAdminMode ? 'Đăng nhập Admin' : 'Chào mừng trở lại'}
+                {isAdminMode ? t('login.adminTitle') : t('login.welcomeBack')}
               </h2>
               <p style={{ color: 'var(--text-3)', fontSize: '.82rem' }}>
-                {isAdminMode ? 'Nhập thông tin quản trị viên' : 'Đăng nhập vào tài khoản của bạn để tiếp tục'}
+                {isAdminMode ? t('login.adminSubtitle') : t('login.subtitle')}
               </p>
             </div>
 
@@ -236,7 +238,7 @@ export default function Login() {
                       transition: 'all .2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     }}
                   >
-                    <span>{tab.icon}</span>{tab.label}
+                    <span>{tab.icon}</span>{tab.labelKey.startsWith('login.') ? t(tab.labelKey) : tab.labelKey}
                   </button>
                 ))}
               </div>
@@ -258,7 +260,7 @@ export default function Login() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }}>Mật khẩu</label>
+                <label style={{ display: 'block', fontSize: '.72rem', fontWeight: 600, color: 'var(--text-3)', marginBottom: 6 }}>{t('login.password')}</label>
                 <div style={{ position: 'relative' }}>
                   <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••"
                     style={{ width: '100%', padding: '12px 48px 12px 16px', borderRadius: 12, border: '1px solid var(--border)', background: 'var(--bg-2)', color: 'var(--text-1)', fontSize: '.88rem', outline: 'none', fontFamily: 'var(--ff-body, system-ui)', transition: 'border-color .2s' }}
@@ -269,18 +271,18 @@ export default function Login() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <span onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setForgotSent(false); }} style={{ color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontSize: '.78rem', fontWeight: 600, cursor: 'pointer' }}>Quên mật khẩu?</span>
+                <span onClick={() => { setShowForgotPassword(true); setForgotEmail(email); setForgotSent(false); }} style={{ color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontSize: '.78rem', fontWeight: 600, cursor: 'pointer' }}>{t('login.forgotPassword')}</span>
               </div>
 
               <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', padding: '12px 24px', opacity: loading ? 0.7 : 1, fontSize: '.88rem' }}>
-                {loading ? 'Đang xử lý...' : 'Đăng nhập'}
+                {loading ? t('login.processing') : t('login.loginBtn')}
               </button>
             </form>
 
             {/* Divider */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, margin: '16px 0' }}>
               <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
-              <span style={{ fontSize: '.68rem', color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '.08em' }}>hoặc</span>
+              <span style={{ fontSize: '.68rem', color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '.08em' }}>{t('login.or')}</span>
               <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
             </div>
 
@@ -314,13 +316,13 @@ export default function Login() {
             >
               <span style={{ fontSize: '.9rem' }}>🇻🇳</span>
               VNeID
-              <span style={{ fontSize: '.65rem', opacity: 0.8, marginLeft: 4 }}>Định danh điện tử</span>
+              <span style={{ fontSize: '.65rem', opacity: 0.8, marginLeft: 4 }}>{t('login.vneidLabel')}</span>
             </button>
 
             {/* Register Link */}
             <p style={{ textAlign: 'center', marginTop: 16, fontSize: '.82rem', color: 'var(--text-3)' }}>
-              Chưa có tài khoản?{' '}
-              <Link to="/register" style={{ color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontWeight: 700 }}>Đăng ký ngay</Link>
+              {t('login.noAccount')}{' '}
+              <Link to="/register" style={{ color: 'var(--c6-300, #06b6d4)', textDecoration: 'none', fontWeight: 700 }}>{t('login.registerNow')}</Link>
             </p>
 
             {/* Admin link - separate page */}
@@ -334,25 +336,25 @@ export default function Login() {
       {showForgotPassword && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setShowForgotPassword(false)}>
           <div style={{ background: 'var(--bg-1)', borderRadius: 16, padding: 28, maxWidth: 420, width: '100%', border: '1px solid var(--border)' }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>Quên mật khẩu?</h3>
-            <p style={{ fontSize: '.78rem', color: 'var(--text-3)', marginBottom: 20 }}>Nhập email đăng ký để nhận link đặt lại mật khẩu.</p>
+            <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: 4 }}>{t('login.forgotTitle')}</h3>
+            <p style={{ fontSize: '.78rem', color: 'var(--text-3)', marginBottom: 20 }}>{t('login.forgotDesc')}</p>
             {!forgotSent ? (
               <>
-                <input type="email" placeholder="Email đăng ký" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', color: 'var(--text-1)', fontSize: '.88rem', marginBottom: 16 }} />
+                <input type="email" placeholder={t('login.forgotPlaceholder')} value={forgotEmail} onChange={e => setForgotEmail(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: 10, border: '1px solid var(--border)', background: 'var(--bg-2)', color: 'var(--text-1)', fontSize: '.88rem', marginBottom: 16 }} />
                 <button className="btn btn-primary" style={{ width: '100%', padding: '12px', fontSize: '.88rem' }} onClick={async () => {
                   if (!forgotEmail.includes('@')) return;
                   try { await (await import('../lib/supabase')).supabase.auth.resetPasswordForEmail(forgotEmail, { redirectTo: window.location.origin + '/login' }); } catch {}
                   setForgotSent(true);
-                }}>Gửi link đặt lại mật khẩu</button>
+                }}>{t('login.sendResetLink')}</button>
               </>
             ) : (
               <div style={{ textAlign: 'center', padding: 20 }}>
                 <div style={{ fontSize: '2rem', marginBottom: 8 }}>📧</div>
-                <div style={{ fontWeight: 700, fontSize: '.88rem', marginBottom: 4 }}>Đã gửi email!</div>
-                <div style={{ fontSize: '.78rem', color: 'var(--text-3)' }}>Kiểm tra hộp thư <strong>{forgotEmail}</strong> để đặt lại mật khẩu.</div>
+                <div style={{ fontWeight: 700, fontSize: '.88rem', marginBottom: 4 }}>{t('login.emailSent')}</div>
+                <div style={{ fontSize: '.78rem', color: 'var(--text-3)' }}>{t('login.checkInbox')} <strong>{forgotEmail}</strong> {t('login.resetPassword')}</div>
               </div>
             )}
-            <button style={{ marginTop: 12, width: '100%', padding: '10px', borderRadius: 10, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-2)', cursor: 'pointer', fontSize: '.82rem' }} onClick={() => setShowForgotPassword(false)}>Đóng</button>
+            <button style={{ marginTop: 12, width: '100%', padding: '10px', borderRadius: 10, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-2)', cursor: 'pointer', fontSize: '.82rem' }} onClick={() => setShowForgotPassword(false)}>{t('login.close')}</button>
           </div>
         </div>
       )}

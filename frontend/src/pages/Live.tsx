@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useI18n } from '@hooks/useI18n';
 
 interface LiveStream {
   id: string;
@@ -120,6 +121,7 @@ const LiveBadge: React.FC = () => (
 
 const Live: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useI18n();
 
   return (
     <section className="section" style={{ paddingTop: 'calc(var(--topbar-height) + 48px)' }}>
@@ -132,13 +134,13 @@ const Live: React.FC = () => {
             borderColor: 'rgba(239,68,68,.2)',
           }}>
             <span className="live-dot" style={{ width: '7px', height: '7px' }}></span>
-            DANG LIVE
+            {t('live.badge')}
           </div>
           <h2 className="display-md gradient-text">
-            247 buổi live đang diễn ra
+            {t('live.title')}
           </h2>
           <p style={{ color: 'var(--text-3)', fontSize: '.85rem', marginTop: '8px' }}>
-            Xem trực tiếp, mua hàng trực tiếp, nhận ưu đãi độc quyền
+            {t('live.subtitle')}
           </p>
         </div>
 
@@ -170,11 +172,11 @@ const Live: React.FC = () => {
                 <div className="live-stat-val" style={{ color: '#f87171' }}>
                   {formatViewers(featuredLive.viewers)}
                 </div>
-                <div className="live-stat-lbl">Người xem</div>
+                <div className="live-stat-lbl">{t('live.viewers')}</div>
               </div>
               <div className="live-stat">
                 <div className="live-stat-val gradient-text">{featuredLive.revenue}</div>
-                <div className="live-stat-lbl">Doanh thu</div>
+                <div className="live-stat-lbl">{t('live.revenue')}</div>
               </div>
             </div>
           </div>
@@ -256,11 +258,11 @@ const Live: React.FC = () => {
               }}>
                 <input
                   className="input-field"
-                  placeholder="Binh luan..."
+                  placeholder={t('live.comment')}
                   style={{ flex: 1, fontSize: '.72rem', padding: '.4rem .7rem' }}
                 />
                 <button className="btn btn-primary btn-sm" style={{ fontSize: '.7rem' }}>
-                  Gui
+                  {t('live.send')}
                 </button>
               </div>
             </div>
@@ -319,7 +321,7 @@ const Live: React.FC = () => {
                   </div>
                 </div>
                 <button className="btn btn-primary btn-sm" style={{ width: '100%', marginTop: '8px' }}>
-                  {'\uD83D\uDCFA'} Xem Live
+                  {'\uD83D\uDCFA'} {t('live.watchLive')}
                 </button>
               </div>
             </div>

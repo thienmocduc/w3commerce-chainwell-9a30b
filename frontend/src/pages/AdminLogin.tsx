@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import { useI18n } from '@hooks/useI18n';
 
 const ADMIN_CSS = `
 .admin-login-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0b0f1a 0%,#1a1040 40%,#0f172a 100%);position:relative;overflow:hidden}
@@ -11,6 +12,7 @@ const ADMIN_CSS = `
 `;
 
 export default function AdminLogin() {
+  const { t } = useI18n();
   const { loginAsync } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -46,7 +48,7 @@ export default function AdminLogin() {
     if (result.success) {
       navigate('/admin');
     } else {
-      setError(result.error || 'Email hoặc mật khẩu Admin không đúng');
+      setError(result.error || t('adminLogin.errorDefault'));
     }
   };
 
@@ -63,7 +65,7 @@ export default function AdminLogin() {
             </svg>
           </div>
           <h1 style={{ fontFamily: "'Noto Sans', sans-serif", fontWeight: 800, fontSize: '1.5rem', color: '#fff', marginBottom: 4 }}>WellKOC Admin</h1>
-          <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.78rem' }}>Đăng nhập vào bảng quản trị</p>
+          <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.78rem' }}>{t('adminLogin.subtitle')}</p>
         </div>
 
         {/* Error */}
@@ -74,7 +76,7 @@ export default function AdminLogin() {
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label style={{ display: 'block', fontSize: '.68rem', fontWeight: 600, color: 'rgba(255,255,255,.4)', marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>Email Admin</label>
+            <label style={{ display: 'block', fontSize: '.68rem', fontWeight: 600, color: 'rgba(255,255,255,.4)', marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>{t('adminLogin.emailLabel')}</label>
             <input
               type="email" value={email} onChange={e => setEmail(e.target.value)} required
               placeholder="admin@wellkoc.com"
@@ -85,7 +87,7 @@ export default function AdminLogin() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '.68rem', fontWeight: 600, color: 'rgba(255,255,255,.4)', marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>Mật khẩu</label>
+            <label style={{ display: 'block', fontSize: '.68rem', fontWeight: 600, color: 'rgba(255,255,255,.4)', marginBottom: 6, letterSpacing: '.06em', textTransform: 'uppercase' }}>{t('adminLogin.passwordLabel')}</label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
@@ -107,7 +109,7 @@ export default function AdminLogin() {
               opacity: loading ? 0.7 : 1, transition: 'opacity .2s', marginTop: 4,
             }}
           >
-            {loading ? 'Đang xác thực...' : 'Đăng nhập Admin'}
+            {loading ? t('adminLogin.authenticating') : t('adminLogin.loginBtn')}
           </button>
         </form>
 
@@ -117,7 +119,7 @@ export default function AdminLogin() {
             WellKOC Admin Panel v1.0 · Polygon Blockchain
           </p>
           <a href="/login" style={{ color: 'rgba(255,255,255,.3)', fontSize: '.7rem', textDecoration: 'none', marginTop: 4, display: 'inline-block' }}>
-            ← Quay lại trang chính
+            {t('adminLogin.backToMain')}
           </a>
         </div>
       </div>
