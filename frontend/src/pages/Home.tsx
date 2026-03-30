@@ -85,14 +85,15 @@ export default function Home() {
             <span className="gradient-text">{t('home.hero.title')}</span>
           </h1>
 
-          <div style={{ textAlign: 'center', marginBottom: 32, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
-            {/* Line 1: Two phrases joined by dash */}
-            <div style={{ fontStyle: 'italic', fontSize: 'clamp(1.15rem, 3vw, 1.65rem)', fontWeight: 700, letterSpacing: '.03em', background: 'var(--chakra-text)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              {t('home.hero.line1')} — {t('home.hero.line2')}
+          <div style={{ textAlign: 'center', marginBottom: 32, display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
+            <div style={{ fontStyle: 'italic', fontSize: 'clamp(1.05rem, 2.8vw, 1.5rem)', fontWeight: 700, letterSpacing: '.03em', background: 'var(--chakra-text)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              "{t('home.hero.line1')}"
             </div>
-            {/* Line 2: On-Chain highlight */}
-            <div style={{ fontStyle: 'italic', fontSize: 'clamp(1.2rem, 3.2vw, 1.75rem)', fontWeight: 800, letterSpacing: '.03em', background: 'linear-gradient(135deg, #22c55e, #06b6d4, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              {t('home.hero.line3')}
+            <div style={{ fontStyle: 'italic', fontSize: 'clamp(1.05rem, 2.8vw, 1.5rem)', fontWeight: 700, letterSpacing: '.03em', background: 'var(--chakra-text)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              "{t('home.hero.line2')}"
+            </div>
+            <div style={{ fontStyle: 'italic', fontSize: 'clamp(1.1rem, 3vw, 1.6rem)', fontWeight: 800, letterSpacing: '.03em', background: 'linear-gradient(135deg, #22c55e, #06b6d4, #6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              "{t('home.hero.line3')}"
             </div>
           </div>
 
