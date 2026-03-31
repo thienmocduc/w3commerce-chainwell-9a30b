@@ -692,6 +692,82 @@ async def verify_usdt_payment(
 
 
 # ══════════════════════════════════════════════════════════════
+#  NAMED GATEWAY ENDPOINTS (aliases over /initiate + /webhook)
+# ══════════════════════════════════════════════════════════════
+
+class GatewayCreateReq(BaseModel):
+    order_id: str
+    return_url: Optional[str] = None
+
+
+@router.post("/vnpay/create")
+async def vnpay_create(
+    body: GatewayCreateReq,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a VNPay payment URL for the given order."""
+    initiate_body = InitiateReq(
+        order_id=body.order_id,
+        gateway="vnpay",
+        return_url=body.return_url,
+    )
+    return await initiate_payment(initiate_body, current_user, db)
+
+
+@router.post("/momo/create")
+async def momo_create(
+    body: GatewayCreateReq,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a MoMo payment (deeplink + QR) for the given order."""
+    initiate_body = InitiateReq(
+        order_id=body.order_id,
+        gateway="momo",
+        return_url=body.return_url,
+    )
+    return await initiate_payment(initiate_body, current_user, db)
+
+
+@router.post("/payos/create")
+async def payos_create(
+    body: GatewayCreateReq,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+):
+    """Create a PayOS payment link for the given order."""
+    initiate_body = InitiateReq(
+        order_id=body.order_id,
+        gateway="payos",
+        return_url=body.return_url,
+    )
+    return await initiate_payment(initiate_body, current_user, db)
+
+
+@router.post("/usdt/verify")
+async def usdt_verify(
+    body: USDTVerifyReq,
+    current_user: CurrentUser,
+    db: AsyncSession = Depends(get_db),
+):
+    """Verify an on-chain USDT transaction on Polygon (alias for /verify/usdt)."""
+    return await verify_usdt_payment(body, current_user, db)
+
+
+@router.post("/vnpay/callback")
+async def vnpay_callback(request: Request, db: AsyncSession = Depends(get_db)):
+    """VNPay IPN callback (alias for /webhook/vnpay)."""
+    return await vnpay_webhook(request, db)
+
+
+@router.post("/momo/callback")
+async def momo_callback(request: Request, db: AsyncSession = Depends(get_db)):
+    """MoMo IPN callback (alias for /webhook/momo)."""
+    return await momo_webhook(request, db)
+
+
+# ══════════════════════════════════════════════════════════════
 #  PAYMENT STATUS
 # ══════════════════════════════════════════════════════════════
 

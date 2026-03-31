@@ -1,67 +1,206 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
+import { useAuth } from '@hooks/useAuth';
+import { cartApi } from '../lib/api';
 
 interface CartItem {
-  id: number;
+  id: string;
+  productId: string;
   name: string;
   price: number;
   quantity: number;
   dpp: boolean;
   gradient: string;
+  imageUrl?: string;
   xpPerUnit: number;
 }
 
 const formatVND = (price: number): string =>
-  new Intl.NumberFormat('vi-VN').format(price) + ' \u20AB';
+  new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
 
-const initialCart: CartItem[] = [
-  { id: 1, name: 'Trà Ô Long Đài Loan Premium', price: 389000, quantity: 2, dpp: true, gradient: 'linear-gradient(135deg, #84cc16, #22c55e)', xpPerUnit: 10 },
-  { id: 2, name: 'Serum Vitamin C 20% Brightening', price: 315000, quantity: 1, dpp: true, gradient: 'linear-gradient(135deg, #fbbf24, #f59e0b)', xpPerUnit: 10 },
-  { id: 3, name: 'Mật Ong Rừng Tây Nguyên 500ml', price: 285000, quantity: 1, dpp: true, gradient: 'linear-gradient(135deg, #f59e0b, #d97706)', xpPerUnit: 10 },
-];
+function CartSkeleton() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="card" style={{ padding: '18px 20px' }}>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: 14, flexShrink: 0,
+              background: 'linear-gradient(90deg, var(--bg-2) 25%, var(--bg-1) 50%, var(--bg-2) 75%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s infinite',
+            }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ height: 14, borderRadius: 4, background: 'var(--bg-2)', marginBottom: 8, width: '70%' }} />
+              <div style={{ height: 12, borderRadius: 4, background: 'var(--bg-2)', marginBottom: 12, width: '40%' }} />
+              <div style={{ height: 32, borderRadius: 8, background: 'var(--bg-2)', width: '45%' }} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Cart() {
   const { t } = useI18n();
-  const [items, setItems] = useState<CartItem[]>(initialCart);
+  const { token, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
   const [coupon, setCoupon] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
   const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponLoading, setCouponLoading] = useState(false);
 
-  const updateQty = (id: number, delta: number) => {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    ));
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && !loading) {
+      navigate('/login', { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  const fetchCart = useCallback(async () => {
+    if (!isAuthenticated) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await cartApi.get(token ?? undefined);
+      setItems(data.items || []);
+    } catch (err: any) {
+      if (err.status === 401) {
+        navigate('/login', { replace: true });
+      } else {
+        setError(err.message || 'Không thể tải giỏ hàng');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [token, isAuthenticated, navigate]);
+
+  useEffect(() => {
+    fetchCart();
+  }, [fetchCart]);
+
+  const updateQty = async (item: CartItem, delta: number) => {
+    const newQty = Math.max(1, item.quantity + delta);
+    if (newQty === item.quantity) return;
+    setUpdatingId(item.id);
+    // Optimistic update
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: newQty } : i));
+    try {
+      await cartApi.updateItem(item.id, { quantity: newQty }, token ?? undefined);
+    } catch (err: any) {
+      // Revert on failure
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, quantity: item.quantity } : i));
+      toast.error(err.message || 'Không thể cập nhật số lượng');
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
-  const removeItem = (id: number) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+  const removeItem = async (item: CartItem) => {
+    setUpdatingId(item.id);
+    // Optimistic remove
+    setItems(prev => prev.filter(i => i.id !== item.id));
+    try {
+      await cartApi.removeItem(item.id, token ?? undefined);
+      toast.success(`Đã xoá "${item.name}" khỏi giỏ hàng`);
+    } catch (err: any) {
+      // Revert on failure
+      setItems(prev => [...prev, item].sort((a, b) => a.id.localeCompare(b.id)));
+      toast.error(err.message || 'Không thể xoá sản phẩm');
+    } finally {
+      setUpdatingId(null);
+    }
   };
 
-  const applyCoupon = () => {
-    if (coupon.toUpperCase() === 'WELLKOC50') {
+  const clearCart = async () => {
+    const snapshot = [...items];
+    setItems([]);
+    try {
+      await cartApi.clear(token ?? undefined);
+      toast.success('Đã xoá toàn bộ giỏ hàng');
+    } catch (err: any) {
+      setItems(snapshot);
+      toast.error(err.message || 'Không thể xoá giỏ hàng');
+    }
+  };
+
+  const applyCoupon = async () => {
+    if (!coupon.trim()) return;
+    setCouponLoading(true);
+    try {
+      const result = await cartApi.applyCoupon(coupon.trim(), token ?? undefined);
       setCouponApplied(true);
-      setCouponDiscount(50000);
-    } else if (coupon.toUpperCase() === 'WELCOME10') {
-      setCouponApplied(true);
-      setCouponDiscount(Math.round(subtotal * 0.1));
-    } else {
+      setCouponDiscount(result.discount || 0);
+      toast.success(`Mã giảm giá đã được áp dụng: -${formatVND(result.discount || 0)}`);
+    } catch (err: any) {
       setCouponApplied(false);
       setCouponDiscount(0);
+      toast.error(err.message || 'Mã giảm giá không hợp lệ');
+    } finally {
+      setCouponLoading(false);
     }
   };
 
   const totalItems = items.reduce((s, i) => s + i.quantity, 0);
   const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const shipping = subtotal >= 500000 ? 0 : 30000;
-  const totalXP = items.reduce((s, i) => s + i.xpPerUnit * i.quantity, 0);
+  const totalXP = items.reduce((s, i) => s + (i.xpPerUnit || 10) * i.quantity, 0);
   const total = subtotal + shipping - couponDiscount;
 
   // XP level calculation
-  const currentXP = 120; // mock current XP
+  const currentXP = 120;
   const xpAfter = currentXP + totalXP;
   const xpForNextLevel = 200;
   const progressPercent = Math.min((xpAfter / xpForNextLevel) * 100, 100);
+
+  if (loading) {
+    return (
+      <div style={{ paddingTop: 'var(--topbar-height, 64px)', minHeight: '100vh', background: 'var(--bg-0)' }}>
+        <style>{`
+          @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+        `}</style>
+        <div className="container" style={{ paddingTop: 32, paddingBottom: 80 }}>
+          <div className="section-badge">🛒 {t('cart.badge')}</div>
+          <h1 className="display-md" style={{ marginBottom: 28 }}>{t('cart.title')}</h1>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 28 }}>
+            <CartSkeleton />
+            <div className="card" style={{ padding: 24, height: 400,
+              background: 'linear-gradient(90deg, var(--bg-2) 25%, var(--bg-1) 50%, var(--bg-2) 75%)',
+              backgroundSize: '200% 100%',
+              animation: 'shimmer 1.5s infinite',
+            }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={{ paddingTop: 'var(--topbar-height, 64px)', minHeight: '100vh', background: 'var(--bg-0)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="card" style={{ padding: 48, textAlign: 'center', maxWidth: 440 }}>
+          <div style={{ fontSize: '3rem', marginBottom: 16 }}>⚠️</div>
+          <h2 className="display-md" style={{ marginBottom: 8 }}>Lỗi tải giỏ hàng</h2>
+          <p style={{ color: 'var(--text-3)', fontSize: '.88rem', marginBottom: 24 }}>{error}</p>
+          <button className="btn btn-primary" onClick={fetchCart} style={{ padding: '12px 32px' }}>
+            Thử lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -79,7 +218,7 @@ export default function Cart() {
           </p>
           <Link to="/marketplace" className="btn btn-primary btn-lg" style={{ textDecoration: 'none', padding: '12px 32px' }}>
             {t('cart.empty.cta')}
-</Link>
+          </Link>
         </div>
       </div>
     );
@@ -89,7 +228,20 @@ export default function Cart() {
     <div style={{ paddingTop: 'var(--topbar-height, 64px)', minHeight: '100vh', background: 'var(--bg-0)' }}>
       <div className="container" style={{ paddingTop: 32, paddingBottom: 80 }}>
         {/* Header */}
-        <div className="section-badge">🛒 {t('cart.badge')}</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div className="section-badge">🛒 {t('cart.badge')}</div>
+          <button
+            onClick={clearCart}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-4)', fontSize: '.75rem',
+              fontFamily: 'var(--ff-body, system-ui)',
+              transition: 'color .2s',
+            }}
+          >
+            {t('cart.clearAll') || 'Xoá tất cả'}
+          </button>
+        </div>
         <h1 className="display-md" style={{ marginBottom: 4 }}>{t('cart.title')}</h1>
         <p style={{ color: 'var(--text-3)', fontSize: '.85rem', marginBottom: 28 }}>
           {totalItems} {t('cart.itemCount')}
@@ -119,22 +271,31 @@ export default function Cart() {
             )}
 
             {items.map(item => (
-              <div key={item.id} className="card" style={{ padding: '18px 20px' }}>
+              <div
+                key={item.id}
+                className="card"
+                style={{ padding: '18px 20px', opacity: updatingId === item.id ? 0.6 : 1, transition: 'opacity .2s' }}
+              >
                 <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-                  {/* Product Image Placeholder */}
+                  {/* Product Image */}
                   <div style={{
                     width: 80, height: 80, borderRadius: 14, flexShrink: 0,
-                    background: item.gradient,
+                    background: item.gradient || 'linear-gradient(135deg, #1e3a5f, #1e293b)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    overflow: 'hidden',
                   }}>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: '50%',
-                      background: 'rgba(255,255,255,.25)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '.6rem', color: '#fff', fontWeight: 700,
-                    }}>
-                      IMG
-                    </div>
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{
+                        width: 36, height: 36, borderRadius: '50%',
+                        background: 'rgba(255,255,255,.25)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '.6rem', color: '#fff', fontWeight: 700,
+                      }}>
+                        IMG
+                      </div>
+                    )}
                   </div>
 
                   {/* Product Details */}
@@ -158,7 +319,8 @@ export default function Cart() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                         <button
                           className="btn btn-secondary"
-                          onClick={() => updateQty(item.id, -1)}
+                          onClick={() => updateQty(item, -1)}
+                          disabled={updatingId === item.id || item.quantity <= 1}
                           style={{
                             width: 32, height: 32, padding: 0,
                             fontSize: '1rem', borderRadius: 8,
@@ -175,7 +337,8 @@ export default function Cart() {
                         </span>
                         <button
                           className="btn btn-secondary"
-                          onClick={() => updateQty(item.id, 1)}
+                          onClick={() => updateQty(item, 1)}
+                          disabled={updatingId === item.id}
                           style={{
                             width: 32, height: 32, padding: 0,
                             fontSize: '1rem', borderRadius: 8,
@@ -200,7 +363,8 @@ export default function Cart() {
 
                   {/* Remove button */}
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={() => removeItem(item)}
+                    disabled={updatingId === item.id}
                     style={{
                       background: 'none', border: 'none', cursor: 'pointer',
                       color: 'var(--text-4)', fontSize: '.88rem', padding: 4,
@@ -261,15 +425,14 @@ export default function Cart() {
               </div>
 
               {/* Coupon */}
-              <div style={{
-                display: 'flex', gap: 8, marginBottom: 16,
-              }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
                 <input
                   type="text"
                   className="input-field"
                   placeholder={t('cart.coupon')}
                   value={coupon}
                   onChange={e => setCoupon(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && applyCoupon()}
                   style={{
                     flex: 1, padding: '8px 12px', fontSize: '.78rem',
                     borderRadius: 8,
@@ -278,9 +441,10 @@ export default function Cart() {
                 <button
                   className="btn btn-secondary"
                   onClick={applyCoupon}
+                  disabled={couponLoading || !coupon.trim()}
                   style={{ padding: '8px 14px', fontSize: '.78rem', whiteSpace: 'nowrap' }}
                 >
-                  {t('cart.coupon.apply')}
+                  {couponLoading ? '...' : t('cart.coupon.apply')}
                 </button>
               </div>
               {couponApplied && (

@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { useI18n } from '@hooks/useI18n';
+import { useAuth } from '@hooks/useAuth';
+import { productsApi, cartApi } from '../lib/api';
 
 interface Product {
   id: string;
@@ -14,10 +17,11 @@ interface Product {
   kocAvatar: string;
   kocName: string;
   gradient: string;
+  imageUrl?: string;
 }
 
 const formatVND = (price: number): string =>
-  new Intl.NumberFormat('vi-VN').format(price) + ' \u20AB';
+  new Intl.NumberFormat('vi-VN').format(price) + ' ₫';
 
 const categories = [
   { key: 'all', label: 'Tất cả' },
@@ -31,27 +35,39 @@ const categories = [
 const sortOptions = [
   { key: 'newest', label: 'Mới nhất' },
   { key: 'bestseller', label: 'Bán chạy' },
-  { key: 'price-asc', label: 'Giá thấp \u2192 cao' },
-  { key: 'price-desc', label: 'Giá cao \u2192 thấp' },
+  { key: 'price-asc', label: 'Giá thấp → cao' },
+  { key: 'price-desc', label: 'Giá cao → thấp' },
 ];
 
-const products: Product[] = [
-  { id: 'serum-vitc', name: 'Serum Vitamin C 20% Brightening', price: 315000, originalPrice: 470000, category: 'skincare', dpp: true, rating: 4.8, sold: 2341, kocAvatar: 'LK', kocName: '@linh.koc', gradient: 'linear-gradient(135deg, #fbbf24, #f59e0b)' },
-  { id: 'collagen-marine', name: 'Collagen Peptide Marine 5000mg', price: 680000, category: 'health', dpp: true, rating: 4.9, sold: 1856, kocAvatar: 'MK', kocName: '@minh.kol', gradient: 'linear-gradient(135deg, #06b6d4, #6366f1)' },
-  { id: 'matcha-uji', name: 'Matcha Uji Premium Nhật Bản', price: 285000, category: 'food', dpp: true, rating: 4.7, sold: 3102, kocAvatar: 'NA', kocName: '@ngoc.review', gradient: 'linear-gradient(135deg, #22c55e, #06b6d4)' },
-  { id: 'vitamin-d3k2', name: 'Vitamin D3 K2 MK-7 Premium', price: 420000, originalPrice: 560000, category: 'health', dpp: true, rating: 4.6, sold: 1523, kocAvatar: 'TK', kocName: '@thu.koc', gradient: 'linear-gradient(135deg, #a855f7, #6366f1)' },
-  { id: 'sunscreen-spf50', name: 'Kem Chống Nắng SPF50+ PA++++', price: 245000, originalPrice: 350000, category: 'skincare', dpp: true, rating: 4.8, sold: 4210, kocAvatar: 'HT', kocName: '@hien.beauty', gradient: 'linear-gradient(135deg, #f97316, #fbbf24)' },
-  { id: 'tra-olong', name: 'Trà Ô Long Đài Loan Cao Cấp', price: 389000, category: 'food', dpp: true, rating: 4.9, sold: 1247, kocAvatar: 'MH', kocName: '@minh.huong', gradient: 'linear-gradient(135deg, #84cc16, #22c55e)' },
-  { id: 'smart-watch', name: 'Đồng Hồ Thông Minh WellFit Pro', price: 1890000, originalPrice: 2500000, category: 'tech', dpp: true, rating: 4.5, sold: 876, kocAvatar: 'DT', kocName: '@dat.tech', gradient: 'linear-gradient(135deg, #3b82f6, #8b5cf6)' },
-  { id: 'ao-thun-organic', name: 'Áo Thun Cotton Organic Premium', price: 450000, category: 'fashion', dpp: true, rating: 4.4, sold: 2156, kocAvatar: 'TL', kocName: '@thao.fashion', gradient: 'linear-gradient(135deg, #ec4899, #f43f5e)' },
-  { id: 'mat-ong-rung', name: 'Mật Ong Rừng Tây Nguyên 500ml', price: 285000, category: 'food', dpp: true, rating: 4.7, sold: 1893, kocAvatar: 'VA', kocName: '@van.anh', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-  { id: 'tinh-dau-tram', name: 'Tinh Dầu Tràm Hữu Cơ 50ml', price: 195000, originalPrice: 280000, category: 'health', dpp: false, rating: 4.3, sold: 967, kocAvatar: 'PH', kocName: '@phuong.herbal', gradient: 'linear-gradient(135deg, #10b981, #059669)' },
-  { id: 'tai-nghe-bluetooth', name: 'Tai Nghe Bluetooth ANC Pro', price: 1250000, originalPrice: 1800000, category: 'tech', dpp: true, rating: 4.6, sold: 1342, kocAvatar: 'KD', kocName: '@khanh.tech', gradient: 'linear-gradient(135deg, #6366f1, #4f46e5)' },
-  { id: 'khan-lua-dalat', name: 'Khăn Lụa Đà Lạt Thêu Tay', price: 520000, category: 'fashion', dpp: true, rating: 4.8, sold: 645, kocAvatar: 'ML', kocName: '@mai.style', gradient: 'linear-gradient(135deg, #e11d48, #be185d)' },
+const SKELETON_GRADIENTS = [
+  'linear-gradient(135deg, #1e293b, #334155)',
+  'linear-gradient(135deg, #1e3a5f, #1e293b)',
+  'linear-gradient(135deg, #2d1b69, #1e293b)',
+  'linear-gradient(135deg, #14532d, #1e293b)',
 ];
+
+function ProductSkeleton() {
+  return (
+    <div className="card" style={{ overflow: 'hidden' }}>
+      <div style={{
+        height: 180,
+        background: 'linear-gradient(90deg, var(--bg-2) 25%, var(--bg-1) 50%, var(--bg-2) 75%)',
+        backgroundSize: '200% 100%',
+        animation: 'shimmer 1.5s infinite',
+      }} />
+      <div style={{ padding: '14px 16px' }}>
+        <div style={{ height: 14, borderRadius: 4, background: 'var(--bg-2)', marginBottom: 8, width: '85%' }} />
+        <div style={{ height: 14, borderRadius: 4, background: 'var(--bg-2)', marginBottom: 12, width: '60%' }} />
+        <div style={{ height: 20, borderRadius: 4, background: 'var(--bg-2)', marginBottom: 8, width: '45%' }} />
+        <div style={{ height: 12, borderRadius: 4, background: 'var(--bg-2)', width: '70%' }} />
+      </div>
+    </div>
+  );
+}
 
 export default function Marketplace() {
   const { t } = useI18n();
+  const { token } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
@@ -59,6 +75,55 @@ export default function Marketplace() {
   const [dppOnly, setDppOnly] = useState(false);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [visibleCount, setVisibleCount] = useState(8);
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params: Record<string, string> = {};
+      if (activeCategory !== 'all') params.category = activeCategory;
+      if (dppOnly) params.dpp = 'true';
+      if (search.trim()) params.search = search.trim();
+      if (sortBy !== 'newest') params.sort = sortBy;
+
+      const data = await productsApi.list(params);
+      setProducts(data);
+    } catch (err: any) {
+      setError(err.message || 'Không thể tải sản phẩm. Vui lòng thử lại.');
+    } finally {
+      setLoading(false);
+    }
+  }, [activeCategory, dppOnly, search, sortBy]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchProducts();
+    }, search ? 400 : 0);
+    return () => clearTimeout(timer);
+  }, [fetchProducts, search]);
+
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    setAddingToCart(product.id);
+    try {
+      await cartApi.addItem({ productId: product.id, quantity: 1 }, token ?? undefined);
+      toast.success(`Đã thêm "${product.name}" vào giỏ hàng`);
+    } catch (err: any) {
+      if (err.status === 401 || err.message?.includes('401')) {
+        toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng');
+        navigate('/login');
+      } else {
+        toast.error(err.message || 'Không thể thêm vào giỏ hàng');
+      }
+    } finally {
+      setAddingToCart(null);
+    }
+  };
 
   const filtered = products
     .filter(p => {
@@ -71,13 +136,19 @@ export default function Marketplace() {
       if (sortBy === 'price-asc') return a.price - b.price;
       if (sortBy === 'price-desc') return b.price - a.price;
       if (sortBy === 'bestseller') return b.sold - a.sold;
-      return 0; // newest = default order
+      return 0;
     });
 
   const visible = filtered.slice(0, visibleCount);
 
   return (
     <section style={{ paddingTop: 'calc(var(--topbar-height, 64px) + 24px)', minHeight: '100vh', background: 'var(--bg-0)' }}>
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+      `}</style>
       <div className="container" style={{ paddingBottom: 80 }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: 36 }}>
@@ -100,7 +171,7 @@ export default function Marketplace() {
             type="text"
             placeholder={t('marketplace.search')}
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={e => { setSearch(e.target.value); setVisibleCount(8); }}
             style={{
               width: '100%', padding: '14px 16px 14px 44px',
               borderRadius: 14, fontSize: '.88rem',
@@ -138,7 +209,7 @@ export default function Marketplace() {
             <span style={{ fontSize: '.78rem', color: 'var(--text-3)', fontWeight: 600 }}>{t('marketplace.sort.label')}</span>
             <select
               value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
+              onChange={e => { setSortBy(e.target.value); setVisibleCount(8); }}
               style={{
                 padding: '6px 12px', borderRadius: 8,
                 border: '1px solid var(--border)', background: 'var(--surface-card, var(--bg-1))',
@@ -161,7 +232,7 @@ export default function Marketplace() {
               background: dppOnly ? 'var(--c4-500, #22c55e)' : 'var(--border)',
               transition: 'background .2s', cursor: 'pointer',
               display: 'flex', alignItems: 'center',
-            }} onClick={() => setDppOnly(!dppOnly)}>
+            }} onClick={() => { setDppOnly(!dppOnly); setVisibleCount(8); }}>
               <div style={{
                 width: 18, height: 18, borderRadius: '50%',
                 background: '#fff', transition: 'transform .2s',
@@ -173,23 +244,48 @@ export default function Marketplace() {
           </label>
 
           <span style={{ fontSize: '.75rem', color: 'var(--text-4)' }}>
-            {filtered.length} {t('marketplace.productCount')}
+            {loading ? '...' : `${filtered.length} ${t('marketplace.productCount')}`}
           </span>
         </div>
 
-        {/* Product Grid */}
-        {filtered.length === 0 ? (
+        {/* Error State */}
+        {error && !loading && (
+          <div className="card" style={{ padding: 32, textAlign: 'center', marginBottom: 24, borderColor: 'rgba(239,68,68,.3)' }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12 }}>⚠️</div>
+            <h3 style={{ marginBottom: 8, color: 'var(--text-2)' }}>Không thể tải sản phẩm</h3>
+            <p style={{ color: 'var(--text-3)', fontSize: '.85rem', marginBottom: 16 }}>{error}</p>
+            <button className="btn btn-primary" onClick={fetchProducts} style={{ padding: '10px 24px' }}>
+              Thử lại
+            </button>
+          </div>
+        )}
+
+        {/* Product Grid — Loading Skeletons */}
+        {loading && (
+          <div className="grid-4" style={{ gap: 20 }}>
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductSkeleton key={i} />
+            ))}
+          </div>
+        )}
+
+        {/* Product Grid — Empty State */}
+        {!loading && !error && filtered.length === 0 && (
           <div className="card" style={{ padding: 48, textAlign: 'center' }}>
             <div style={{ fontSize: '3rem', marginBottom: 12 }}>🔍</div>
             <h3 style={{ marginBottom: 8, color: 'var(--text-2)' }}>{t('marketplace.noProducts')}</h3>
             <p style={{ color: 'var(--text-3)', fontSize: '.85rem' }}>{t('marketplace.noProducts.hint')}</p>
           </div>
-        ) : (
+        )}
+
+        {/* Product Grid — Results */}
+        {!loading && !error && filtered.length > 0 && (
           <div className="grid-4" style={{ gap: 20 }}>
             {visible.map(p => {
               const discount = p.originalPrice
                 ? Math.round((1 - p.price / p.originalPrice) * 100)
                 : 0;
+              const isAdding = addingToCart === p.id;
 
               return (
                 <div
@@ -200,21 +296,30 @@ export default function Marketplace() {
                   onMouseEnter={() => setHoveredProduct(p.id)}
                   onMouseLeave={() => setHoveredProduct(null)}
                 >
-                  {/* Image Placeholder */}
+                  {/* Image */}
                   <div style={{
-                    height: 180, background: p.gradient,
+                    height: 180,
+                    background: p.gradient || SKELETON_GRADIENTS[parseInt(p.id, 36) % SKELETON_GRADIENTS.length] || SKELETON_GRADIENTS[0],
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    position: 'relative',
+                    position: 'relative', overflow: 'hidden',
                   }}>
-                    <div style={{
-                      width: 60, height: 60, borderRadius: '50%',
-                      background: 'rgba(255,255,255,.2)',
-                      backdropFilter: 'blur(10px)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: '.85rem', color: '#fff', fontWeight: 700,
-                    }}>
-                      IMG
-                    </div>
+                    {p.imageUrl ? (
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: 60, height: 60, borderRadius: '50%',
+                        background: 'rgba(255,255,255,.2)',
+                        backdropFilter: 'blur(10px)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '.85rem', color: '#fff', fontWeight: 700,
+                      }}>
+                        IMG
+                      </div>
+                    )}
 
                     {/* Badges */}
                     {p.dpp && (
@@ -248,10 +353,11 @@ export default function Marketplace() {
                       }}>
                         <button
                           className="btn btn-primary"
-                          onClick={e => { e.stopPropagation(); }}
-                          style={{ padding: '10px 20px', fontSize: '.82rem' }}
+                          onClick={e => handleAddToCart(e, p)}
+                          disabled={isAdding}
+                          style={{ padding: '10px 20px', fontSize: '.82rem', opacity: isAdding ? 0.7 : 1 }}
                         >
-                          🛒 {t('marketplace.addToCart')}
+                          {isAdding ? '...' : `🛒 ${t('marketplace.addToCart')}`}
                         </button>
                       </div>
                     )}
@@ -318,7 +424,7 @@ export default function Marketplace() {
         )}
 
         {/* Load More */}
-        {visibleCount < filtered.length && (
+        {!loading && visibleCount < filtered.length && (
           <div style={{ textAlign: 'center', marginTop: 36 }}>
             <button
               className="btn btn-secondary"

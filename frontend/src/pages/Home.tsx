@@ -81,7 +81,7 @@ export default function Home() {
             <span className="dot-pulse dot-indigo" /> <span style={{ whiteSpace: 'nowrap' }}>Conscious Community Commerce</span> · Polygon
           </div>
 
-          <h1 className="display-xl" style={{ marginBottom: 12, lineHeight: 1.15 }}>
+          <h1 className="display-xl" style={{ marginBottom: 12, lineHeight: 1.15, fontSize: 'clamp(2.2rem, 4.5vw, 4rem)' }}>
             <span className="gradient-text">{t('home.hero.title')}</span>
           </h1>
 

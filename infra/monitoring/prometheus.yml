@@ -1,0 +1,105 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# WellKOC — Prometheus Monitoring Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+
+global:
+  scrape_interval:     15s   # How frequently to scrape targets
+  evaluation_interval: 15s   # How frequently to evaluate rules
+  scrape_timeout:      10s
+
+  external_labels:
+    project: "wellkoc"
+    env:     "production"
+
+# ── Alertmanager configuration ────────────────────────────────────────────────
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "localhost:9093"   # Alertmanager default port
+      timeout:          5s
+      api_version:      v2
+
+# ── Recording & alerting rule files ──────────────────────────────────────────
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Scrape configurations
+# ─────────────────────────────────────────────────────────────────────────────
+scrape_configs:
+
+  # ── Prometheus self-monitoring ────────────────────────────────────────────
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+    metrics_path: /metrics
+
+  # ── FastAPI backend ───────────────────────────────────────────────────────
+  # Requires prometheus-fastapi-instrumentator or starlette-exporter
+  # Exposes metrics at GET /metrics
+  - job_name: "wellkoc-backend"
+    scrape_interval: 15s
+    scrape_timeout:  10s
+    static_configs:
+      - targets: ["localhost:8000"]
+        labels:
+          service:  "fastapi"
+          instance: "wellkoc-backend-01"
+    metrics_path: /metrics
+    # Honour the redirect if the app issues one
+    follow_redirects: true
+
+  # ── Node Exporter (host OS metrics) ──────────────────────────────────────
+  # CPU, memory, disk I/O, network, filesystem
+  - job_name: "node-exporter"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["localhost:9100"]
+        labels:
+          service:  "node-exporter"
+          instance: "wellkoc-host-01"
+    metrics_path: /metrics
+
+  # ── Redis Exporter ────────────────────────────────────────────────────────
+  # https://github.com/oliver006/redis_exporter
+  - job_name: "redis-exporter"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["localhost:9121"]
+        labels:
+          service:  "redis"
+          instance: "wellkoc-redis-01"
+    metrics_path: /metrics
+
+  # ── PostgreSQL Exporter ───────────────────────────────────────────────────
+  # https://github.com/prometheus-community/postgres_exporter
+  - job_name: "postgres-exporter"
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["localhost:9187"]
+        labels:
+          service:  "postgresql"
+          instance: "wellkoc-postgres-01"
+    metrics_path: /metrics
+
+  # ── Celery / Flower worker metrics ────────────────────────────────────────
+  - job_name: "celery-flower"
+    scrape_interval: 30s
+    static_configs:
+      - targets: ["localhost:5555"]
+        labels:
+          service:  "celery"
+          instance: "wellkoc-worker-01"
+    metrics_path: /metrics
+
+  # ── Nginx (via nginx-prometheus-exporter or stub_status) ─────────────────
+  # Requires nginx-prometheus-exporter running on port 9113
+  - job_name: "nginx-exporter"
+    scrape_interval: 15s
+    static_configs:
+      - targets: ["localhost:9113"]
+        labels:
+          service:  "nginx"
+          instance: "wellkoc-nginx-01"
+    metrics_path: /metrics

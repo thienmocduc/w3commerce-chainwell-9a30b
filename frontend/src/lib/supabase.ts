@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://gltdkplfukjfpajwftzd.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_YaDcgMbj6oTeQtcYrX1yUA_MYs_CthT';
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error('[WellKOC] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in .env');
+}
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {

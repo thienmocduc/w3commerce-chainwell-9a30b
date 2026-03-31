@@ -252,9 +252,9 @@ export default function MainLayout() {
             display: 'flex',
             alignItems: 'center',
             gap: 2,
-            marginLeft: 24,
+            marginLeft: 'auto',
             overflowX: 'auto',
-            flex: 1,
+            flexShrink: 0,
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
           }}
