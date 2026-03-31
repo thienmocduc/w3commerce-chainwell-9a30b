@@ -15,6 +15,7 @@ export default defineConfig({
       '@utils': resolve(__dirname, './src/utils'),
       '@i18n': resolve(__dirname, './src/i18n'),
       '@lib': resolve(__dirname, './src/lib'),
+      '@data': resolve(__dirname, './src/data'),
     },
   },
 

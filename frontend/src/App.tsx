@@ -48,6 +48,7 @@ const Cart = lazy(() => import('@pages/Cart'));
 const Checkout = lazy(() => import('@pages/Checkout'));
 const ProductDetail = lazy(() => import('@pages/ProductDetail'));
 const Pricing = lazy(() => import('@pages/Pricing'));
+const Legal = lazy(() => import('@pages/Legal'));
 const VNeIDCallback = lazy(() => import('@pages/VNeIDCallback'));
 const NotFound = lazy(() => import('@pages/NotFound'));
 
@@ -110,6 +111,7 @@ export default function App() {
           <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
           <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/legal" element={<Legal />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="*" element={<NotFound />} />
         </Route>

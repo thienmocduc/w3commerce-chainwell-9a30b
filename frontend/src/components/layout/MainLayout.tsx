@@ -138,9 +138,9 @@ const FOOTER_LINKS = [
   {
     titleKey: 'footer.legal',
     links: [
-      { to: '/pricing', labelKey: 'layout.footer.terms' },
-      { to: '/pricing', labelKey: 'layout.footer.privacy' },
-      { to: '/pricing', label: 'Cookie Policy' },
+      { to: '/legal?doc=tos&role=general', labelKey: 'layout.footer.terms' },
+      { to: '/legal?doc=privacy&role=general', labelKey: 'layout.footer.privacy' },
+      { to: '/legal?doc=tos&role=general', label: 'Cookie Policy' },
       { to: '/pricing', labelKey: 'layout.footer.contact' },
     ],
   },

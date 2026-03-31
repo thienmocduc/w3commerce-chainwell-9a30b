@@ -431,6 +431,28 @@ export default function Register() {
                     </>
                   )}
 
+                  {/* Legal consent — role-specific TOS + Privacy */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4, padding: '12px 14px', borderRadius: 10, background: 'var(--bg-2)', border: '1px solid var(--border)' }}>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', fontSize: '.78rem', color: 'var(--text-2)', lineHeight: 1.5 }}>
+                      <input type="checkbox" required style={{ marginTop: 3, flexShrink: 0 }} />
+                      <span>
+                        {t('register.agreeToS')}{' '}
+                        <a href={`/legal?doc=tos&role=${selectedRole || 'buyer'}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--c6-500)', textDecoration: 'underline' }}>
+                          {selectedRole === 'koc' ? t('register.tosKoc') : selectedRole === 'vendor' ? t('register.tosVendor') : t('register.tosBuyer')}
+                        </a>
+                      </span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, cursor: 'pointer', fontSize: '.78rem', color: 'var(--text-2)', lineHeight: 1.5 }}>
+                      <input type="checkbox" required style={{ marginTop: 3, flexShrink: 0 }} />
+                      <span>
+                        {t('register.agreePrivacy')}{' '}
+                        <a href={`/legal?doc=privacy&role=${selectedRole || 'buyer'}`} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--c6-500)', textDecoration: 'underline' }}>
+                          {selectedRole === 'koc' ? t('register.privacyKoc') : selectedRole === 'vendor' ? t('register.privacyVendor') : t('register.privacyBuyer')}
+                        </a>
+                      </span>
+                    </label>
+                  </div>
+
                   <button type="submit" className="btn btn-primary btn-lg" disabled={loading} style={{ width: '100%', marginTop: 8, padding: '14px 24px', opacity: loading ? 0.7 : 1 }}>
                     {loading ? t('register.creating') : t('register.registerBtn')}
                   </button>
