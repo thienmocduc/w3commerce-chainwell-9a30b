@@ -41,16 +41,18 @@ export default defineConfig({
     cssMinify: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          supabase: ['@supabase/supabase-js'],
-          web3: ['viem', '@wagmi/core'],
-          ui: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs'],
-          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
-          utils: ['date-fns', 'clsx', 'zustand', 'axios'],
+        manualChunks(id) {
+          if (id.includes('node_modules/viem') || id.includes('node_modules/@wagmi')) return 'web3';
+          if (id.includes('node_modules/@supabase')) return 'supabase';
+          if (id.includes('node_modules/react-dom')) return 'vendor';
+          if (id.includes('node_modules/react-router-dom') || id.includes('node_modules/react-router/') || id.includes('node_modules/@remix-run')) return 'vendor';
+          if (id.includes('node_modules/react/') || id.includes('node_modules/react-is')) return 'vendor';
+          if (id.includes('node_modules/lucide-react') || id.includes('node_modules/@radix-ui')) return 'ui';
+          if (id.includes('node_modules/react-hook-form') || id.includes('node_modules/@hookform') || id.includes('node_modules/zod')) return 'forms';
+          if (id.includes('node_modules/date-fns') || id.includes('node_modules/clsx') || id.includes('node_modules/zustand') || id.includes('node_modules/axios')) return 'utils';
         },
       },
     },
-    chunkSizeWarningLimit: 300,
+    chunkSizeWarningLimit: 500,
   },
 })
