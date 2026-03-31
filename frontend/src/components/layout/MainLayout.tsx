@@ -844,12 +844,35 @@ export default function MainLayout() {
                   {t('footer.brand')}
                 </span>
               </div>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 320 }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-3)', lineHeight: 1.6, maxWidth: 340 }}>
                 {t('footer.tagline')}
               </p>
 
+              {/* Company info */}
+              <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 6, fontSize: '0.8rem', color: 'var(--text-3)', lineHeight: 1.6 }}>
+                <div style={{ fontWeight: 700, color: 'var(--text-2)', fontSize: '0.82rem' }}>
+                  Công ty Cổ phần Công nghệ WellNexus
+                </div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                  <span style={{ flexShrink: 0 }}>📍</span>
+                  <span>35 Thái Phiên, Phường Hải Châu, Đà Nẵng, Việt Nam</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ flexShrink: 0 }}>📞</span>
+                  <a href="tel:0913156676" style={{ color: 'var(--text-2)', textDecoration: 'none' }}>Hotline: <span style={{ whiteSpace: 'nowrap' }}>0913 156 676</span></a>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ flexShrink: 0 }}>✉️</span>
+                  <a href="mailto:support@wellkoc.com" style={{ color: 'var(--text-2)', textDecoration: 'none' }}>support@wellkoc.com</a>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ flexShrink: 0 }}>📧</span>
+                  <a href="mailto:hotline@wellkoc.com" style={{ color: 'var(--text-2)', textDecoration: 'none' }}>hotline@wellkoc.com</a>
+                </div>
+              </div>
+
               {/* Chain badges */}
-              <div style={{ display: 'flex', gap: 8, marginTop: 20, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
                 {CHAIN_BADGES.map((chain) => (
                   <span
                     key={chain}
@@ -915,7 +938,7 @@ export default function MainLayout() {
               color: 'var(--text-3)',
             }}
           >
-            <span>&copy; 2026 WellKOC. All rights reserved.</span>
+            <span>&copy; 2026 WellNexus Technology JSC. All rights reserved.</span>
             <span style={{ fontFamily: 'var(--ff-mono)', whiteSpace: 'nowrap' }}>v3.0 · Chakra 4567</span>
           </div>
         </div>
